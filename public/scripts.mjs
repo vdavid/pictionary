@@ -1,6 +1,6 @@
-import Greetings from './Greetings.mjs';
+import Page from './Page.mjs';
 
 ReactDOM.render(
-    React.createElement(Greetings, { name : 'David' }),
+    React.createElement(Page, { name : 'David' }),
     document.getElementById('root')
 );
