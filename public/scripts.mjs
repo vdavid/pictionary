@@ -1,6 +1,6 @@
-import Page from './Page.mjs';
+import App from './App.mjs';
 
 ReactDOM.render(
-    React.createElement(Page, { name : 'David' }),
-    document.getElementById('root')
+    React.createElement(App),
+    document.getElementById('app')
 );
