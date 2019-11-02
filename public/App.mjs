@@ -1,6 +1,5 @@
 import HostAndClient from './HostAndClient.mjs';
 const {BrowserRouter, Switch, Route, Redirect, Link} = window.ReactRouterDOM;
-const {connect} = window.ReactRedux;
 
 class App extends React.Component {
     constructor(props) {
@@ -28,18 +27,4 @@ class App extends React.Component {
     }
 }
 
-function mapStateToProps(state) {
-    return {
-        messages: state.messages,
-    };
-}
-
-function mapDispatchToProps(dispatch) {
-    return {
-        addMessage: message => {
-            dispatch({type: 'addMessage', payload: message});
-        }
-    };
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(App);
+export default App;
