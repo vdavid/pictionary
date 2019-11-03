@@ -1,4 +1,4 @@
-export default class Input extends React.Component {
+export default class ChatInputComponent extends React.Component {
     onTyping(event) {
         this.props.saveTypedMessage(event.target.value);
         if (event.keyCode === 13) {

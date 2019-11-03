@@ -1,8 +1,15 @@
 /**
+ * @typedef {Object} MessageComponent
+ * @property {string} text
+ * @property {boolean} isIncoming
+ * @property {boolean} isSystemMessage
+ * @property {Date} dateTime
+ */
+/**
  * @typedef {Object} ChatState
  * @property {string} typedMessage
  * @property {boolean} isSendingMessage
- * @property {string[]} messages
+ * @property {MessageComponent[]} messages
  */
 
 export const actionTypes = {
@@ -12,14 +19,6 @@ export const actionTypes = {
     MESSAGE_SENT: 'chat/messageSent',
     SENDING_FAILED: 'chat/sendingFailed',
 };
-
-function _formatMessage(message) {
-    const now = new Date();
-    const h = now.getHours();
-    const m = now.getMinutes().toString().padStart(2, '0');
-    const s = now.getSeconds().toString().padStart(2, '0');
-    return h + ":" + m + ":" + s + " – " + message;
-}
 
 /**
  * @param {ChatState} state
@@ -35,20 +34,20 @@ export function reducer(state, action) {
     } : {
         typedMessage: 'x',
         isSendingMessage: false,
-        messages: ['cxxx']
+        messages: [{text: 'Chat is ready.', isIncoming: false, isSystemMessage: true, dateTime: new Date()}]
     };
 
     if (action.type === actionTypes.SAVE_TYPED_MESSAGE) {
         newState.typedMessage = action.payload;
     } else if (action.type === actionTypes.MESSAGE_RECEIVED) {
-        newState.messages = state.messages.concat('Received: ' + _formatMessage(action.payload));
+        newState.messages.push({text: action.payload, isIncoming: true, isSystemMessage: false, dateTime: new Date()});
     } else if (action.type === actionTypes.SEND_MESSAGE) {
-        newState.messages = state.messages.concat('Sent: ' + _formatMessage(action.payload));
+        newState.messages.push({text: action.payload, isIncoming: false, isSystemMessage: false, dateTime: new Date()});
         newState.isSendingMessage = true;
     } else if (action.type === actionTypes.MESSAGE_SENT) {
         newState.isSendingMessage = false;
     } else if (action.type === actionTypes.SENDING_FAILED) {
-        newState.messages = state.messages.concat('Sending failed.');
+        state.messages.push({text: 'Sending failed.', isIncoming: false, isSystemMessage: true, dateTime: new Date()});
         newState.isSendingMessage = false;
     }
 

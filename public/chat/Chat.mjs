@@ -1,6 +1,7 @@
-import SendButton from './SendButton.mjs';
-import Input from './Input.mjs';
 import {actionTypes as chatActionTypes} from './store.mjs';
+import SendButton from './SendButton.mjs';
+import ChatInputComponent from './ChatInputComponent.mjs';
+import MessagesComponent from './MessagesComponent.mjs';
 
 const {connect} = window.ReactRedux;
 
@@ -12,18 +13,9 @@ class Chat extends React.Component {
         super(props);
     }
 
-    // TODO: Use this
-    // _addMessage(message) {
-    //     const now = new Date();
-    //     const h = now.getHours();
-    //     const m = now.getMinutes().toString().padStart(2, '0');
-    //     const s = now.getSeconds().toString().padStart(2, '0');
-    //     //message.innerHTML = "<br><span class=\"msg-time\">" + h + ":" + m + ":" + s + "</span>  -  " + msg + message.innerHTML;
-    // };
-
     render() {
         return React.createElement('div', {className: 'chat'},
-            React.createElement(Input, {
+            React.createElement(ChatInputComponent, {
                 typedMessage: this.props.typedMessage,
                 saveTypedMessage: this.props.saveTypedMessage,
                 addMessage: this.props.addMessage,
@@ -32,7 +24,9 @@ class Chat extends React.Component {
                 typedMessage: this.props.typedMessage,
                 addMessage: this.props.addMessage,
             }),
-            React.createElement('div', {className: 'messages'}, this.props.messages.join('<br>'))
+            React.createElement(MessagesComponent, {
+                messages: this.props.messages
+            }),
         );
     }
 }
