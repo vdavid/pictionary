@@ -1,8 +1,6 @@
 import App from './App.mjs';
-import ReduxStoreFactory from './ReduxStoreFactory.mjs';
+import store from './reduxStore.mjs';
 const {Provider} = window.ReactRedux;
-
-const store = ReduxStoreFactory.createStore();
 
 ReactDOM.render(
     React.createElement(Provider, {store},

@@ -1,4 +1,4 @@
-import HostAndClient from './HostAndClient.mjs';
+import HostAndClient from './connection/HostAndClient.mjs';
 const {BrowserRouter, Switch, Route, Redirect, Link} = window.ReactRouterDOM;
 
 class App extends React.Component {
