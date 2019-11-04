@@ -1,4 +1,5 @@
-import HostAndClient from './connection/HostAndClient.mjs';
+import GamePage from './GamePage.mjs';
+
 const {BrowserRouter, Switch, Route, Redirect, Link} = window.ReactRouterDOM;
 
 class App extends React.Component {
@@ -8,7 +9,7 @@ class App extends React.Component {
 
     render() {
         return React.createElement(BrowserRouter, {basename: '/'},
-            React.createElement('div', null,
+            React.createElement('header', {},
                 React.createElement('nav', {},
                     React.createElement('ul', {},
                         React.createElement('li', {},
@@ -17,12 +18,15 @@ class App extends React.Component {
                         )
                     )
                 ),
+            ),
+            React.createElement('main', null,
                 React.createElement(Switch, null,
                     React.createElement(Route, {path: '/about', component: () => React.createElement('h2', {}, 'Hello')}),
-                    React.createElement(Route, {path: '/', component: () => React.createElement(HostAndClient, {messages: this.props.messages, addMessage: this.props.addMessage})}),
+                    React.createElement(Route, {path: '/', component: () => React.createElement(GamePage, {messages: this.props.messages, addMessage: this.props.addMessage})}),
                     React.createElement(Redirect, {path: '*', to: {...window.history, pathname: "/"}}),
-                )
-            )
+                ),
+            ),
+            React.createElement('footer', null, React.createElement('span', {className: 'copyright'}, 'Made with ❤️ by David')),
         );
     }
 }

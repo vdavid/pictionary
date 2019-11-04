@@ -34,7 +34,7 @@ export function reducer(state, action) {
     } : {
         typedMessage: 'x',
         isSendingMessage: false,
-        messages: [{text: 'Chat is ready.', isIncoming: false, isSystemMessage: true, dateTime: new Date()}]
+        messages: [{text: 'Chat is ready.', isIncoming: true, isSystemMessage: true, dateTime: new Date()}]
     };
 
     if (action.type === actionTypes.SAVE_TYPED_MESSAGE) {

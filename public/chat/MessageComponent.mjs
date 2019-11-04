@@ -8,9 +8,10 @@ export default class MessageComponent extends React.Component {
 
     render() {
         return React.createElement('li', {className: [this.props.message.isIncoming ? 'in' : 'out', this.props.message.isSystemMessage ? 'system' : ''].join(' ').trim()},
-            React.createElement('span', {className: 'dateTime'}, this._formatDate(this.props.message.dateTime)),
-            React.createElement('span', {className: 'sender'}, this.props.message.isIncoming ? 'Remote' : 'Local:'),
-            React.createElement('span', {className: 'message'}, this.props.message.text),
+            React.createElement('div', {className: 'message'},
+                React.createElement('span', {className: 'text'}, this.props.message.text),
+                React.createElement('span', {className: 'dateTime'}, this._formatDate(this.props.message.dateTime)),
+            ),
         );
     }
 }

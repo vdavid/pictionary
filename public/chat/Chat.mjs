@@ -14,7 +14,7 @@ class Chat extends React.Component {
     }
 
     render() {
-        return React.createElement('div', {className: 'chat'},
+        return React.createElement('section', {id: 'chatSection'},
             React.createElement(ChatInputComponent, {
                 typedMessage: this.props.typedMessage,
                 saveTypedMessage: this.props.saveTypedMessage,
