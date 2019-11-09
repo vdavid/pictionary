@@ -22,7 +22,7 @@ export const actionTypes = {
 
 /**
  * @param {ChatState} state
- * @param {{type: string, payload: 'addMessage'|'saveTypedMessage'}} action
+ * @param {{type: string, payload: *}} action
  * @return {ChatState}
  */
 export function reducer(state, action) {

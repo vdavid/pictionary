@@ -16,7 +16,7 @@ export const actionTypes = {
 
 /**
  * @param {ConnectionState} state
- * @param {{type: string, payload: 'addMessage'|'saveTypedMessage'}} action
+ * @param {{type: string, payload: *}} action
  * @return {ConnectionState}
  */
 export function reducer(state, action) {
