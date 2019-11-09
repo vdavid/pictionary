@@ -20,6 +20,7 @@ class GamePage extends React.Component {
                 React.createElement(Chat, {state: this.props.chat}),
                 React.createElement('section', {id: 'timerSection'}, 'Timer comes here'),
             ),
+            !this.props.isConnected ? React.createElement('div', {className: 'fullScreenSemiTransparentCover'}) : null,
             !this.props.isConnected ? React.createElement('div', {id: 'connectBox',},
                 React.createElement(HostConnectionBox, {localPeerId: this.props.localPeerId}),
                 React.createElement('div', {className: 'or'}, React.createElement('span', null, 'or')),
