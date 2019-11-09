@@ -18,7 +18,7 @@ input { border: none; border-radius: 2px; color: var(--primary-text-color); }
 button { border: none; border-radius: 2px; }
 
 /* App layout and settings */
-#app { height: 100%; display: grid; grid-template-rows: 2em auto 2em; }
+#app { height: 100%; display: grid; grid-template-rows: 2em calc(100vh - 4em) 2em; }
 #app > header { padding: 0 20px; background-color: var(--dark-primary-color); }
 #app > header nav { height: 100%; }
 #app > header nav ul { margin: 0; padding: 0; display: table; height: 100%; list-style: none; }
@@ -30,28 +30,23 @@ button { border: none; border-radius: 2px; }
 
 /* Game page layout */
 #gamePage { height: 100%; }
-#gamePageLayout { display: flex; flex-flow: row wrap; height: 100%; }
-#gamePageLayout > * { height: 100%; }
-#canvasAndGameControls { flex-basis: 100%; }
-#chatAndTimer { flex-basis: 100%; background-color: var(--light-primary-color); display: flex; flex-flow: column nowrap; }
-#connectionSection { flex: 0 0 3em; }
-#chatSection { flex: 1 1 calc(100% - 11em); }
-#timerSection { flex: 0 0 8em; }
-@media all and (min-width: 900px) {
-    /* Large screens */
-    #canvasAndGameControls { flex-basis: 70%; }
-    #chatAndTimer { flex-basis: 30%; }
-}
-#canvasAndGameControls { display: flex; flex-flow: column; }
-#canvasSection { padding: 20px; flex:1 1 auto; }
-#gameControlsSection { padding: 20px; flex:0 0 8em; }
+#gamePageLayout { display:grid; height:100%; grid-template-columns: auto 30%; grid-template-rows: 3em calc(100% - 3em - 200px) 100px 100px; grid-template-areas:
+        "canvas connection"
+        "canvas chat"
+        "canvas timer"
+        "gameControls timer"}
+#canvasSection { padding: 20px; grid-area: canvas; }
+#gameControlsSection { padding: 20px; grid-area: gameControls; }
+#connectionSection { padding:20px; background-color: var(--light-primary-color); grid-area: connection; }
+#chatSection { padding:20px; overflow-y:scroll; background-color: var(--light-primary-color); grid-area: chat; }
+#timerSection { padding:20px; background-color: var(--light-primary-color); grid-area: timer; }
 
 #chatAndTimer { }
 #chatAndTimer > * { padding: 20px; }
 
-#connectionSection {  }
+#connectionSection { }
 #chatSection ul { overflow-y: scroll; }
-#timerSection {  }
+#timerSection { }
 
 /* Connect box */
 #connectBox { position: absolute; width: 500px; top: 50%; left: 50%; transform: translate(-50%, -50%); display: grid; grid-template-columns: 47% 6% 47%; padding: 20px; background-color: var(--default-primary-color); color: var(--text-primary-color); border-radius: 2px; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23); }
@@ -65,10 +60,15 @@ button { border: none; border-radius: 2px; }
 /* Chat */
 #chatSection {}
 #chatSection ul { margin: 0; padding: 5px; list-style: none; }
-#chatSection li { text-align:right; color: var(--text-primary-color); margin-bottom:3px; }
-#chatSection li .message { display:inline-block; text-align:right; padding:5px; border-radius:10px; }
-#chatSection li .dateTime { display:block; font-size:0.5em; }
+#chatSection li { text-align: right; color: var(--text-primary-color); padding: 0 8px 0 0; margin-bottom: 3px; }
+#chatSection li .message { display: inline-block; position: relative; border-radius: 10px; padding: 8px; text-align: right; }
+#chatSection li .dateTime { display: block; font-size: 0.5em; }
 #chatSection li.in .message { background-color: var(--dark-primary-color); }
-#chatSection li.out { text-align:left; }
-#chatSection li.out .message { text-align:left; background-color: var(--default-primary-color); }
+#chatSection li.out { padding: 0 0 0 8px; text-align: left; }
+#chatSection li.out .message { text-align: left; background-color: var(--default-primary-color); }
 #chatSection li.system .message { background-color: var(--accent-color); color: var(--primary-text-color); }
+
+#chatSection li .message:before { content: ""; position: absolute; width: 0; height: 0; right: -8px; top: 0; border: 8px solid; border-color: var(--dark-primary-color) var(--dark-primary-color) transparent transparent; }
+#chatSection li.out .message:before { right: auto; left: -8px; border-color: var(--default-primary-color) var(--default-primary-color) transparent transparent; }
+#chatSection li.in.system .message:before { border-color: var(--accent-color) transparent transparent var(--accent-color); }
+#chatSection li.out.system .message:before { border-color: var(--accent-color) var(--accent-color) transparent transparent; }
