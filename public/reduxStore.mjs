@@ -2,6 +2,7 @@ const {Redux} = window;
 import socketMiddleware from './connection/socketMiddleware.mjs';
 import {reducer as connectionReducer} from './connection/store.mjs';
 import {reducer as chatReducer} from './chat/store.mjs';
+import {reducer as gameReducer} from './game/store.mjs';
 
 /**
  * @typedef {Object} State
@@ -12,6 +13,7 @@ import {reducer as chatReducer} from './chat/store.mjs';
 const combinedReducer = Redux.combineReducers({
     chat: chatReducer,
     connection: connectionReducer,
+    game: gameReducer,
 });
 
 // noinspection JSUnresolvedVariable
