@@ -28,7 +28,7 @@ export default class ChatInputComponent extends React.Component {
         return React.createElement('input', {
             type: 'text',
             ref: 'chatInput',
-            placeholder: 'Enter a message...',
+            placeholder: 'Enter message or guess...',
             autoFocus: true,
             value: this.props.typedMessage,
             onChange: this._onTyping,

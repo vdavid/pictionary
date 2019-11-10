@@ -7,7 +7,6 @@ import RoundStartingBox from './game/RoundStartingBox.mjs';
 import DrawingCanvas from './drawing-canvas/DrawingCanvas.mjs';
 import GuessingCanvas from './guessing-canvas/GuessingCanvas.mjs';
 import ConnectionStatus from './connection/ConnectionStatus.mjs';
-import ConnectingIndicator from './connection/ConnectingIndicator.mjs';
 import Chat from './chat/Chat.mjs';
 import Timer from './game/Timer.mjs';
 
@@ -19,11 +18,8 @@ class GamePage extends React.Component {
                     this.props.whichPlayerDraws === 'local' ? React.createElement(DrawingCanvas, {updateEventDispatchIntervalInMilliseconds: 500}) : null,
                     this.props.whichPlayerDraws === 'remote' ? React.createElement(GuessingCanvas) : null,
                 ),
-                React.createElement('section', {id: 'gameControlsSection'}, 'Game controls come here'),
-                React.createElement('section', {id: 'connectionSection'},
-                    React.createElement(ConnectionStatus, {status: this.props.status}),
-                    React.createElement(ConnectingIndicator, {isConnecting: this.props.isConnecting}),
-                ),
+                React.createElement(GameControls),
+                React.createElement(ConnectionStatus),
                 React.createElement(Chat, {state: this.props.chat}),
                 React.createElement('section', {id: 'timerSection'},
                     this.props.isRoundStarted ? React.createElement(Timer, {durationInMilliseconds: 60 * 1000}) : null,
@@ -47,8 +43,6 @@ class GamePage extends React.Component {
  */
 function mapStateToProps(state) {
     return {
-        status: state.connection.status,
-        isConnecting: state.connection.isConnectingInProgress,
         isConnected: state.connection.isConnectedToPeer,
         isRoundStarted: state.game.isRoundStarted,
         isRoundStarting: state.game.isRoundStarting,

@@ -37,7 +37,7 @@ export default class ConnectToPeerBox extends React.Component {
             }),
             React.createElement('button', {
                 className: 'connectButton',
-                onclick: this._connectToCurrentlyEnteredRemotePeer,
+                onClick: this._connectToCurrentlyEnteredRemotePeer,
                 disabled: this.props.isConnecting || this.props.isConnected || !this.state.remotePeerId,
             }, 'Connect'),
         );
