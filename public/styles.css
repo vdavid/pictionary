@@ -80,7 +80,10 @@ button { border: none; border-radius: 2px; }
 #drawingCanvas { cursor: crosshair; }
 
 /* Indicator light */
-.indicatorLight { width: 25px; height: 25px; margin-right:10px; background-color: #bbb; border-radius: 50%; display: inline-block; }
-.indicatorLight.red { background-color:red; }
-.indicatorLight.yellow { background-color:yellow; }
-.indicatorLight.green { background-color:green; }
+.indicatorLight { width: 25px; height: 25px; margin-right: 10px; background-color: #bbb; border-radius: 50%; display: inline-block; }
+.indicatorLight.red { background-color: red; }
+.indicatorLight.yellow { background-color: yellow; }
+.indicatorLight.green { background-color: green; }
+
+#gameControlsSection { position: relative; grid-area: gameControls; }
+#gameControlsSection span { position: absolute; top: 50%; width: 100%; transform: translate(0, -50%); font-size: 2.5vw; text-align: center; }

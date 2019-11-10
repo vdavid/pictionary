@@ -6,6 +6,8 @@ import RoundStartingBox from './game/RoundStartingBox.mjs';
 
 import DrawingCanvas from './drawing-canvas/DrawingCanvas.mjs';
 import GuessingCanvas from './guessing-canvas/GuessingCanvas.mjs';
+import GameControls from './game-controls/GameControls.mjs';
+
 import ConnectionStatus from './connection/ConnectionStatus.mjs';
 import Chat from './chat/Chat.mjs';
 import Timer from './game/Timer.mjs';
