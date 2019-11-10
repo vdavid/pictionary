@@ -15,15 +15,18 @@ class Chat extends React.Component {
 
     render() {
         return React.createElement('section', {id: 'chatSection'},
-            React.createElement(ChatInputComponent, {
-                typedMessage: this.props.typedMessage,
-                saveTypedMessage: this.props.saveTypedMessage,
-                addMessage: this.props.addMessage,
-            }),
-            React.createElement(SendButton, {
-                typedMessage: this.props.typedMessage,
-                addMessage: this.props.addMessage,
-            }),
+            React.createElement('div', {class: 'chatInputAndButton'},
+                React.createElement(ChatInputComponent, {
+                    typedMessage: this.props.typedMessage,
+                    saveTypedMessage: this.props.saveTypedMessage,
+                    addMessage: this.props.addMessage,
+                }),
+                React.createElement(SendButton, {
+                    typedMessage: this.props.typedMessage,
+                    addMessage: this.props.addMessage,
+                }),
+            ),
+            React.createElement('div'),
             React.createElement(MessagesComponent, {
                 messages: this.props.messages
             }),
