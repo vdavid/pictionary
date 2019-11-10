@@ -4,12 +4,13 @@
  * @property {boolean} isConnectingInProgress
  * @property {boolean} isConnectedToPeer
  * @property {boolean} isHost
- * @property {string|null} localPeerId
- * @property {string} status
+ * @property {string|undefined} localPeerId Only if listening.
+ * @property {string|undefined} remotePeerId Only if connected.
  */
 
 export const actionTypes = {
-    ACCEPTING_CONNECTIONS: 'connection/acceptingConnections',
+    STARTED_ACCEPTING_CONNECTIONS: 'connection/startedAcceptingConnections',
+    STOPPED_ACCEPTING_CONNECTIONS: 'connection/stoppedAcceptingConnections',
     CONNECT: 'connection/connect',
     CONNECTED: 'connection/connected',
     DISCONNECT: 'connection/disconnect',
@@ -26,15 +27,56 @@ function _getStateCopy(state) {
         isConnectedToPeer: state.isConnectedToPeer,
         isHost: state.isHost,
         localPeerId: state.localPeerId,
-        status: state.status,
+        remotePeerId: state.remotePeerId,
     } : {
         isAcceptingConnections: false,
         isConnectingInProgress: false,
         isConnectedToPeer: false,
         isHost: undefined,
-        localPeerId: null,
-        status: 'Disconnected',
+        localPeerId: undefined,
+        remotePeerId: undefined,
     };
+}
+
+/**
+ * @param {ConnectionState} state
+ * @param {string|undefined} localPeerId The local peer ID, or undefined if not accepting connections.
+ * @private
+ */
+function _startedAcceptingConnections(state, localPeerId) {
+    state.isAcceptingConnections = true;
+    state.localPeerId = localPeerId;
+}
+
+/**
+ * @param {ConnectionState} state
+ * @param {string|undefined} localPeerId The local peer ID, or undefined if not accepting connections.
+ * @private
+ */
+function _stoppedAcceptingConnections(state, localPeerId) {
+    state.isAcceptingConnections = false;
+    state.localPeerId = undefined;
+}
+
+/**
+ * @param {ConnectionState} state
+ * @param {string} payload The remote peer ID.
+ * @private
+ */
+function _connect(state, payload) {
+    state.isConnectingInProgress = true;
+}
+
+/**
+ * @param {ConnectionState} state
+ * @param {{remotePeerId: string, isHost: boolean}|boolean} payload Data, or false if just disconnected.
+ * @private
+ */
+function _connected(state, payload) {
+    state.isConnectingInProgress = false;
+    state.isConnectedToPeer = !!payload;
+    state.isHost = payload ? payload.isHost : undefined;
+    state.remotePeerId = payload ? payload.remotePeerId : undefined;
 }
 
 /**
@@ -43,20 +85,16 @@ function _getStateCopy(state) {
  * @return {ConnectionState}
  */
 export function reducer(state, action) {
+    const actionTypeToFunctionMap = {
+        [actionTypes.STARTED_ACCEPTING_CONNECTIONS]: _startedAcceptingConnections,
+        [actionTypes.STOPPED_ACCEPTING_CONNECTIONS]: _stoppedAcceptingConnections,
+        [actionTypes.CONNECT]: _connect,
+        [actionTypes.CONNECTED]: _connected,
+    };
     const newState = _getStateCopy(state);
 
-    if (action.type === actionTypes.ACCEPTING_CONNECTIONS) { /* Payload: {string|false} The local peer ID, or false if not accepting connections. */
-        newState.isAcceptingConnections = !!action.payload;
-        newState.localPeerId = action.payload || null;
-        newState.status = 'Awaiting connection at "' + action.payload + '"...';
-    } else if (action.type === actionTypes.CONNECT) { /* Payload: {string} The remote peer ID */
-        newState.isConnectingInProgress = true;
-    } else if (action.type === actionTypes.CONNECTED) { /* Payload: {{remotePeerId: string, isHost: boolean}|false} Data, or false if just disconnected. */
-        newState.isConnectingInProgress = false;
-        newState.isConnectedToPeer = !!action.payload;
-        newState.isHost = action.payload ? action.payload.isHost : undefined;
-        newState.status = action.payload ? 'I\'m ' + state.localPeerId
-            + ', connected to ' + action.payload.remotePeerId + '.' : 'Connection lost.';
+    if (actionTypeToFunctionMap[action.type]) {
+        actionTypeToFunctionMap[action.type](newState, action.payload);
     }
 
     return newState;

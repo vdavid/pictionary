@@ -38,30 +38,63 @@ function _getStateCopy(state) {
 
 /**
  * @param {ChatState} state
+ * @param {string} payload The message
+ */
+function _saveTypedMessage(state, payload) {
+    state.typedMessage = payload;
+}
+
+/**
+ * @param {ChatState} state
+ * @param {string} payload The message
+ */
+function _messageReceived(state, payload) {
+    state.messages.push({text: payload, isIncoming: true, isSystemMessage: false, dateTime: new Date()});
+}
+
+/**
+ * @param {ChatState} state
+ * @param {string} payload The message
+ */
+function _sendMessage(state, payload) {
+    state.messages.push({text: payload, isIncoming: false, isSystemMessage: false, dateTime: new Date()});
+    state.typedMessage = '';
+    state.isSendingMessage = true;
+}
+
+/**
+ * @param {ChatState} state
+ */
+function _messageSent(state) {
+    state.isSendingMessage = false;
+}
+
+/**
+ * @param {ChatState} state
+ */
+function _sendingFailed(state) {
+    state.messages.push({text: 'Sending failed.', isIncoming: false, isSystemMessage: true, dateTime: new Date()});
+    state.isSendingMessage = false;
+}
+
+/**
+ * @param {ChatState} state
  * @param {{type: string, payload: *}} action
  * @return {ChatState}
  */
 export function reducer(state, action) {
+    const actionTypeToFunctionMap = {
+        [actionTypes.SAVE_TYPED_MESSAGE]: _saveTypedMessage,
+        [actionTypes.MESSAGE_RECEIVED]: _messageReceived,
+        [actionTypes.SEND_MESSAGE]: _sendMessage,
+        [actionTypes.MESSAGE_SENT]: _messageSent,
+        [actionTypes.SENDING_FAILED]: _sendingFailed,
+    };
     const newState = _getStateCopy(state);
 
-    if (action.type === actionTypes.SAVE_TYPED_MESSAGE) {
-        newState.typedMessage = action.payload;
-    } else if (action.type === actionTypes.MESSAGE_RECEIVED) { /* Payload: {string} The remote peer ID */
-        newState.messages.push({text: action.payload, isIncoming: true, isSystemMessage: false, dateTime: new Date()});
-    } else if (action.type === actionTypes.SEND_MESSAGE) {
-        newState.messages.push({text: action.payload, isIncoming: false, isSystemMessage: false, dateTime: new Date()});
-        newState.typedMessage = '';
-        newState.isSendingMessage = true;
-    } else if (action.type === actionTypes.MESSAGE_SENT) {
-        newState.isSendingMessage = false;
-    } else if (action.type === actionTypes.SENDING_FAILED) {
-        state.messages.push({text: 'Sending failed.', isIncoming: false, isSystemMessage: true, dateTime: new Date()});
-        newState.isSendingMessage = false;
+    if (actionTypeToFunctionMap[action.type]) {
+        actionTypeToFunctionMap[action.type](newState, action.payload);
     }
 
     return newState;
-}
-
-function saveTypedMessage(state, payload) {
-
 }

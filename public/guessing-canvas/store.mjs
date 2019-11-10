@@ -22,16 +22,36 @@ function _getStateCopy(state) {
 
 /**
  * @param {GuessingCanvasState} state
+ * @param {DrawnLine[]} payload The new lines received since the last action
+ * @private
+ */
+function _drawingUpdated(state, payload) {
+    state.newLines = [...state.newLines, ...payload];
+}
+
+/**
+ * @param {GuessingCanvasState} state
+ * @param {int} payload The number of drawn lines just displayed
+ * @private
+ */
+function _newLinesProcessed(state, payload) {
+    state.newLines = state.newLines.slice(payload)
+}
+
+/**
+ * @param {GuessingCanvasState} state
  * @param {{type: string, payload: *}} action
  * @return {GuessingCanvasState}
  */
 export function reducer(state, action) {
+    const actionTypeToFunctionMap = {
+        [actionTypes.DRAWING_UPDATED]: _drawingUpdated,
+        [actionTypes.NEW_LINES_PROCESSED]: _newLinesProcessed,
+    };
     const newState = _getStateCopy(state);
 
-    if (action.type === actionTypes.DRAWING_UPDATED) { /* Payload: {DrawnLine[]} The new lines received since the last action */
-        newState.newLines = [...state.newLines, ...action.payload];
-    } else if (action.type === actionTypes.NEW_LINES_PROCESSED) { /* Payload: {int} The number of drawn lines just displayed} */
-        newState.newLines = state.newLines.slice(action.payload)
+    if (actionTypeToFunctionMap[action.type]) {
+        actionTypeToFunctionMap[action.type](newState, action.payload);
     }
 
     return newState;
