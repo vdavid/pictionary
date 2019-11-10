@@ -20,12 +20,10 @@ export const actionTypes = {
 
 /**
  * @param {GameState} state
- * @param {{type: string, payload: *}} action
- * @return {GameState}
+ * @returns {*}
  */
-export function reducer(state, action) {
-    /** @type {GameState} */
-    const newState = state ? {
+function _getStateCopy(state) {
+    return state ? {
         isGameStarted: state.isGameStarted,
         isRoundStarting: state.isRoundStarting,
         isRoundStarted: state.isRoundStarted,
@@ -33,6 +31,7 @@ export function reducer(state, action) {
         localPlayerPoints: state.localPlayerPoints,
         remotePlayerPoints: state.remotePlayerPoints,
         whichPlayerDraws: state.whichPlayerDraws,
+        activePhrase: state.activePhrase,
     } : {
         isGameStarted: false,
         isRoundStarting: false,
@@ -41,7 +40,17 @@ export function reducer(state, action) {
         localPlayerPoints: 0,
         remotePlayerPoints: 0,
         whichPlayerDraws: undefined,
+        activePhrase: undefined,
     };
+}
+
+/**
+ * @param {GameState} state
+ * @param {{type: string, payload: *}} action
+ * @return {GameState}
+ */
+export function reducer(state, action) {
+    const newState = _getStateCopy(state);
 
     if (action.type === actionTypes.START_GAME) { /* Payload: undefined */
         newState.isGameStarted = true;

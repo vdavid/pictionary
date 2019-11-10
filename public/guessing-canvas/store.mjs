@@ -10,16 +10,23 @@ export const actionTypes = {
 
 /**
  * @param {GuessingCanvasState} state
- * @param {{type: string, payload: *}} action
- * @return {GuessingCanvasState}
+ * @returns {*}
  */
-export function reducer(state, action) {
-    /** @type {GuessingCanvasState} */
-    const newState = state ? {
+function _getStateCopy(state) {
+    return state ? {
         newLines: state.newLines,
     } : {
         newLines: [],
     };
+}
+
+/**
+ * @param {GuessingCanvasState} state
+ * @param {{type: string, payload: *}} action
+ * @return {GuessingCanvasState}
+ */
+export function reducer(state, action) {
+    const newState = _getStateCopy(state);
 
     if (action.type === actionTypes.DRAWING_UPDATED) { /* Payload: {DrawnLine[]} The new lines received since the last action */
         newState.newLines = [...state.newLines, ...action.payload];

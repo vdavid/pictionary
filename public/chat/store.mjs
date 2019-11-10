@@ -22,24 +22,31 @@ export const actionTypes = {
 
 /**
  * @param {ChatState} state
- * @param {{type: string, payload: *}} action
- * @return {ChatState}
+ * @returns {*}
  */
-export function reducer(state, action) {
-    /** @type {ChatState} */
-    const newState = state ? {
+function _getStateCopy(state) {
+    return state ? {
         typedMessage: state.typedMessage,
         isSendingMessage: state.isSendingMessage,
         messages: [...state.messages],
     } : {
-        typedMessage: 'x',
+        typedMessage: '',
         isSendingMessage: false,
         messages: [{text: 'Chat is ready.', isIncoming: true, isSystemMessage: true, dateTime: new Date()}]
     };
+}
+
+/**
+ * @param {ChatState} state
+ * @param {{type: string, payload: *}} action
+ * @return {ChatState}
+ */
+export function reducer(state, action) {
+    const newState = _getStateCopy(state);
 
     if (action.type === actionTypes.SAVE_TYPED_MESSAGE) {
         newState.typedMessage = action.payload;
-    } else if (action.type === actionTypes.MESSAGE_RECEIVED) {
+    } else if (action.type === actionTypes.MESSAGE_RECEIVED) { /* Payload: {string} The remote peer ID */
         newState.messages.push({text: action.payload, isIncoming: true, isSystemMessage: false, dateTime: new Date()});
     } else if (action.type === actionTypes.SEND_MESSAGE) {
         newState.messages.push({text: action.payload, isIncoming: false, isSystemMessage: false, dateTime: new Date()});
@@ -53,4 +60,8 @@ export function reducer(state, action) {
     }
 
     return newState;
+}
+
+function saveTypedMessage(state, payload) {
+
 }

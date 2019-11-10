@@ -17,12 +17,10 @@ export const actionTypes = {
 
 /**
  * @param {ConnectionState} state
- * @param {{type: string, payload: *}} action
- * @return {ConnectionState}
+ * @returns {*}
  */
-export function reducer(state, action) {
-    /** @type {ConnectionState} */
-    const newState = state ? {
+function _getStateCopy(state) {
+    return state ? {
         isAcceptingConnections: state.isAcceptingConnections,
         isConnectingInProgress: state.isConnectingInProgress,
         isConnectedToPeer: state.isConnectedToPeer,
@@ -37,6 +35,15 @@ export function reducer(state, action) {
         localPeerId: null,
         status: 'Disconnected',
     };
+}
+
+/**
+ * @param {ConnectionState} state
+ * @param {{type: string, payload: *}} action
+ * @return {ConnectionState}
+ */
+export function reducer(state, action) {
+    const newState = _getStateCopy(state);
 
     if (action.type === actionTypes.ACCEPTING_CONNECTIONS) { /* Payload: {string|false} The local peer ID, or false if not accepting connections. */
         newState.isAcceptingConnections = !!action.payload;

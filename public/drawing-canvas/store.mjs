@@ -21,6 +21,5 @@ export const actionTypes = {
  * @return {DrawingCanvasState}
  */
 export function reducer(state, action) {
-    /** @type {DrawingCanvasState} */
     return {};
 }
