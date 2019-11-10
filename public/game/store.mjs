@@ -1,16 +1,20 @@
 /**
  * @typedef {Object} GameState
- * @property {boolean} isStarting
- * @property {boolean} isStarted
+ * @property {boolean} isGameStarted
+ * @property {boolean} isRoundStarting
+ * @property {boolean} isRoundStarted
  * @property {Number} secondsRemaining
+ * @property {int} localPlayerPoints
+ * @property {int} remotePlayerPoints
+ * @property {'local'|'remote'|undefined} whichPlayerDraws
  */
 
 export const actionTypes = {
     START_GAME: 'game/startGame',
-    GAME_STARTING: 'game/gameStarting',
-    GAME_STARTED: 'game/gameStarted',
+    START_ROUND: 'game/startRound',
+    ROUND_STARTED: 'game/roundStarted',
     TIME_IS_UP: 'game/timeIsUp',
-    GAME_FINISHED: 'game/gameFinished',
+    ROUND_FINISHED: 'game/roundFinished',
     UPDATE_SECONDS_REMAINING: 'game/updateSecondsRemaining',
 };
 
@@ -22,27 +26,40 @@ export const actionTypes = {
 export function reducer(state, action) {
     /** @type {GameState} */
     const newState = state ? {
-        isStarting: state.isStarting,
-        isStarted: state.isStarted,
+        isGameStarted: state.isGameStarted,
+        isRoundStarting: state.isRoundStarting,
+        isRoundStarted: state.isRoundStarted,
         secondsRemaining: state.secondsRemaining,
+        localPlayerPoints: state.localPlayerPoints,
+        remotePlayerPoints: state.remotePlayerPoints,
+        whichPlayerDraws: state.whichPlayerDraws,
     } : {
-        isStarting: false,
-        isStarted: false,
+        isGameStarted: false,
+        isRoundStarting: false,
+        isRoundStarted: false,
         secondsRemaining: undefined,
+        localPlayerPoints: 0,
+        remotePlayerPoints: 0,
+        whichPlayerDraws: undefined,
     };
 
-    if (action.type === actionTypes.START_GAME) {
-        newState.isStarting = true;
-        newState.isStarted = false;
-    } else if (action.type === actionTypes.GAME_STARTED) {
-        newState.isStarting = false;
-        newState.isStarted = true;
-    } else if (action.type === actionTypes.TIME_IS_UP) {
+    if (action.type === actionTypes.START_GAME) { /* Payload: undefined */
+        newState.isGameStarted = true;
+        newState.isRoundStarting = false;
+        newState.isRoundStarted = false;
+    } else if (action.type === actionTypes.START_ROUND) { /* Payload: {'local' or 'remote'} */
+        newState.isRoundStarting = true;
+        newState.isRoundStarted = false;
+        newState.whichPlayerDraws = action.payload;
+    } else if (action.type === actionTypes.ROUND_STARTED) { /* Payload: undefined */
+        newState.isRoundStarting = false;
+        newState.isRoundStarted = true;
+    } else if (action.type === actionTypes.TIME_IS_UP) { /* Payload: undefined */
         newState.secondsRemaining = 0;
-    } else if (action.type === actionTypes.GAME_FINISHED) {
-        newState.isStarting = false;
-        newState.isStarted = false;
-    } else if (action.type === actionTypes.UPDATE_SECONDS_REMAINING) {
+    } else if (action.type === actionTypes.ROUND_FINISHED) {
+        newState.isRoundStarting = false;
+        newState.isRoundStarted = false;
+    } else if (action.type === actionTypes.UPDATE_SECONDS_REMAINING) { /* Payload: {float} seconds */
         newState.secondsRemaining = action.payload;
     }
 

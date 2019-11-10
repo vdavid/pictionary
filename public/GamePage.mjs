@@ -1,18 +1,24 @@
 const {connect} = window.ReactRedux;
-import {actionTypes as connectionActionTypes} from './connection/store.mjs';
+import {actionTypes as gameActionTypes} from './game/store.mjs';
 
-import Chat from './chat/Chat.mjs';
-import HostConnectionBox from './connection/HostConnectionBox.mjs';
-import ConnectToPeerBox from './connection/ConnectToPeerBox.mjs';
+import ConnectBox from './connection/ConnectBox.mjs';
+import RoundStartingBox from './game/RoundStartingBox.mjs';
+
+import DrawingCanvas from './drawing-canvas/DrawingCanvas.mjs';
+import GuessingCanvas from './guessing-canvas/GuessingCanvas.mjs';
 import ConnectionStatus from './connection/ConnectionStatus.mjs';
 import ConnectingIndicator from './connection/ConnectingIndicator.mjs';
+import Chat from './chat/Chat.mjs';
 import Timer from './game/Timer.mjs';
 
 class GamePage extends React.Component {
     render() {
         return React.createElement('div', {id: 'gamePage'},
             React.createElement('div', {id: 'gamePageLayout'},
-                React.createElement('section', {id: 'canvasSection'}, 'Game canvas comes here'),
+                React.createElement('section', {id: 'canvasSection'},
+                    this.props.whichPlayerDraws === 'local' ? React.createElement(DrawingCanvas, {updateEventDispatchIntervalInMilliseconds: 500}) : null,
+                    this.props.whichPlayerDraws === 'remote' ? React.createElement(GuessingCanvas) : null,
+                ),
                 React.createElement('section', {id: 'gameControlsSection'}, 'Game controls come here'),
                 React.createElement('section', {id: 'connectionSection'},
                     React.createElement(ConnectionStatus, {status: this.props.status}),
@@ -20,16 +26,18 @@ class GamePage extends React.Component {
                 ),
                 React.createElement(Chat, {state: this.props.chat}),
                 React.createElement('section', {id: 'timerSection'},
-                    React.createElement(Timer, {durationInMilliseconds: 60 * 1000}),
-                    ),
+                    this.props.isRoundStarted ? React.createElement(Timer, {durationInMilliseconds: 60 * 1000}) : null,
+                ),
             ),
-            !this.props.isConnected ? React.createElement('div', {className: 'fullScreenSemiTransparentCover'}) : null,
-            !this.props.isConnected ? React.createElement('div', {id: 'connectBox',},
-                React.createElement(HostConnectionBox, {localPeerId: this.props.localPeerId}),
-                React.createElement('div', {className: 'or'}, React.createElement('span', null, 'or')),
-                React.createElement(ConnectToPeerBox, {connect: this.props.connect, isConnecting: this.props.isConnecting, isConnected: this.props.isConnected}),
-            ) : null,
+            !this.props.isConnected ? React.createElement(ConnectBox) : null,
+            this.props.isRoundStarting ? React.createElement(RoundStartingBox, {durationInMilliseconds: 3 * 1000}) : null,
         );
+    }
+
+    componentDidUpdate() {
+        if (this.props.isConnected && this.props.isHost && !this.props.isRoundStarting && !this.props.isRoundStarted) {
+            this.props.startRound();
+        }
     }
 }
 
@@ -39,19 +47,26 @@ class GamePage extends React.Component {
  */
 function mapStateToProps(state) {
     return {
-        localPeerId: state.connection.localPeerId,
         status: state.connection.status,
         isConnecting: state.connection.isConnectingInProgress,
         isConnected: state.connection.isConnectedToPeer,
+        isRoundStarted: state.game.isRoundStarted,
+        isRoundStarting: state.game.isRoundStarting,
+        isHost: state.connection.isHost,
+        whichPlayerDraws: state.game.whichPlayerDraws,
     };
 }
 
 function mapDispatchToProps(dispatch) {
     return {
-        connect: remotePeerId => {
-            dispatch({type: connectionActionTypes.CONNECT, payload: remotePeerId});
+        startRound: () => {
+            dispatch({type: gameActionTypes.START_ROUND, payload: getRandomStartingPlayer()});
         },
     };
+}
+
+function getRandomStartingPlayer() {
+    return Math.round(Math.random()) === 1 ? 'remote' : 'local';
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(GamePage);

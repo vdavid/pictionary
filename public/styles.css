@@ -30,25 +30,12 @@ button { border: none; border-radius: 2px; }
 
 /* Game page layout */
 #gamePage { height: 100%; }
-#gamePageLayout { display:grid; height:100%; grid-template-columns: auto 30%; grid-template-rows: 3em calc(100% - 3em - 200px) 100px 100px; grid-template-areas:
-        "canvas connection"
-        "canvas chat"
-        "canvas chat"
-        "gameControls timer"}
-#canvasSection { padding: 20px; grid-area: canvas; }
+#gamePageLayout { display: grid; height: 100%; grid-template-columns: auto 30%; grid-template-rows: 3em calc(100% - 3em - 200px) 100px 100px; grid-template-areas: "canvas connection" "canvas chat" "canvas chat" "gameControls timer"}
+#canvasSection { grid-area: canvas; }
 #gameControlsSection { padding: 20px; grid-area: gameControls; }
-#connectionSection { padding:20px; background-color: var(--light-primary-color); grid-area: connection; }
-#chatSection { padding:20px; overflow-y:scroll; background-color: var(--light-primary-color); grid-area: chat; }
-#timerSection { position:relative; padding:20px; background-color: var(--light-primary-color); grid-area: timer; }
-#timerSection div { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size:3rem; }
-#timerSection div.overSoon { color:red; }
-
-#chatAndTimer { }
-#chatAndTimer > * { padding: 20px; }
-
-#connectionSection { }
-#chatSection ul { overflow-y: scroll; }
-#timerSection { }
+#connectionSection { padding: 20px; background-color: var(--light-primary-color); grid-area: connection; }
+#chatSection { background-color: var(--light-primary-color); grid-area: chat; }
+#timerSection { background-color: var(--light-primary-color); grid-area: timer; }
 
 /* Connect box */
 .fullScreenSemiTransparentCover { position: fixed; z-index: 1; top: 0; right: 0; bottom: 0; left: 0; overflow-x: hidden; background-color: rgba(0, 0, 0, 0.4); transition: 0.5s; }
@@ -59,6 +46,10 @@ button { border: none; border-radius: 2px; }
 #connectBox .or span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
 #connectBox .connectToPeerBox input { display: inline-block; text-align: center; font-size: 2.5rem; width: 80%; }
 #connectBox .connectToPeerBox button { margin-top: 0.5em; font-size: 1.5rem; width: 80%; background-color: var(--accent-color); }
+
+/* "Game is starting" box */
+#gameStartingBox { position: absolute; z-index: 3; width: 400px; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px; text-align:center; background-color: var(--default-primary-color); color: var(--text-primary-color); border-radius: 2px; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23); }
+#gameStartingBox .timer { font-size: 5rem; }
 
 /* Chat */
 #chatSection { display:grid; grid-template-rows: 2em 1em calc(100% - 3em); padding: 20px; }
@@ -76,3 +67,12 @@ button { border: none; border-radius: 2px; }
 #chatSection li.out .message:before { right: auto; left: -8px; border-color: var(--default-primary-color) var(--default-primary-color) transparent transparent; }
 #chatSection li.in.system .message:before { border-color: var(--accent-color) transparent transparent var(--accent-color); }
 #chatSection li.out.system .message:before { border-color: var(--accent-color) var(--accent-color) transparent transparent; }
+
+/* Timer */
+#timerSection { position: relative; padding: 20px; }
+#timerSection div { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; }
+#timerSection div.overSoon { color: red; }
+
+/* Canvases */
+#canvasSection { padding: 20px; }
+#canvasSection canvas { width: 100%; height: 100%; }

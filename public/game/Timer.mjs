@@ -12,7 +12,7 @@ class Timer extends React.Component {
     componentDidMount() {
         this._startDateTime = new Date();
         this._endDateTime = new Date(this._startDateTime.getTime() + this.props.durationInMilliseconds);
-        this._intervalTimer = setInterval(this._updateSecondsRemaining, 1000);
+        this._intervalTimer = setInterval(this._updateSecondsRemaining, 100);
         this._finishTimer = setTimeout(this._timeIsUp, this.props.durationInMilliseconds);
     }
 
@@ -63,18 +63,17 @@ class Timer extends React.Component {
  */
 function mapStateToProps(state) {
     return {
-        isStarted: state.game.isStarted,
         secondsRemaining: state.game.secondsRemaining,
     };
 }
 
 function mapDispatchToProps(dispatch) {
     return {
-        updateSecondsRemaining: message => {
-            dispatch({type: gameActionTypes.UPDATE_SECONDS_REMAINING, payload: message});
+        updateSecondsRemaining: seconds => {
+            dispatch({type: gameActionTypes.UPDATE_SECONDS_REMAINING, payload: seconds});
         },
-        timeIsUp: message => {
-            dispatch({type: gameActionTypes.TIME_IS_UP, payload: message});
+        timeIsUp: () => {
+            dispatch({type: gameActionTypes.TIME_IS_UP});
         },
     };
 }

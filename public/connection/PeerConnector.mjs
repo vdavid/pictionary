@@ -6,8 +6,10 @@
  * @typedef {Object} PeerConnectorOptions
  * @property {function(id: string): void} onStartedAcceptingConnections Called when the connection to the PeerServer is established.
  * @property {function(): void} onStoppedAcceptingConnections Called when the connection to the PeerServer is closed.
- * @property {function(id: string): void} onConnected Called when the connection to the peer is established.
+ * @property {function(id: string, isHost: boolean): void} onConnected Called when the connection to the peer is established.
  * @property {function(): void} onDisconnected Called when the connection to the peer is closed/lost.
+ * @property {function(command: string, parameters: Object): void} onCommandReceived Called when a command is received from the peer.
+ * @property {function(DrawnLine[]): void} onDrawnLinesReceived Called when new drawn lines were received from the peer.
  * @property {function(string): void} onMessageReceived Called when a message is received from the peer.
  * @property {function(error: {type: string}): void} onError Called when an error happens in the underlying socket
  *        and PeerConnections. (Note: Errors on the peer are almost always fatal and will destroy the peer.)
@@ -26,6 +28,8 @@ export default class PeerConnector {
         this._onStoppedAcceptingConnectionsCallback = options.onStoppedAcceptingConnections || (() => {});
         this._onConnectedCallback = options.onConnected || (() => {});
         this._onDisconnectedCallback = options.onDisconnected || (() => {});
+        this._onCommandReceived = options.onCommandReceived || (() => {});
+        this._onDrawnLinesReceived = options.onDrawnLinesReceived || (() => {});
         this._onMessageReceived = options.onMessageReceived || (() => {});
         this._onErrorCallback = options.onError || (() => {});
         this._debugLevel = options.debugLevel || 0;
@@ -78,7 +82,7 @@ export default class PeerConnector {
      */
     _setIsConnectedToPeer(newValue) {
         if (!this._isConnectedToPeer && newValue) {
-            this._onConnectedCallback(this._connection.peer);
+            this._onConnectedCallback(this._connection.peer, this._isHost);
         } else if (this._isAcceptingConnections && !newValue) {
             this._onDisconnectedCallback();
         }
@@ -102,11 +106,20 @@ export default class PeerConnector {
     }
 
     /**
-     * @param {string} data
+     * @param {{type: string, payload: *}} data
      * @private
      */
     _handleConnectionDataReceived(data) {
-        this._onMessageReceived(data);
+        if (data.type === 'command') {
+            this._onCommandReceived(data.payload.command, data.payload.parameters);
+        } else if (data.type === 'newLines') {
+            this._onDrawnLinesReceived(data.payload);
+        } else if (data.type === 'message') {
+            this._onMessageReceived(data.payload);
+        } else {
+            console.error('Invalid data received from peer.');
+            console.error(data);
+        }
     }
 
     /**
@@ -143,6 +156,7 @@ export default class PeerConnector {
      */
     _handlePeerIncomingConnection(connection) {
         if (this._connection) { /* Allow only a single connection */
+            // noinspection JSCheckFunctionSignatures
             connection.on('open', connection => connection.close(), null);
         } else {
             this._connection = connection;
@@ -193,44 +207,25 @@ export default class PeerConnector {
     }
 
     /**
-     * @returns {boolean}
+     * @param {string} message
      */
-    isAcceptingConnections() {
-        return this._isAcceptingConnections;
-    }
-
-    /**
-     * @returns {boolean}
-     */
-    isConnectedToPeer() {
-        return !!this._connection;
-    }
-
-    /**
-     * @returns {boolean|null} True if this peer has been connected by the other party.
-     *          False if this peer connected the other party.
-     *          Null if there's no connection.
-     */
-    isHost() {
-        return this._isHost;
-    }
-
-    /**
-     * @returns {string|null} The ID of this peer.
-     */
-    getLocalPeerId() {
-        return this._peer.id;
-    }
-
-    /**
-     * @returns {string|null} The ID of the connected peer, or null if there's no connection.
-     */
-    getRemotePeerId() {
-        return this._connection ? this._connection.peer : null;
-    }
-
     sendMessage(message) {
-        this._connection.send(message);
+        this._connection.send({type: 'message', payload: message});
+    }
+
+    /**
+     * @param {DrawnLine[]} newLines
+     */
+    sendNewLines(newLines) {
+        this._connection.send({type: 'newLines', payload: newLines});
+    }
+
+    /**
+     * @param {string} command
+     * @param {Object} parameters
+     */
+    sendCommand(command, parameters) {
+        this._connection.send({type: 'command', payload: {command, parameters}});
     }
 
     connect(id) {

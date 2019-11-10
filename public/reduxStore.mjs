@@ -3,18 +3,24 @@ import socketMiddleware from './connection/socketMiddleware.mjs';
 import {reducer as connectionReducer} from './connection/store.mjs';
 import {reducer as chatReducer} from './chat/store.mjs';
 import {reducer as gameReducer} from './game/store.mjs';
+import {reducer as drawingCanvasReducer} from './drawing-canvas/store.mjs';
+import {reducer as guessingCanvasReducer} from './guessing-canvas/store.mjs';
 
 /**
  * @typedef {Object} State
  * @property {ConnectionState} connection
  * @property {ChatState} chat
  * @property {GameState} game
+ * @property {DrawingCanvasState} drawingCanvas
+ * @property {GuessingCanvasState} guessingCanvas
  */
 
 const combinedReducer = Redux.combineReducers({
     chat: chatReducer,
     connection: connectionReducer,
     game: gameReducer,
+    drawingCanvas: drawingCanvasReducer,
+    guessingCanvas: guessingCanvasReducer,
 });
 
 // noinspection JSUnresolvedVariable
