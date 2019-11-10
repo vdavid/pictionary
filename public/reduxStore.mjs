@@ -8,6 +8,7 @@ import {reducer as gameReducer} from './game/store.mjs';
  * @typedef {Object} State
  * @property {ConnectionState} connection
  * @property {ChatState} chat
+ * @property {GameState} game
  */
 
 const combinedReducer = Redux.combineReducers({

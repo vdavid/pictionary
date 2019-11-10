@@ -6,6 +6,7 @@ import HostConnectionBox from './connection/HostConnectionBox.mjs';
 import ConnectToPeerBox from './connection/ConnectToPeerBox.mjs';
 import ConnectionStatus from './connection/ConnectionStatus.mjs';
 import ConnectingIndicator from './connection/ConnectingIndicator.mjs';
+import Timer from './game/Timer.mjs';
 
 class GamePage extends React.Component {
     render() {
@@ -18,7 +19,9 @@ class GamePage extends React.Component {
                     React.createElement(ConnectingIndicator, {isConnecting: this.props.isConnecting}),
                 ),
                 React.createElement(Chat, {state: this.props.chat}),
-                React.createElement('section', {id: 'timerSection'}, 'Timer comes here'),
+                React.createElement('section', {id: 'timerSection'},
+                    React.createElement(Timer, {durationInMilliseconds: 60 * 1000}),
+                    ),
             ),
             !this.props.isConnected ? React.createElement('div', {className: 'fullScreenSemiTransparentCover'}) : null,
             !this.props.isConnected ? React.createElement('div', {id: 'connectBox',},

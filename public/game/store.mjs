@@ -9,6 +9,7 @@ export const actionTypes = {
     START_GAME: 'game/startGame',
     GAME_STARTING: 'game/gameStarting',
     GAME_STARTED: 'game/gameStarted',
+    TIME_IS_UP: 'game/timeIsUp',
     GAME_FINISHED: 'game/gameFinished',
     UPDATE_SECONDS_REMAINING: 'game/updateSecondsRemaining',
 };
@@ -36,6 +37,8 @@ export function reducer(state, action) {
     } else if (action.type === actionTypes.GAME_STARTED) {
         newState.isStarting = false;
         newState.isStarted = true;
+    } else if (action.type === actionTypes.TIME_IS_UP) {
+        newState.secondsRemaining = 0;
     } else if (action.type === actionTypes.GAME_FINISHED) {
         newState.isStarting = false;
         newState.isStarted = false;

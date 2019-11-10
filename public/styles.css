@@ -33,13 +33,15 @@ button { border: none; border-radius: 2px; }
 #gamePageLayout { display:grid; height:100%; grid-template-columns: auto 30%; grid-template-rows: 3em calc(100% - 3em - 200px) 100px 100px; grid-template-areas:
         "canvas connection"
         "canvas chat"
-        "canvas timer"
+        "canvas chat"
         "gameControls timer"}
 #canvasSection { padding: 20px; grid-area: canvas; }
 #gameControlsSection { padding: 20px; grid-area: gameControls; }
 #connectionSection { padding:20px; background-color: var(--light-primary-color); grid-area: connection; }
 #chatSection { padding:20px; overflow-y:scroll; background-color: var(--light-primary-color); grid-area: chat; }
-#timerSection { padding:20px; background-color: var(--light-primary-color); grid-area: timer; }
+#timerSection { position:relative; padding:20px; background-color: var(--light-primary-color); grid-area: timer; }
+#timerSection div { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size:3rem; }
+#timerSection div.overSoon { color:red; }
 
 #chatAndTimer { }
 #chatAndTimer > * { padding: 20px; }
