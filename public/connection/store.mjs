@@ -48,7 +48,8 @@ export function reducer(state, action) {
         newState.isConnectingInProgress = false;
         newState.isConnectedToPeer = !!action.payload;
         newState.isHost = action.payload ? action.payload.isHost : undefined;
-        newState.status = action.payload ? 'Connected to ' + action.payload.remotePeerId + '.' : 'Connection lost.';
+        newState.status = action.payload ? 'I\'m ' + state.localPeerId
+            + ', connected to ' + action.payload.remotePeerId + '.' : 'Connection lost.';
     }
 
     return newState;
