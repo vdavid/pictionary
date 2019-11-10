@@ -4,6 +4,22 @@ export default class ConnectToPeerBox extends React.Component {
         this.state = {
             remotePeerId: '',
         };
+        this._onKeyUp = this._onKeyUp.bind(this);
+        this._connectToCurrentlyEnteredRemotePeer = this._connectToCurrentlyEnteredRemotePeer.bind(this);
+    }
+
+    componentDidMount() {
+        this.refs['hostId'].focus();
+    }
+
+    _onKeyUp(event) {
+        if (event.keyCode === 13) {
+            this._connectToCurrentlyEnteredRemotePeer();
+        }
+    }
+
+    _connectToCurrentlyEnteredRemotePeer() {
+        this.props.connect(this.state.remotePeerId);
     }
 
     render() {
@@ -11,15 +27,18 @@ export default class ConnectToPeerBox extends React.Component {
             React.createElement('p', {}, 'Enter your friend\'s ID here:'),
             React.createElement('input', {
                 className: 'hostId',
+                ref: 'hostId',
                 title: 'Input the ID.',
                 value: this.state.remotePeerId,
                 disabled: this.props.isConnecting || this.props.isConnected,
                 maxLength: 6,
-                onChange: event => this.setState({remotePeerId: event.target.value}, null)
+                onChange: event => this.setState({remotePeerId: event.target.value}, null),
+                onKeyUp: this._onKeyUp,
             }),
             React.createElement('button', {
                 className: 'connectButton',
-                onClick: () => this.props.connect(this.state.remotePeerId), disabled: this.props.isConnecting || this.props.isConnected || !this.state.remotePeerId
+                onclick: this._connectToCurrentlyEnteredRemotePeer,
+                disabled: this.props.isConnecting || this.props.isConnected || !this.state.remotePeerId,
             }, 'Connect'),
         );
     }

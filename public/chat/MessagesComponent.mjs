@@ -1,8 +1,10 @@
 import MessageComponent from './MessageComponent.mjs';
 
 export default class MessagesComponent extends React.Component {
-    componentDidUpdate() {
-        this.refs['chatMessages'].scrollTop = this.refs['chatMessages'].scrollHeight;
+    componentDidUpdate(previousProps) {
+        if (this.props.messages.length !== previousProps.messages.length) {
+            this.refs['chatMessages'].scrollTop = this.refs['chatMessages'].scrollHeight;
+        }
     }
 
     render() {

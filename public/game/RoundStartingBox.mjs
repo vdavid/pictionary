@@ -33,6 +33,7 @@ class RoundStartingBox extends React.Component {
             React.createElement('div', {id: 'gameStartingBox'},
                 React.createElement('p', {}, 'Game is starting in'),
                 React.createElement('div', {className: 'timer'}, this.state.secondsRemaining),
+                React.createElement('p', {className: 'whoDraws'}, this.props.whichPlayerDraws === 'local' ? 'You\'ll be the one drawing.' : 'You\'ll be the one guessing.'),
             ),
         );
     }
@@ -48,7 +49,9 @@ class RoundStartingBox extends React.Component {
  * @returns {Object}
  */
 function mapStateToProps(state) {
-    return {};
+    return {
+        whichPlayerDraws: state.game.whichPlayerDraws
+    };
 }
 
 function mapDispatchToProps(dispatch) {

@@ -15,18 +15,18 @@ class Chat extends React.Component {
 
     render() {
         return React.createElement('section', {id: 'chatSection'},
-            React.createElement('div', {class: 'chatInputAndButton'},
+            React.createElement('div', {className: 'chatInputAndButton'},
                 React.createElement(ChatInputComponent, {
                     typedMessage: this.props.typedMessage,
                     saveTypedMessage: this.props.saveTypedMessage,
                     addMessage: this.props.addMessage,
+                    isRoundStarted: this.props.isRoundStarted,
                 }),
                 React.createElement(SendButton, {
                     typedMessage: this.props.typedMessage,
                     addMessage: this.props.addMessage,
                 }),
             ),
-            React.createElement('div'),
             React.createElement(MessagesComponent, {
                 messages: this.props.messages
             }),
@@ -42,6 +42,7 @@ function mapStateToProps(state) {
     return {
         typedMessage: state.chat.typedMessage,
         messages: state.chat.messages,
+        isRoundStarted: state.game.isRoundStarted,
     };
 }
 

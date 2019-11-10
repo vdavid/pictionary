@@ -43,6 +43,7 @@ export function reducer(state, action) {
         newState.messages.push({text: action.payload, isIncoming: true, isSystemMessage: false, dateTime: new Date()});
     } else if (action.type === actionTypes.SEND_MESSAGE) {
         newState.messages.push({text: action.payload, isIncoming: false, isSystemMessage: false, dateTime: new Date()});
+        newState.typedMessage = '';
         newState.isSendingMessage = true;
     } else if (action.type === actionTypes.MESSAGE_SENT) {
         newState.isSendingMessage = false;

@@ -1,7 +1,16 @@
 export default class ChatInputComponent extends React.Component {
     constructor(props) {
         super(props);
-        this._onTyping = this._onTyping.bind(this)
+        this._onTyping = this._onTyping.bind(this);
+        this._onKeyUp = this._onKeyUp.bind(this);
+    }
+
+    componentDidUpdate() {
+        const input = this.refs['chatInput'];
+        if (this.props.isRoundStarted && (document.activeElement !== input)) {
+            input.focus();
+            input.setSelectionRange(input.value.length, input.value.length);
+        }
     }
 
     _onTyping(event) {
@@ -16,9 +25,9 @@ export default class ChatInputComponent extends React.Component {
     }
 
     render() {
-        return React.createElement('input',{
+        return React.createElement('input', {
             type: 'text',
-            id: 'sendMessageBox',
+            ref: 'chatInput',
             placeholder: 'Enter a message...',
             autoFocus: true,
             value: this.props.typedMessage,
