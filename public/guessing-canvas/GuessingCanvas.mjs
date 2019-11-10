@@ -2,10 +2,6 @@ const {connect} = window.ReactRedux;
 import {actionTypes as guessingCanvasActionTypes} from './store.mjs';
 
 class GuessingCanvas extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     componentDidMount() {
         this._allDrawnLines = [];
 
@@ -16,10 +12,13 @@ class GuessingCanvas extends React.Component {
     }
 
     componentDidUpdate() {
-        if (this.props.newLines.length) {
-            this._allDrawnLines = [...this._allDrawnLines, ...this.props.newLines];
-            this._drawLines(this.props.newLines);
-            this.props.markNewLinesAsProcessed(this.props.newLines.length);
+        const newLines = this.props.newLines;
+        if (newLines.length) {
+            this.props.markNewLinesAsProcessed(newLines.length);
+
+            this._allDrawnLines = [...this._allDrawnLines, ...newLines];
+
+            this._drawLines(newLines);
         }
     }
 
