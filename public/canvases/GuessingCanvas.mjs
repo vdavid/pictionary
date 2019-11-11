@@ -1,14 +1,26 @@
 const {connect} = window.ReactRedux;
 import {actionTypes as guessingCanvasActionTypes} from './guessing-canvas-store.mjs';
+import DrawingTools from './DrawingTools.mjs';
 
 class GuessingCanvas extends React.Component {
+    constructor(props) {
+        super(props);
+        this._clearAndRedraw = this._clearAndRedraw.bind(this);
+
+    }
     componentDidMount() {
         this._allDrawnLines = [];
+        this._drawingTools = new DrawingTools(this.refs.guessingCanvas);
+        this._drawingTools.updateCanvasSiteToItsClientSize();
+        this._drawingTools.clearCanvas();
 
-        const canvas = this.refs.guessingCanvas;
-        canvas.width = canvas.clientWidth;
-        canvas.height = canvas.clientHeight;
-        this._clearCanvas(canvas);
+        window.addEventListener('resize', this._clearAndRedraw);
+    }
+
+    _clearAndRedraw() {
+        this._drawingTools.updateCanvasSiteToItsClientSize();
+        this._drawingTools.clearCanvas();
+        this._drawLines(this._allDrawnLines);
     }
 
     componentDidUpdate(previousProps) {
@@ -22,7 +34,7 @@ class GuessingCanvas extends React.Component {
         }
 
         if (previousProps.lineCount > this.props.lineCount) {
-            this._clearCanvas(this.refs.guessingCanvas);
+            this._drawingTools.clearCanvas();
         }
     }
 
@@ -30,38 +42,8 @@ class GuessingCanvas extends React.Component {
         return React.createElement('canvas', {id: 'guessingCanvas', ref: 'guessingCanvas'});
     }
 
-    _clearAndRedraw() {
-        const canvas = this.refs.guessingCanvas;
-        canvas.width = canvas.clientWidth;
-        canvas.height = canvas.clientHeight;
-        this._clearCanvas(canvas);
-        this._drawLines(this._allDrawnLines);
-    }
-
     _drawLines(lines) {
-        const canvas = this.refs.guessingCanvas;
-        lines.map(line => this._drawLine(canvas, line));
-    }
-
-    _clearCanvas(canvas) {
-        const context = canvas.getContext('2d');
-        context.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
-    /**
-     * @param {HTMLCanvasElement} canvas
-     * @param {DrawnLine} line
-     * @private
-     */
-    _drawLine(canvas, line) {
-        const context = canvas.getContext('2d');
-        context.beginPath();
-        context.moveTo(line.x1 * canvas.width, line.y1 * canvas.height);
-        context.lineTo(line.x2 * canvas.width, line.y2 * canvas.height);
-        context.strokeStyle = line.color;
-        context.lineWidth = 2;
-        context.stroke();
-        context.closePath();
+        lines.map(line => this._drawingTools.drawLine(line));
     }
 }
 

@@ -1,5 +1,6 @@
 const {connect} = window.ReactRedux;
 import {actionTypes as drawingCanvasActionTypes} from './drawing-canvas-store.mjs';
+import DrawingTools from './DrawingTools.mjs';
 
 class DrawingCanvas extends React.Component {
     constructor(props) {
@@ -7,12 +8,13 @@ class DrawingCanvas extends React.Component {
         this._handleMouseMoved = this._handleMouseMoved.bind(this);
         this._handleMouseDown = this._handleMouseDown.bind(this);
         this._liftPen = this._liftPen.bind(this);
-        this._clearAndRedraw = this._clearAndRedraw.bind(this);
         this._sendNewlyDrawnLines = this._sendNewlyDrawnLines.bind(this);
+        this._clearAndRedraw = this._clearAndRedraw.bind(this);
     }
 
     componentDidMount() {
         const canvas = this.refs.drawingCanvas;
+        this._drawingTools = new DrawingTools(canvas);
 
         this._allDrawnLines = [];
         this._newlyDrawnLines = [];
@@ -20,22 +22,23 @@ class DrawingCanvas extends React.Component {
         this._lastX = undefined;
         this._lastY = undefined;
 
-        canvas.width = canvas.clientWidth;
-        canvas.height = canvas.clientHeight;
-        this._clearCanvas(canvas);
+        this._drawingTools.updateCanvasSiteToItsClientSize();
+        this._drawingTools.clearCanvas();
+
+        window.addEventListener('resize', this._clearAndRedraw);
 
         this._timer = setInterval(this._sendNewlyDrawnLines, this.props.updateEventDispatchIntervalInMilliseconds);
+    }
 
-        canvas.addEventListener('mousemove', this._handleMouseMoved, false);
-        canvas.addEventListener('mousedown', this._handleMouseDown, false);
-        canvas.addEventListener('mouseup', this._liftPen, false);
-        canvas.addEventListener('mouseout', this._liftPen, false);
-        canvas.addEventListener('resize', this._clearAndRedraw, false);
+    _clearAndRedraw() {
+        this._drawingTools.updateCanvasSiteToItsClientSize();
+        this._drawingTools.clearCanvas();
+        this._allDrawnLines.map(line => this._drawingTools.drawLine(line));
     }
 
     componentDidUpdate(previousProps) {
         if (previousProps.lineCount > this.props.lineCount) {
-            this._clearCanvas(this.refs.drawingCanvas);
+            this._drawingTools.clearCanvas();
         }
     }
 
@@ -44,62 +47,43 @@ class DrawingCanvas extends React.Component {
     }
 
     render() {
-        return React.createElement('canvas', {id: 'drawingCanvas', ref: 'drawingCanvas'});
+        return React.createElement('canvas', {
+            id: 'drawingCanvas',
+            ref: 'drawingCanvas',
+            onContextMenu: event => event.preventDefault(),
+            onMouseMove: this._handleMouseMoved,
+            onMouseDown: this._handleMouseDown,
+            onMouseUp: this._liftPen,
+            onMouseOut: this._liftPen,
+        });
     }
 
-    _clearAndRedraw() {
-        const canvas = this.refs.drawingCanvas;
-        canvas.width = canvas.clientWidth;
-        canvas.height = canvas.clientHeight;
-        this._clearCanvas(canvas);
-        this._allDrawnLines.map(line => this._drawLine(canvas, line));
-    }
-
-    _clearCanvas(canvas) {
-        const context = canvas.getContext('2d');
-        context.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
-    /**
-     * @param {HTMLCanvasElement} canvas
-     * @param {DrawnLine} line
-     * @private
-     */
-    _drawLine(canvas, line) {
-        const context = canvas.getContext('2d');
-        context.beginPath();
-        context.moveTo(line.x1 * canvas.width, line.y1 * canvas.height);
-        context.lineTo(line.x2 * canvas.width, line.y2 * canvas.height);
-        context.strokeStyle = line.color;
-        context.lineWidth = 2;
-        context.stroke();
-        context.closePath();
-    }
-
-    _handleMouseMoved(e) {
+    _handleMouseMoved(event) {
         if (this.props.isRoundStarted && this._isPenDown) {
             const canvas = this.refs.drawingCanvas;
             const previousX = this._lastX;
             const previousY = this._lastY;
 
-            this._lastX = (e.clientX - canvas.getBoundingClientRect().left) / canvas.width;
-            this._lastY = (e.clientY - canvas.getBoundingClientRect().top) / canvas.height;
+            this._lastX = (event.clientX - canvas.getBoundingClientRect().left) / canvas.width;
+            this._lastY = (event.clientY - canvas.getBoundingClientRect().top) / canvas.height;
 
             const newLine = {x1: previousX, y1: previousY, x2: this._lastX, y2: this._lastY, color: 'black'};
 
-            this._drawLine(this.refs.drawingCanvas, newLine);
+            this._drawingTools.drawLine(newLine);
 
             this._newlyDrawnLines.push(newLine);
             this._allDrawnLines.push(newLine);
         }
     }
 
-    _handleMouseDown(e) {
+    _handleMouseDown(event) {
         if (this.props.isRoundStarted) {
+            event.preventDefault();
             const canvas = this.refs.drawingCanvas;
             this._isPenDown = true;
-            this._lastX = (e.clientX - canvas.getBoundingClientRect().left) / canvas.width;
-            this._lastY = (e.clientY - canvas.getBoundingClientRect().top) / canvas.height;
+            this._lastX = (event.clientX - canvas.getBoundingClientRect().left) / canvas.width;
+            this._lastY = (event.clientY - canvas.getBoundingClientRect().top) / canvas.height;
+            this._drawingTools.drawDot(this._lastX, this._lastY);
         }
     }
 
