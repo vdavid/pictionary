@@ -14,23 +14,29 @@
 
 
 /* Generic styles */
-body { margin: 0; padding: 0; height: 100vh; font-family: 'Open Sans', 'Arial', sans-serif; font-size:1.2em; color: var(--primary-text-color); }
+body { margin: 0; padding: 0; height: 100vh; font-family: 'Open Sans', 'Arial', sans-serif; font-size: 1.5vw; color: var(--primary-text-color); }
+/*@media (min-width:750px) {*/
+/*    body { font-size:1.5vw; }*/
+/*}*/
+/*@media (min-width:1000px) {*/
+/*    body { font-size:1.2em; }*/
+/*}*/
 input { border: none; border-radius: 2px; color: var(--primary-text-color); }
 button { border: none; border-radius: 2px; }
 
 /* Common elements */
-.midScreenBox { position: absolute; z-index: 2; width: 500px; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: var(--default-primary-color); color: var(--text-primary-color); border-radius: 2px; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23); }
+.midScreenBox { position: absolute; z-index: 2; width: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: var(--dark-primary-color); color: var(--text-primary-color); border-radius: 2px; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23); }
 .fullScreenSemiTransparentCover { position: fixed; z-index: 1; top: 0; right: 0; bottom: 0; left: 0; overflow-x: hidden; background-color: rgba(0, 0, 0, 0.4); transition: 0.5s; }
 
 /* Indicator light */
-.indicatorLight { width: 25px; height: 25px; margin-right: 10px; background-color: #bbb; border-radius: 50%; display: inline-block; }
+.indicatorLight { width: 1em; height: 1em; background-color: #bbb; border-radius: 50%; display: inline-block; }
 .indicatorLight.red { background-color: red; }
 .indicatorLight.yellow { background-color: yellow; }
 .indicatorLight.green { background-color: green; }
 
 /* App layout and settings */
 #app { height: 100%; display: grid; grid-template-rows: 2em calc(100vh - 4em) 2em; }
-#app > header { padding: 0 20px; background-color: var(--dark-primary-color); }
+#app > header { padding: 0 0.2em; background-color: var(--dark-primary-color); }
 #app > header nav { height: 100%; }
 #app > header nav ul { margin: 0; padding: 0; display: table; height: 100%; list-style: none; }
 #app > header nav li { display: table-cell; vertical-align: middle; }
@@ -41,51 +47,51 @@ button { border: none; border-radius: 2px; }
 
 /* Game page layout */
 #gamePage { height: 100%; }
-#gamePageLayout { display: grid; height: 100%; grid-template-columns: auto 30%; grid-template-rows: 4em calc(100% - 4em - 200px) 100px 100px; grid-template-areas: 'canvas connection' 'canvas chat' 'canvas chat' 'word timer'}
+#gamePageLayout { display: grid; height: 100%; grid-template-columns: auto 30%; grid-template-rows: 2em calc(100% - 6em) 4em; grid-template-areas: 'canvas connection' 'canvas chat' 'word timer'}
 #canvasSection { grid-area: canvas; }
 #wordDisplaySection { background-color: var(--extra-light-primary-color); grid-area: word; }
-#connectionSection { padding: 20px; background-color: var(--light-primary-color); grid-area: connection; display: grid; grid-template-columns: 25px auto; grid-column-gap: 10px; }
+#connectionSection { padding: 0.5em 1em; background-color: var(--light-primary-color); grid-area: connection; display: grid; grid-template-columns: 1em auto; grid-column-gap: 1em; }
 #chatSection { background-color: var(--light-primary-color); grid-area: chat; }
 #timerSection { background-color: var(--light-primary-color); grid-area: timer; }
 
 /* “No connection” box */
-#noConnectionBox { position: absolute; z-index: 2; width: 500px; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px; text-align: center; font-size: 1.5em; }
-#noConnectionBox button { margin-top: 1em; padding: 5px 20px; font-size: 1.5rem; background-color: var(--accent-color); }
+#noConnectionBox { position: absolute; z-index: 2; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 1.4em 0.8em; text-align: center; font-size: 1.5em; }
+#noConnectionBox button { margin-top: 1em; padding: 5px 20px; font-size: 1.5em; background-color: var(--accent-color); }
 
 /* Connect box */
-#connectBox { display: grid; grid-template-columns: 47% 6% 47%; padding: 20px; }
+#connectBox { display: grid; grid-template-columns: 47% 6% 47%; padding: 1.4em 0.8em; }
 #connectBox > * { text-align: center; }
-#connectBox .hostConnectionBox .localPeerId { text-align: center; font-size: 2.5rem; }
+#connectBox .hostConnectionBox .localPeerId { text-align: center; font-size: 2.5em; }
 #connectBox .or { position: relative; }
 #connectBox .or span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-#connectBox .connectToPeerBox input { display: inline-block; text-align: center; font-size: 2.5rem; width: 80%; }
-#connectBox .connectToPeerBox button { margin-top: 0.5em; font-size: 1.5rem; width: 80%; background-color: var(--accent-color); }
+#connectBox .connectToPeerBox input { display: inline-block; text-align: center; font-size: 2.5em; width: 80%; }
+#connectBox .connectToPeerBox button { margin-top: 0.5em; font-size: 1.5em; width: 80%; background-color: var(--accent-color); }
 
 /* “Game is starting” box */
-#gameStartingBox { z-index: 3; width: 400px; padding: 20px; text-align: center; }
-#gameStartingBox .timer { font-size: 5rem; }
+#gameStartingBox { z-index: 3; width: 40%; padding: 1.4em 0.8em; text-align: center; }
+#gameStartingBox .timer { font-size: 5em; }
 
 /* Canvases */
 #canvasSection { position: relative; }
 #canvasSection canvas { width: 100%; height: 100%; }
-#canvasSection button { position: absolute; right: 0; bottom: 0; width: 64px; height: 32px; }
+#canvasSection button { position: absolute; right: 0; bottom: 0; width: 6em; height: 2.5em; font-size: 0.8em; }
 #drawingCanvas { cursor: crosshair; }
 
 /* Word */
 #wordDisplaySection { position: relative; }
-#wordDisplaySection span { position: absolute; top: 50%; width: 100%; transform: translate(0, -50%); font-size: 2.5vw; text-align: center; }
+#wordDisplaySection span { position: absolute; top: 50%; width: 100%; transform: translate(0, -50%); font-size: 1.2em; text-align: center; }
 
 /* Chat */
-#chatSection { display: grid; grid-template-rows: 2.5em calc(100% - 2.5em - 10px); grid-row-gap: 10px; padding: 20px; }
-#chatSection .chatInputAndButton { display: grid; grid-template-columns: calc(100% - 100px - 10px) 100px; grid-column-gap: 10px; }
-#chatSection input { width: 100%; box-sizing: border-box; padding: 5px; font-size: 1.5vw; }
-#chatSection button { overflow: hidden; font-size: 1.5vw; }
-#chatSection ul { margin: 0; padding: 5px; overflow-y: scroll; list-style: none; }
-#chatSection li { text-align: right; color: var(--text-primary-color); padding: 0 8px 0 0; margin-bottom: 3px; }
-#chatSection li .message { display: inline-block; position: relative; border-radius: 10px; padding: 8px; text-align: right; }
+#chatSection { display: grid; grid-template-rows: 2em calc(100% - 1.5em); grid-row-gap: 0.5em; padding: 1em; }
+#chatSection .chatInputAndButton { display: grid; grid-template-columns: 70% 27%; grid-column-gap: 3%; }
+#chatSection input { width: 100%; box-sizing: border-box; padding: 0.3em; font-size: 0.8em; }
+#chatSection button { overflow: hidden; font-size: 0.8em; }
+#chatSection ul { margin: 0; padding: 0.1em; overflow-y: scroll; list-style: none; }
+#chatSection li { text-align: right; color: var(--text-primary-color); padding: 0 8px 0 0; margin-bottom: 0.1em; }
+#chatSection li .message { display: inline-block; position: relative; border-radius: 10px; padding: 0.4em; text-align: right; }
 #chatSection li .dateTime { display: block; font-size: 0.5em; }
 #chatSection li.in .message { background-color: var(--dark-primary-color); }
-#chatSection li.out { padding: 0 0 0 8px; text-align: left; }
+#chatSection li.out { padding: 0 0 0 0.2em; text-align: left; }
 #chatSection li.out .message { text-align: left; background-color: var(--default-primary-color); }
 #chatSection li.system .message { background-color: var(--accent-color); color: var(--primary-text-color); }
 
@@ -95,6 +101,6 @@ button { border: none; border-radius: 2px; }
 #chatSection li.out.system .message:before { border-color: var(--accent-color) var(--accent-color) transparent transparent; }
 
 /* Timer */
-#timerSection { position: relative; padding: 20px; }
-#timerSection div { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; }
+#timerSection { position: relative; padding: 0.5em 1em; }
+#timerSection div { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2em; }
 #timerSection div.overSoon { color: red; }
