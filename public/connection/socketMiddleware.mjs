@@ -1,4 +1,4 @@
-import PeerConnector from "./PeerConnector.mjs";
+import PeerConnector from './PeerConnector.mjs';
 import {actionTypes as gameActions} from '../game/store.mjs';
 import {actionTypes as connectionActions} from './store.mjs';
 import {actionTypes as chatActions} from '../chat/store.mjs';

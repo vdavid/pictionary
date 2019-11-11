@@ -87,7 +87,7 @@ function _sendingFailed(state) {
 function _addSystemMessageThatPhraseWasGuessedCorrectly(state, {whoDrew, phrase}) {
     const text = (whoDrew === 'local')
         ? 'Yay! Your friend guessed it right! Let\'s see another one!'
-        : 'Yay! You guessed it right, it was indeed "' + phrase + '"! Let\'s see another one!';
+        : 'Yay! You guessed it right, it was indeed “' + phrase + '”! Let\'s see another one!';
     state.messages.push({text, isIncoming: true, isSystemMessage: true, dateTime: new Date()});
 }
 

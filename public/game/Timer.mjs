@@ -30,7 +30,7 @@ class Timer extends React.Component {
             const roundedSeconds = Math.round(totalSeconds);
             const minutes = Math.floor(roundedSeconds / 60);
             const seconds = Math.floor(roundedSeconds % 60);
-            return minutes + ":" + seconds.toString().padStart(2, '0');
+            return minutes + ':' + seconds.toString().padStart(2, '0');
         } else {
             return '';
         }

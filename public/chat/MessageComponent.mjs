@@ -3,7 +3,7 @@ export default class MessageComponent extends React.Component {
         const h = date.getHours();
         const m = date.getMinutes().toString().padStart(2, '0');
         const s = date.getSeconds().toString().padStart(2, '0');
-        return h + ":" + m + ":" + s;
+        return h + ':' + m + ':' + s;
     };
 
     render() {

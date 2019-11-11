@@ -23,7 +23,7 @@ class App extends React.Component {
                 React.createElement(Switch, null,
                     React.createElement(Route, {path: '/about', component: () => React.createElement('h2', {}, 'Hello')}),
                     React.createElement(Route, {path: '/', component: () => React.createElement(GamePage, {messages: this.props.messages, addMessage: this.props.addMessage})}),
-                    React.createElement(Redirect, {path: '*', to: {...window.history, pathname: "/"}}),
+                    React.createElement(Redirect, {path: '*', to: {...window.history, pathname: '/'}}),
                 ),
             ),
             React.createElement('footer', null, React.createElement('span', {className: 'copyright'}, 'Made with ❤️ by David')),

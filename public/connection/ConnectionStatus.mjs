@@ -17,7 +17,7 @@ class ConnectionStatus extends React.Component {
         } else if (this.props.isConnected) {
             return 'I\'m ' + this.props.localPeerId + ', connected to ' + this.props.remotePeerId + '.';
         } else {
-            return 'Awaiting connection at "' + this.props.localPeerId + '".';
+            return 'Awaiting connection at “' + this.props.localPeerId + '”.';
         }
     }
 }

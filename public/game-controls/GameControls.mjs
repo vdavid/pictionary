@@ -27,7 +27,7 @@ class GameControls extends React.Component {
         if (!this.props.isRoundStarted) {
             return '';
         } else if (this.props.whichPlayerDraws === 'local') {
-            return this.props.activePhrase;
+            return 'Draw: “' + this.props.activePhrase + '”';
         } else {
             return 'See the drawing and start guessing what it is!';
         }

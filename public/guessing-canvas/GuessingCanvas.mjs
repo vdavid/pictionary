@@ -54,7 +54,7 @@ class GuessingCanvas extends React.Component {
      * @private
      */
     _drawLine(canvas, line) {
-        const context = canvas.getContext("2d");
+        const context = canvas.getContext('2d');
         context.beginPath();
         context.moveTo(line.x1 * canvas.width, line.y1 * canvas.height);
         context.lineTo(line.x2 * canvas.width, line.y2 * canvas.height);

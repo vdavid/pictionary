@@ -14,7 +14,7 @@
 
 
 /* Generic styles */
-body { margin: 0; padding: 0; height: 100vh; font-family: "Open Sans", "Arial", sans-serif; color: var(--primary-text-color); }
+body { margin: 0; padding: 0; height: 100vh; font-family: 'Open Sans', 'Arial', sans-serif; color: var(--primary-text-color); }
 input { border: none; border-radius: 2px; color: var(--primary-text-color); }
 button { border: none; border-radius: 2px; }
 
@@ -31,7 +31,7 @@ button { border: none; border-radius: 2px; }
 
 /* Game page layout */
 #gamePage { height: 100%; }
-#gamePageLayout { display: grid; height: 100%; grid-template-columns: auto 30%; grid-template-rows: 4em calc(100% - 4em - 200px) 100px 100px; grid-template-areas: "canvas connection" "canvas chat" "canvas chat" "gameControls timer"}
+#gamePageLayout { display: grid; height: 100%; grid-template-columns: auto 30%; grid-template-rows: 4em calc(100% - 4em - 200px) 100px 100px; grid-template-areas: 'canvas connection' 'canvas chat' 'canvas chat' 'gameControls timer'}
 #canvasSection { grid-area: canvas; }
 #connectionSection { padding: 20px; background-color: var(--light-primary-color); grid-area: connection; display: grid; grid-template-columns: 25px auto; grid-column-gap: 10px; }
 #chatSection { background-color: var(--light-primary-color); grid-area: chat; }
@@ -47,7 +47,7 @@ button { border: none; border-radius: 2px; }
 #connectBox .connectToPeerBox input { display: inline-block; text-align: center; font-size: 2.5rem; width: 80%; }
 #connectBox .connectToPeerBox button { margin-top: 0.5em; font-size: 1.5rem; width: 80%; background-color: var(--accent-color); }
 
-/* "Game is starting" box */
+/* “Game is starting” box */
 #gameStartingBox { position: absolute; z-index: 3; width: 400px; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px; text-align: center; background-color: var(--default-primary-color); color: var(--text-primary-color); border-radius: 2px; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23); }
 #gameStartingBox .timer { font-size: 5rem; }
 
@@ -65,7 +65,7 @@ button { border: none; border-radius: 2px; }
 #chatSection li.out .message { text-align: left; background-color: var(--default-primary-color); }
 #chatSection li.system .message { background-color: var(--accent-color); color: var(--primary-text-color); }
 
-#chatSection li .message:before { content: ""; position: absolute; width: 0; height: 0; right: -8px; top: 0; border: 8px solid; border-color: var(--dark-primary-color) transparent transparent var(--dark-primary-color); }
+#chatSection li .message:before { content: ''; position: absolute; width: 0; height: 0; right: -8px; top: 0; border: 8px solid; border-color: var(--dark-primary-color) transparent transparent var(--dark-primary-color); }
 #chatSection li.out .message:before { right: auto; left: -8px; border-color: var(--default-primary-color) var(--default-primary-color) transparent transparent; }
 #chatSection li.in.system .message:before { border-color: var(--accent-color) transparent transparent var(--accent-color); }
 #chatSection li.out.system .message:before { border-color: var(--accent-color) var(--accent-color) transparent transparent; }
