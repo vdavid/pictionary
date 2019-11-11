@@ -1,5 +1,5 @@
 const {connect} = window.ReactRedux;
-import {actionTypes as drawingCanvasActionTypes} from './store.mjs';
+import {actionTypes as drawingCanvasActionTypes} from './drawing-canvas-store.mjs';
 
 class DrawingCanvas extends React.Component {
     constructor(props) {
@@ -82,8 +82,8 @@ class DrawingCanvas extends React.Component {
             const previousX = this._lastX;
             const previousY = this._lastY;
 
-            this._lastX = (e.clientX - canvas.offsetLeft) / canvas.width;
-            this._lastY = (e.clientY - canvas.offsetTop) / canvas.height;
+            this._lastX = (e.clientX - canvas.getBoundingClientRect().left) / canvas.width;
+            this._lastY = (e.clientY - canvas.getBoundingClientRect().top) / canvas.height;
 
             const newLine = {x1: previousX, y1: previousY, x2: this._lastX, y2: this._lastY, color: 'black'};
 
@@ -98,8 +98,8 @@ class DrawingCanvas extends React.Component {
         if (this.props.isRoundStarted) {
             const canvas = this.refs.drawingCanvas;
             this._isPenDown = true;
-            this._lastX = (e.clientX - canvas.offsetLeft) / canvas.width;
-            this._lastY = (e.clientY - canvas.offsetTop) / canvas.height;
+            this._lastX = (e.clientX - canvas.getBoundingClientRect().left) / canvas.width;
+            this._lastY = (e.clientY - canvas.getBoundingClientRect().top) / canvas.height;
         }
     }
 

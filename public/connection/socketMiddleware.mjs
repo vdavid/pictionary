@@ -1,9 +1,9 @@
 import PeerConnector from './PeerConnector.mjs';
-import {actionTypes as gameActions} from '../game/store.mjs';
 import {actionTypes as connectionActions} from './store.mjs';
+import {actionTypes as gameActions} from '../game/store.mjs';
 import {actionTypes as chatActions} from '../chat/store.mjs';
-import {actionTypes as drawingCanvasActions} from '../drawing-canvas/store.mjs';
-import {actionTypes as guessingCanvasActions} from '../guessing-canvas/store.mjs';
+import {actionTypes as drawingCanvasActions} from '../canvases/drawing-canvas-store.mjs';
+import {actionTypes as guessingCanvasActions} from '../canvases/guessing-canvas-store.mjs';
 
 export default function socketMiddleware(store) {
     function onStartedAcceptingConnections(localPeerId) {
@@ -33,6 +33,9 @@ export default function socketMiddleware(store) {
         } else if (command === 'phraseGuessedCorrectly') {
             store.dispatch({type: gameActions.PHRASE_GUESSED_CORRECTLY, payload: parameters.phrase});
             store.dispatch({type: chatActions.PHRASE_GUESSED_CORRECTLY, payload: {whoDrew: 'remote', phrase: parameters.phrase}});
+        } else if (command === 'clearGuessingCanvas') {
+            // TODO: Add system message to chat about canvas clearing
+            store.dispatch({type: guessingCanvasActions.CLEARING_NEEDED});
         }
     }
 
@@ -139,16 +142,21 @@ export default function socketMiddleware(store) {
         store.dispatch({type: drawingCanvasActions.CLEARING_NEEDED});
     }
 
+    function _notifyPeerToClearGuessingCanvas() {
+        peerConnector.sendCommand('clearGuessingCanvas', {});
+    }
+
     /* Returns the handler that will be called for each action dispatched */
     return next => action => {
         const actionTypeToFunctionMap = {
-            [connectionActions.CONNECT]: _connectToPeer,
+            [connectionActions.CONNECT]: _connectToPeer, /* Peer (not host) side */
             [connectionActions.DISCONNECT]: _disconnectFromPeer,
-            [chatActions.SEND_MESSAGE]: _sendChatMessage,
-            [drawingCanvasActions.DRAWING_UPDATED]: _drawingUpdated,
+            [chatActions.SEND_MESSAGE]: _sendChatMessage, /* Both sides */
+            [drawingCanvasActions.DRAWING_UPDATED]: _drawingUpdated, /* Drawing side only */
             [gameActions.START_ROUND]: _sendStartSignalToPeerIfThisIsTheHost,
-            [gameActions.PHRASE_GUESSED_CORRECTLY]: _sendPhraseGuessedCorrectlyCommandIfThisIsTheDrawingPlayer,
-            [gameActions.SET_ACTIVE_PHRASE]: _setActivePhrase,
+            [gameActions.PHRASE_GUESSED_CORRECTLY]: _sendPhraseGuessedCorrectlyCommandIfThisIsTheDrawingPlayer, /* Both sides */
+            [gameActions.SET_ACTIVE_PHRASE]: _setActivePhrase, /* Drawing side only */
+            [drawingCanvasActions.CLEARING_NEEDED]: _notifyPeerToClearGuessingCanvas, /* Drawing side only */
         };
 
         if (actionTypeToFunctionMap[action.type]) {

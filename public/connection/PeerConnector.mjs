@@ -243,7 +243,7 @@ export default class PeerConnector {
      */
     sendCommand(command, parameters) {
         if (this._debugLevel >= 2) {
-            console.log('Sent: command: ' + command + ' with parameters: ' + parameters);
+            console.log('Sent: command: ' + command + ' with parameters: ' + JSON.stringify(parameters));
         }
         this._connection.send({type: 'command', payload: {command, parameters}});
     }

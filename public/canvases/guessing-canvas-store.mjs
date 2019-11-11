@@ -7,7 +7,7 @@
 export const actionTypes = {
     DRAWING_UPDATED: 'guessingCanvas/drawingUpdated',
     NEW_LINES_PROCESSED: 'guessingCanvas/newLinesProcessed',
-    CLEARING_NEEDED: 'drawingCanvas/clearingNeeded',
+    CLEARING_NEEDED: 'guessingCanvas/clearingNeeded',
 };
 
 /**

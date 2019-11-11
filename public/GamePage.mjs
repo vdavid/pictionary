@@ -4,8 +4,7 @@ import {actionTypes as gameActionTypes} from './game/store.mjs';
 import ConnectBox from './connection/ConnectBox.mjs';
 import RoundStartingBox from './game/RoundStartingBox.mjs';
 
-import DrawingCanvas from './drawing-canvas/DrawingCanvas.mjs';
-import GuessingCanvas from './guessing-canvas/GuessingCanvas.mjs';
+import Canvases from './canvases/Canvases.mjs';
 import GameControls from './game-controls/GameControls.mjs';
 
 import ConnectionStatus from './connection/ConnectionStatus.mjs';
@@ -16,10 +15,7 @@ class GamePage extends React.Component {
     render() {
         return React.createElement('div', {id: 'gamePage'},
             React.createElement('div', {id: 'gamePageLayout'},
-                React.createElement('section', {id: 'canvasSection'},
-                    this.props.whichPlayerDraws === 'local' ? React.createElement(DrawingCanvas, {updateEventDispatchIntervalInMilliseconds: 500}) : null,
-                    this.props.whichPlayerDraws === 'remote' ? React.createElement(GuessingCanvas) : null,
-                ),
+                React.createElement(Canvases),
                 React.createElement(GameControls),
                 React.createElement(ConnectionStatus),
                 React.createElement(Chat, {state: this.props.chat}),
@@ -49,7 +45,6 @@ function mapStateToProps(state) {
         isRoundStarted: state.game.isRoundStarted,
         isRoundStarting: state.game.isRoundStarting,
         isHost: state.connection.isHost,
-        whichPlayerDraws: state.game.whichPlayerDraws,
     };
 }
 

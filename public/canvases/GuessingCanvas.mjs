@@ -1,5 +1,5 @@
 const {connect} = window.ReactRedux;
-import {actionTypes as guessingCanvasActionTypes} from './store.mjs';
+import {actionTypes as guessingCanvasActionTypes} from './guessing-canvas-store.mjs';
 
 class GuessingCanvas extends React.Component {
     componentDidMount() {
