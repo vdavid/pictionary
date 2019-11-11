@@ -11,7 +11,7 @@ class GuessingCanvas extends React.Component {
         this._clearCanvas(canvas);
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(previousProps) {
         const newLines = this.props.newLines;
         if (newLines.length) {
             this.props.markNewLinesAsProcessed(newLines.length);
@@ -19,6 +19,10 @@ class GuessingCanvas extends React.Component {
             this._allDrawnLines = [...this._allDrawnLines, ...newLines];
 
             this._drawLines(newLines);
+        }
+
+        if (previousProps.lineCount > this.props.lineCount) {
+            this._clearCanvas(this.refs.guessingCanvas);
         }
     }
 
@@ -67,6 +71,7 @@ class GuessingCanvas extends React.Component {
  */
 function mapStateToProps(state) {
     return {
+        lineCount: state.guessingCanvas.lineCount,
         newLines: state.guessingCanvas.newLines,
     };
 }

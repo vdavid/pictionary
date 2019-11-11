@@ -18,11 +18,12 @@ export const actionTypes = {
     SEND_MESSAGE: 'chat/sendMessage',
     MESSAGE_SENT: 'chat/messageSent',
     SENDING_FAILED: 'chat/sendingFailed',
+    PHRASE_GUESSED_CORRECTLY: 'chat/phraseGuessedCorrectly',
 };
 
 /**
  * @param {ChatState} state
- * @returns {*}
+ * @returns {ChatState}
  */
 function _getStateCopy(state) {
     return state ? {
@@ -79,6 +80,19 @@ function _sendingFailed(state) {
 
 /**
  * @param {ChatState} state
+ * @param {'local'|'remote'} whoSaysIt
+ * @param {string} phrase
+ * @private
+ */
+function _addSystemMessageThatPhraseWasGuessedCorrectly(state, {whoDrew, phrase}) {
+    const text = (whoDrew === 'local')
+        ? 'Yay! Your friend guessed it right! Let\'s see another one!'
+        : 'Yay! You guessed it right, it was indeed "' + phrase + '"! Let\'s see another one!';
+    state.messages.push({text, isIncoming: true, isSystemMessage: true, dateTime: new Date()});
+}
+
+/**
+ * @param {ChatState} state
  * @param {{type: string, payload: *}} action
  * @return {ChatState}
  */
@@ -89,6 +103,7 @@ export function reducer(state, action) {
         [actionTypes.SEND_MESSAGE]: _sendMessage,
         [actionTypes.MESSAGE_SENT]: _messageSent,
         [actionTypes.SENDING_FAILED]: _sendingFailed,
+        [actionTypes.PHRASE_GUESSED_CORRECTLY]: _addSystemMessageThatPhraseWasGuessedCorrectly,
     };
     const newState = _getStateCopy(state);
 

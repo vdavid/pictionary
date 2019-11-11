@@ -110,6 +110,17 @@ export default class PeerConnector {
      * @private
      */
     _handleConnectionDataReceived(data) {
+        /* Log */
+        if (this._debugLevel >= 2) {
+            if (data.type === 'command') {
+                console.log('Received: command: ' + data.payload.command + ' with parameters: ' + data.payload.parameters);
+            } else if (data.type === 'newLines') {
+                console.log('Received: ' + data.payload.length + ' new lines.');
+            } else if (data.type === 'message') {
+                console.log('Received: message: ' + data.payload);
+            }
+        }
+
         if (data.type === 'command') {
             this._onCommandReceived(data.payload.command, data.payload.parameters);
         } else if (data.type === 'newLines') {
@@ -210,6 +221,9 @@ export default class PeerConnector {
      * @param {string} message
      */
     sendMessage(message) {
+        if (this._debugLevel >= 2) {
+            console.log('Sent: message: ' + message);
+        }
         this._connection.send({type: 'message', payload: message});
     }
 
@@ -217,6 +231,9 @@ export default class PeerConnector {
      * @param {DrawnLine[]} newLines
      */
     sendNewLines(newLines) {
+        if (this._debugLevel >= 2) {
+            console.log('Sent: ' + newLines.length + ' new lines.');
+        }
         this._connection.send({type: 'newLines', payload: newLines});
     }
 
@@ -225,6 +242,9 @@ export default class PeerConnector {
      * @param {Object} parameters
      */
     sendCommand(command, parameters) {
+        if (this._debugLevel >= 2) {
+            console.log('Sent: command: ' + command + ' with parameters: ' + parameters);
+        }
         this._connection.send({type: 'command', payload: {command, parameters}});
     }
 

@@ -30,6 +30,9 @@ export default function socketMiddleware(store) {
     function onCommandReceived(command, parameters) {
         if (command === 'startRound') {
             store.dispatch({type: gameActions.START_ROUND, payload: parameters.whichPlayerDraws});
+        } else if (command === 'phraseGuessedCorrectly') {
+            store.dispatch({type: gameActions.PHRASE_GUESSED_CORRECTLY, payload: parameters.phrase});
+            store.dispatch({type: chatActions.PHRASE_GUESSED_CORRECTLY, payload: {whoDrew: 'remote', phrase: parameters.phrase}});
         }
     }
 
@@ -44,7 +47,14 @@ export default function socketMiddleware(store) {
      * @param {string} message
      */
     function onMessageReceived(message) {
+        /** @type {State} */
+        const state = store.getState();
         store.dispatch({type: chatActions.MESSAGE_RECEIVED, payload: message});
+
+        if ((state.game.whichPlayerDraws === 'local') && (message.trim().toLowerCase() === state.game.activePhrase.toLowerCase())) {
+            store.dispatch({type: gameActions.PHRASE_GUESSED_CORRECTLY, payload: state.game.activePhrase});
+            store.dispatch({type: chatActions.PHRASE_GUESSED_CORRECTLY, payload: {whoDrew: 'local', phrase: state.game.activePhrase}});
+        }
     }
 
     const peerConnector = new PeerConnector({
@@ -103,10 +113,30 @@ export default function socketMiddleware(store) {
      * @param {'local'|'remote'} whichPlayerDraws
      */
     function _sendStartSignalToPeerIfThisIsTheHost(whichPlayerDraws) {
+        /** @type {State} */
         const state = store.getState();
+
         if (state.connection.isHost) {
             peerConnector.sendCommand('startRound', {whichPlayerDraws: ((whichPlayerDraws === 'local') ? 'remote' : 'local')});
         }
+    }
+
+    /**
+     * @param {string} phrase
+     */
+    function _sendPhraseGuessedCorrectlyCommandIfThisIsTheDrawingPlayer(phrase) {
+        /** @type {State} */
+        const state = store.getState();
+
+        if (state.game.whichPlayerDraws === 'local') {
+            peerConnector.sendCommand('phraseGuessedCorrectly', {phrase});
+        } else {
+            store.dispatch({type: guessingCanvasActions.CLEARING_NEEDED});
+        }
+    }
+
+    function _setActivePhrase() {
+        store.dispatch({type: drawingCanvasActions.CLEARING_NEEDED});
     }
 
     /* Returns the handler that will be called for each action dispatched */
@@ -117,6 +147,8 @@ export default function socketMiddleware(store) {
             [chatActions.SEND_MESSAGE]: _sendChatMessage,
             [drawingCanvasActions.DRAWING_UPDATED]: _drawingUpdated,
             [gameActions.START_ROUND]: _sendStartSignalToPeerIfThisIsTheHost,
+            [gameActions.PHRASE_GUESSED_CORRECTLY]: _sendPhraseGuessedCorrectlyCommandIfThisIsTheDrawingPlayer,
+            [gameActions.SET_ACTIVE_PHRASE]: _setActivePhrase,
         };
 
         if (actionTypeToFunctionMap[action.type]) {

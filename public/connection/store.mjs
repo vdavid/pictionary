@@ -18,7 +18,7 @@ export const actionTypes = {
 
 /**
  * @param {ConnectionState} state
- * @returns {*}
+ * @returns {ConnectionState}
  */
 function _getStateCopy(state) {
     return state ? {

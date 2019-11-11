@@ -9,7 +9,9 @@ class GameControls extends React.Component {
     }
 
     componentDidUpdate(previousProps) {
-        if (!previousProps.isRoundStarted && this.props.isRoundStarted && this.props.whichPlayerDraws === 'local') {
+        if (this.props.whichPlayerDraws === 'local'
+            && ((!previousProps.isRoundStarted && this.props.isRoundStarted)
+                || (!previousProps.isActivePhraseGuessedCorrectly && this.props.isActivePhraseGuessedCorrectly))) {
             const randomPhrase = getRandomPhrase();
             this.props.setActivePhrase(randomPhrase);
         }
@@ -41,6 +43,7 @@ function mapStateToProps(state) {
         isRoundStarted: state.game.isRoundStarted,
         whichPlayerDraws: state.game.whichPlayerDraws,
         activePhrase: state.game.activePhrase,
+        isActivePhraseGuessedCorrectly: state.game.isActivePhraseGuessedCorrectly,
     };
 }
 

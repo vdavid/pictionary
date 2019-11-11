@@ -33,6 +33,12 @@ class DrawingCanvas extends React.Component {
         canvas.addEventListener('resize', this._clearAndRedraw, false);
     }
 
+    componentDidUpdate(previousProps) {
+        if (previousProps.lineCount > this.props.lineCount) {
+            this._clearCanvas(this.refs.drawingCanvas);
+        }
+    }
+
     componentWillUnmount() {
         clearInterval(this._timer);
     }
@@ -115,6 +121,7 @@ class DrawingCanvas extends React.Component {
  */
 function mapStateToProps(state) {
     return {
+        lineCount: state.drawingCanvas.lineCount,
         isRoundStarted: state.game.isRoundStarted,
     };
 }

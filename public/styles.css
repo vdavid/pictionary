@@ -3,6 +3,7 @@
     --dark-primary-color: #00796b;
     --default-primary-color: #009688;
     --light-primary-color: #b2dfdb;
+    --extra-light-primary-color: #e0f2f1;
     --text-primary-color: #fff;
     --accent-color: #ffc107;
     --primary-text-color: #212121;
@@ -85,5 +86,5 @@ button { border: none; border-radius: 2px; }
 .indicatorLight.yellow { background-color: yellow; }
 .indicatorLight.green { background-color: green; }
 
-#gameControlsSection { position: relative; grid-area: gameControls; }
+#gameControlsSection { position: relative; grid-area: gameControls; background-color: var(--extra-light-primary-color); }
 #gameControlsSection span { position: absolute; top: 50%; width: 100%; transform: translate(0, -50%); font-size: 2.5vw; text-align: center; }
