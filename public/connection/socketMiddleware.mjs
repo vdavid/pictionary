@@ -54,7 +54,7 @@ export default function socketMiddleware(store) {
         const state = store.getState();
         store.dispatch({type: chatActions.MESSAGE_RECEIVED, payload: message});
 
-        if ((state.game.whichPlayerDraws === 'local') && (message.trim().toLowerCase() === state.game.activePhrase.toLowerCase())) {
+        if ((state.game.whichPlayerDraws === 'local') && (message.trim().toLowerCase().indexOf(state.game.activePhrase.toLowerCase()) > -1)) {
             store.dispatch({type: gameActions.PHRASE_GUESSED_CORRECTLY, payload: state.game.activePhrase});
             store.dispatch({type: chatActions.PHRASE_GUESSED_CORRECTLY, payload: {whoDrew: 'local', phrase: state.game.activePhrase}});
         }

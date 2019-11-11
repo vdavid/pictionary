@@ -1,8 +1,8 @@
 const {connect} = window.ReactRedux;
-import {actionTypes as gameActionTypes} from '../game/store.mjs';
+import {actionTypes as gameActionTypes} from './store.mjs';
 import {getRandomPhrase} from '../data/phrases.mjs';
 
-class GameControls extends React.Component {
+class WordDisplayComponent extends React.Component {
     constructor(props) {
         super(props);
         this._getContentText = this._getContentText.bind(this);
@@ -18,7 +18,7 @@ class GameControls extends React.Component {
     }
 
     render() {
-        return React.createElement('section', {id: 'gameControlsSection'},
+        return React.createElement('section', {id: 'wordDisplaySection'},
             React.createElement('span', {}, this._getContentText())
         );
     }
@@ -55,4 +55,4 @@ function mapDispatchToProps(dispatch) {
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(GameControls);
+export default connect(mapStateToProps, mapDispatchToProps)(WordDisplayComponent);

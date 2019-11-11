@@ -29,6 +29,7 @@ export default class ChatInputComponent extends React.Component {
             type: 'text',
             ref: 'chatInput',
             placeholder: 'Enter message or guess...',
+            maxlength: 160,
             autoFocus: true,
             value: this.props.typedMessage,
             onChange: this._onTyping,

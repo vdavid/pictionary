@@ -39,26 +39,26 @@ function _getStateCopy(state) {
 
 /**
  * @param {ChatState} state
- * @param {string} payload The message
+ * @param {string} messageText
  */
-function _saveTypedMessage(state, payload) {
-    state.typedMessage = payload;
+function _saveTypedMessage(state, messageText) {
+    state.typedMessage = messageText;
 }
 
 /**
  * @param {ChatState} state
- * @param {string} payload The message
+ * @param {string} messageText
  */
-function _messageReceived(state, payload) {
-    state.messages.push({text: payload, isIncoming: true, isSystemMessage: false, dateTime: new Date()});
+function _messageReceived(state, messageText) {
+    state.messages.push({text: messageText.substr(0, 160), isIncoming: true, isSystemMessage: false, dateTime: new Date()});
 }
 
 /**
  * @param {ChatState} state
- * @param {string} payload The message
+ * @param {string} messageText
  */
-function _sendMessage(state, payload) {
-    state.messages.push({text: payload, isIncoming: false, isSystemMessage: false, dateTime: new Date()});
+function _sendMessage(state, messageText) {
+    state.messages.push({text: messageText.substr(0, 160), isIncoming: false, isSystemMessage: false, dateTime: new Date()});
     state.typedMessage = '';
     state.isSendingMessage = true;
 }

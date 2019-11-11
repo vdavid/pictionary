@@ -20,6 +20,7 @@ button { border: none; border-radius: 2px; }
 
 /* Common elements */
 .midScreenBox { position: absolute; z-index: 2; width: 500px; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: var(--default-primary-color); color: var(--text-primary-color); border-radius: 2px; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23); }
+.fullScreenSemiTransparentCover { position: fixed; z-index: 1; top: 0; right: 0; bottom: 0; left: 0; overflow-x: hidden; background-color: rgba(0, 0, 0, 0.4); transition: 0.5s; }
 
 /* Indicator light */
 .indicatorLight { width: 25px; height: 25px; margin-right: 10px; background-color: #bbb; border-radius: 50%; display: inline-block; }
@@ -40,14 +41,18 @@ button { border: none; border-radius: 2px; }
 
 /* Game page layout */
 #gamePage { height: 100%; }
-#gamePageLayout { display: grid; height: 100%; grid-template-columns: auto 30%; grid-template-rows: 4em calc(100% - 4em - 200px) 100px 100px; grid-template-areas: 'canvas connection' 'canvas chat' 'canvas chat' 'gameControls timer'}
+#gamePageLayout { display: grid; height: 100%; grid-template-columns: auto 30%; grid-template-rows: 4em calc(100% - 4em - 200px) 100px 100px; grid-template-areas: 'canvas connection' 'canvas chat' 'canvas chat' 'word timer'}
 #canvasSection { grid-area: canvas; }
+#wordDisplaySection { background-color: var(--extra-light-primary-color); grid-area: word; }
 #connectionSection { padding: 20px; background-color: var(--light-primary-color); grid-area: connection; display: grid; grid-template-columns: 25px auto; grid-column-gap: 10px; }
 #chatSection { background-color: var(--light-primary-color); grid-area: chat; }
 #timerSection { background-color: var(--light-primary-color); grid-area: timer; }
 
+/* “No connection” box */
+#noConnectionBox { position: absolute; z-index: 2; width: 500px; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px; text-align: center; font-size: 1.5em; }
+#noConnectionBox button { margin-top: 1em; padding: 5px 20px; font-size: 1.5rem; background-color: var(--accent-color); }
+
 /* Connect box */
-.fullScreenSemiTransparentCover { position: fixed; z-index: 1; top: 0; right: 0; bottom: 0; left: 0; overflow-x: hidden; background-color: rgba(0, 0, 0, 0.4); transition: 0.5s; }
 #connectBox { display: grid; grid-template-columns: 47% 6% 47%; padding: 20px; }
 #connectBox > * { text-align: center; }
 #connectBox .hostConnectionBox .localPeerId { text-align: center; font-size: 2.5rem; }
@@ -55,12 +60,20 @@ button { border: none; border-radius: 2px; }
 #connectBox .or span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
 #connectBox .connectToPeerBox input { display: inline-block; text-align: center; font-size: 2.5rem; width: 80%; }
 #connectBox .connectToPeerBox button { margin-top: 0.5em; font-size: 1.5rem; width: 80%; background-color: var(--accent-color); }
-#noConnectionBox { position: absolute; z-index: 2; width: 500px; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px; text-align: center; font-size: 1.5em; }
-#noConnectionBox button { margin-top: 1em; padding: 5px 20px; font-size: 1.5rem; background-color: var(--accent-color); }
 
 /* “Game is starting” box */
 #gameStartingBox { z-index: 3; width: 400px; padding: 20px; text-align: center; }
 #gameStartingBox .timer { font-size: 5rem; }
+
+/* Canvases */
+#canvasSection { position: relative; }
+#canvasSection canvas { width: 100%; height: 100%; }
+#canvasSection button { position: absolute; right: 0; bottom: 0; width: 64px; height: 32px; }
+#drawingCanvas { cursor: crosshair; }
+
+/* Word */
+#wordDisplaySection { position: relative; }
+#wordDisplaySection span { position: absolute; top: 50%; width: 100%; transform: translate(0, -50%); font-size: 2.5vw; text-align: center; }
 
 /* Chat */
 #chatSection { display: grid; grid-template-rows: 2.5em calc(100% - 2.5em - 10px); grid-row-gap: 10px; padding: 20px; }
@@ -85,12 +98,3 @@ button { border: none; border-radius: 2px; }
 #timerSection { position: relative; padding: 20px; }
 #timerSection div { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; }
 #timerSection div.overSoon { color: red; }
-
-/* Canvases */
-#canvasSection { position: relative; }
-#canvasSection canvas { width: 100%; height: 100%; }
-#canvasSection button { position: absolute; right: 0; bottom: 0; width: 64px; height: 32px; }
-#drawingCanvas { cursor: crosshair; }
-
-#gameControlsSection { position: relative; grid-area: gameControls; background-color: var(--extra-light-primary-color); }
-#gameControlsSection span { position: absolute; top: 50%; width: 100%; transform: translate(0, -50%); font-size: 2.5vw; text-align: center; }

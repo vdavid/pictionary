@@ -6,7 +6,7 @@ import NoConnectionBox from './connection/NoConnectionBox.mjs';
 import RoundStartingBox from './game/RoundStartingBox.mjs';
 
 import Canvases from './canvases/Canvases.mjs';
-import GameControls from './game-controls/GameControls.mjs';
+import WordDisplayComponent from './game/WordDisplayComponent.mjs';
 
 import ConnectionStatus from './connection/ConnectionStatus.mjs';
 import Chat from './chat/Chat.mjs';
@@ -17,7 +17,7 @@ class GamePage extends React.Component {
         return React.createElement('div', {id: 'gamePage'},
             React.createElement('div', {id: 'gamePageLayout'},
                 React.createElement(Canvases),
-                React.createElement(GameControls),
+                React.createElement(WordDisplayComponent),
                 React.createElement(ConnectionStatus),
                 React.createElement(Chat, {state: this.props.chat}),
                 React.createElement('section', {id: 'timerSection'},
