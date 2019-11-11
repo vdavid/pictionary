@@ -1,10 +1,10 @@
 const {Redux} = window;
-import socketMiddleware from './connection/socketMiddleware.mjs';
-import {reducer as connectionReducer} from './connection/store.mjs';
-import {reducer as chatReducer} from './chat/store.mjs';
-import {reducer as gameReducer} from './game/store.mjs';
-import {reducer as drawingCanvasReducer} from './canvases/drawing-canvas-store.mjs';
-import {reducer as guessingCanvasReducer} from './canvases/guessing-canvas-store.mjs';
+import socketMiddleware from '../connection/socketMiddleware.mjs';
+import {reducer as connectionReducer} from '../connection/store.mjs';
+import {reducer as chatReducer} from '../chat/store.mjs';
+import {reducer as gameReducer} from '../game/store.mjs';
+import {reducer as drawingCanvasReducer} from '../canvases/drawing-canvas-store.mjs';
+import {reducer as guessingCanvasReducer} from '../canvases/guessing-canvas-store.mjs';
 
 /**
  * @typedef {Object} State

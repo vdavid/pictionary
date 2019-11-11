@@ -1,16 +1,16 @@
 const {connect} = window.ReactRedux;
-import {actionTypes as gameActionTypes} from './game/store.mjs';
+import {actionTypes as gameActionTypes} from '../game/store.mjs';
 
-import ConnectBox from './connection/ConnectBox.mjs';
-import NoConnectionBox from './connection/NoConnectionBox.mjs';
-import RoundStartingBox from './game/RoundStartingBox.mjs';
+import ConnectBox from '../connection/ConnectBox.mjs';
+import NoConnectionBox from '../connection/NoConnectionBox.mjs';
+import RoundStartingBox from '../game/RoundStartingBox.mjs';
 
-import Canvases from './canvases/Canvases.mjs';
-import WordDisplayComponent from './game/WordDisplayComponent.mjs';
+import Canvases from '../canvases/Canvases.mjs';
+import WordDisplayComponent from '../game/WordDisplayComponent.mjs';
 
-import ConnectionStatus from './connection/ConnectionStatus.mjs';
-import Chat from './chat/Chat.mjs';
-import Timer from './game/Timer.mjs';
+import ConnectionStatus from '../connection/ConnectionStatus.mjs';
+import Chat from '../chat/Chat.mjs';
+import Timer from '../game/Timer.mjs';
 
 class GamePage extends React.Component {
     render() {
