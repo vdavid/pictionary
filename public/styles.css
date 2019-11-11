@@ -14,9 +14,18 @@
 
 
 /* Generic styles */
-body { margin: 0; padding: 0; height: 100vh; font-family: 'Open Sans', 'Arial', sans-serif; color: var(--primary-text-color); }
+body { margin: 0; padding: 0; height: 100vh; font-family: 'Open Sans', 'Arial', sans-serif; font-size:1.2em; color: var(--primary-text-color); }
 input { border: none; border-radius: 2px; color: var(--primary-text-color); }
 button { border: none; border-radius: 2px; }
+
+/* Common elements */
+.midScreenBox { position: absolute; z-index: 2; width: 500px; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: var(--default-primary-color); color: var(--text-primary-color); border-radius: 2px; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23); }
+
+/* Indicator light */
+.indicatorLight { width: 25px; height: 25px; margin-right: 10px; background-color: #bbb; border-radius: 50%; display: inline-block; }
+.indicatorLight.red { background-color: red; }
+.indicatorLight.yellow { background-color: yellow; }
+.indicatorLight.green { background-color: green; }
 
 /* App layout and settings */
 #app { height: 100%; display: grid; grid-template-rows: 2em calc(100vh - 4em) 2em; }
@@ -39,16 +48,18 @@ button { border: none; border-radius: 2px; }
 
 /* Connect box */
 .fullScreenSemiTransparentCover { position: fixed; z-index: 1; top: 0; right: 0; bottom: 0; left: 0; overflow-x: hidden; background-color: rgba(0, 0, 0, 0.4); transition: 0.5s; }
-#connectBox { position: absolute; z-index: 2; width: 500px; top: 50%; left: 50%; transform: translate(-50%, -50%); display: grid; grid-template-columns: 47% 6% 47%; padding: 20px; background-color: var(--default-primary-color); color: var(--text-primary-color); border-radius: 2px; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23); }
+#connectBox { display: grid; grid-template-columns: 47% 6% 47%; padding: 20px; }
 #connectBox > * { text-align: center; }
 #connectBox .hostConnectionBox .localPeerId { text-align: center; font-size: 2.5rem; }
 #connectBox .or { position: relative; }
 #connectBox .or span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
 #connectBox .connectToPeerBox input { display: inline-block; text-align: center; font-size: 2.5rem; width: 80%; }
 #connectBox .connectToPeerBox button { margin-top: 0.5em; font-size: 1.5rem; width: 80%; background-color: var(--accent-color); }
+#noConnectionBox { position: absolute; z-index: 2; width: 500px; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px; text-align: center; font-size: 1.5em; }
+#noConnectionBox button { margin-top: 1em; padding: 5px 20px; font-size: 1.5rem; background-color: var(--accent-color); }
 
 /* “Game is starting” box */
-#gameStartingBox { position: absolute; z-index: 3; width: 400px; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px; text-align: center; background-color: var(--default-primary-color); color: var(--text-primary-color); border-radius: 2px; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23); }
+#gameStartingBox { z-index: 3; width: 400px; padding: 20px; text-align: center; }
 #gameStartingBox .timer { font-size: 5rem; }
 
 /* Chat */
@@ -78,14 +89,8 @@ button { border: none; border-radius: 2px; }
 /* Canvases */
 #canvasSection { position: relative; }
 #canvasSection canvas { width: 100%; height: 100%; }
-#canvasSection button { position: absolute; right: 0; bottom: 0; width:64px; height: 32px; }
+#canvasSection button { position: absolute; right: 0; bottom: 0; width: 64px; height: 32px; }
 #drawingCanvas { cursor: crosshair; }
-
-/* Indicator light */
-.indicatorLight { width: 25px; height: 25px; margin-right: 10px; background-color: #bbb; border-radius: 50%; display: inline-block; }
-.indicatorLight.red { background-color: red; }
-.indicatorLight.yellow { background-color: yellow; }
-.indicatorLight.green { background-color: green; }
 
 #gameControlsSection { position: relative; grid-area: gameControls; background-color: var(--extra-light-primary-color); }
 #gameControlsSection span { position: absolute; top: 50%; width: 100%; transform: translate(0, -50%); font-size: 2.5vw; text-align: center; }

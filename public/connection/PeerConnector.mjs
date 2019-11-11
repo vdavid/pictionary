@@ -182,8 +182,7 @@ export default class PeerConnector {
     _handlePeerError(error) {
         if (error.type === 'unavailable-id') {
             this._idLength++;
-            this._peer.destroy();
-            this._createPeer();
+            this.createPeer();
         } else {
             console.log('Peer error.');
             console.log(error);
@@ -198,10 +197,10 @@ export default class PeerConnector {
         return Math.random().toString(36).substr(2, this._idLength);
     }
 
-    /**
-     * @private
-     */
-    _createPeer() {
+    createPeer() {
+        if (this._peer) {
+            this._peer.destroy();
+        }
         this._peer = new Peer(this._generateRandomId(), {debug: this._debugLevel});
         this._peer.on('open', this._handlePeerOpen, null);
         this._peer.on('connection', this._handlePeerIncomingConnection, null);
@@ -222,7 +221,7 @@ export default class PeerConnector {
 
         this._idLength = 2;
 
-        this._createPeer();
+        this.createPeer();
     }
 
     /**

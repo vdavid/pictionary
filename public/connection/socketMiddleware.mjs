@@ -146,6 +146,10 @@ export default function socketMiddleware(store) {
         peerConnector.sendCommand('clearGuessingCanvas', {});
     }
 
+    function _tryReconnectingToPeerServer() {
+        peerConnector.createPeer();
+    }
+
     /* Returns the handler that will be called for each action dispatched */
     return next => action => {
         const actionTypeToFunctionMap = {
@@ -157,6 +161,7 @@ export default function socketMiddleware(store) {
             [gameActions.PHRASE_GUESSED_CORRECTLY]: _sendPhraseGuessedCorrectlyCommandIfThisIsTheDrawingPlayer, /* Both sides */
             [gameActions.SET_ACTIVE_PHRASE]: _setActivePhrase, /* Drawing side only */
             [drawingCanvasActions.CLEARING_NEEDED]: _notifyPeerToClearGuessingCanvas, /* Drawing side only */
+            [drawingCanvasActions.TRY_RECONNECTING_TO_PEER_SERVER]: _tryReconnectingToPeerServer,
         };
 
         if (actionTypeToFunctionMap[action.type]) {

@@ -14,6 +14,7 @@ export const actionTypes = {
     CONNECT: 'connection/connect',
     CONNECTED: 'connection/connected',
     DISCONNECT: 'connection/disconnect',
+    TRY_RECONNECTING_TO_PEER_SERVER: 'connection/tryReconnectingToPeerServer',
 };
 
 /**

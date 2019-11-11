@@ -8,7 +8,7 @@ class ConnectBox extends React.Component {
     render() {
         return React.createElement('div', {},
             React.createElement('div', {className: 'fullScreenSemiTransparentCover'}),
-            React.createElement('div', {id: 'connectBox',},
+            React.createElement('div', {id: 'connectBox', className: 'midScreenBox'},
                 React.createElement(HostConnectionBox, {localPeerId: this.props.localPeerId}),
                 React.createElement('div', {className: 'or'}, React.createElement('span', null, 'or')),
                 React.createElement(ConnectToPeerBox, {connect: this.props.connect, isConnecting: this.props.isConnecting, isConnected: this.props.isConnected}),

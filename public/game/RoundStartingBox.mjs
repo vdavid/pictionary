@@ -30,7 +30,7 @@ class RoundStartingBox extends React.Component {
     render() {
         return React.createElement('div', {},
             React.createElement('div', {className: 'fullScreenSemiTransparentCover'}),
-            React.createElement('div', {id: 'gameStartingBox'},
+            React.createElement('div', {id: 'gameStartingBox', className: 'midScreenBox'},
                 React.createElement('p', {}, 'Game is starting in'),
                 React.createElement('div', {className: 'timer'}, this.state.secondsRemaining),
                 React.createElement('p', {className: 'whoDraws'}, this.props.whichPlayerDraws === 'local' ? 'You\'ll be the one drawing.' : 'You\'ll be the one guessing.'),
