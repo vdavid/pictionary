@@ -68,7 +68,7 @@ export default function socketMiddleware(store) {
         onCommandReceived,
         onDrawnLinesReceived,
         onMessageReceived,
-        debugLevel: 2, // TODO: Set this to 1 for production
+        debugLevel: window.location.href.startsWith('http://localhost') ? 2 : 1,
     });
 
     /**

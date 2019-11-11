@@ -10,43 +10,55 @@ class DrawingCanvas extends React.Component {
         this._liftPen = this._liftPen.bind(this);
         this._sendNewlyDrawnLines = this._sendNewlyDrawnLines.bind(this);
         this._clearAndRedraw = this._clearAndRedraw.bind(this);
+
+        /** @type {DrawnLine[]} */
+        this._allDrawnLines = [];
+        /** @type {DrawnLine[]} */
+        this._newlyDrawnLines = [];
+        /** @type {boolean} */
+        this._isPenDown = false;
+        /** @type {Number|undefined} */
+        this._lastX = undefined;
+        /** @type {Number|undefined} */
+        this._lastY = undefined;
+
+        window.addEventListener('resize', this._clearAndRedraw);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     componentDidMount() {
         const canvas = this.refs.drawingCanvas;
         this._drawingTools = new DrawingTools(canvas);
 
-        this._allDrawnLines = [];
-        this._newlyDrawnLines = [];
-        this._isPenDown = false;
-        this._lastX = undefined;
-        this._lastY = undefined;
-
         this._drawingTools.updateCanvasSiteToItsClientSize();
         this._drawingTools.clearCanvas();
-
-        window.addEventListener('resize', this._clearAndRedraw);
+        this._allDrawnLines.map(line => this._drawingTools.drawLine(line));
 
         this._timer = setInterval(this._sendNewlyDrawnLines, this.props.updateEventDispatchIntervalInMilliseconds);
     }
 
     _clearAndRedraw() {
-        this._drawingTools.updateCanvasSiteToItsClientSize();
-        this._drawingTools.clearCanvas();
-        this._allDrawnLines.map(line => this._drawingTools.drawLine(line));
+        if (this._drawingTools) {
+            this._drawingTools.updateCanvasSiteToItsClientSize();
+            this._drawingTools.clearCanvas();
+            this._allDrawnLines.map(line => this._drawingTools.drawLine(line));
+        }
     }
 
+    // noinspection JSUnusedGlobalSymbols
     componentDidUpdate(previousProps) {
         if (previousProps.lineCount > this.props.lineCount) {
             this._drawingTools.clearCanvas();
         }
     }
 
+    // noinspection JSUnusedGlobalSymbols
     componentWillUnmount() {
         clearInterval(this._timer);
     }
 
     render() {
+        // noinspection JSUnusedGlobalSymbols
         return React.createElement('canvas', {
             id: 'drawingCanvas',
             ref: 'drawingCanvas',
