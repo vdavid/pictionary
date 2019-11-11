@@ -180,23 +180,29 @@ export default class PeerConnector {
      * @private
      */
     _handlePeerError(error) {
-        console.log('Peer error.');
-        console.log(error);
-        this._onErrorCallback(error);
+        if (error.type === 'unavailable-id') {
+            this._idLength++;
+            this._peer.destroy();
+            this._createPeer();
+        } else {
+            console.log('Peer error.');
+            console.log(error);
+            this._onErrorCallback(error);
+        }
     }
 
     /**
      * @private
      */
     _generateRandomId() {
-        return Math.random().toString(36).substr(2, 4);
+        return Math.random().toString(36).substr(2, this._idLength);
     }
 
     /**
      * @private
      */
     _createPeer() {
-        this._peer = new Peer(this._generateRandomId(), {debug: this._debugLevel}); // TODO: Handle the case when we can't get a valid ID.
+        this._peer = new Peer(this._generateRandomId(), {debug: this._debugLevel});
         this._peer.on('open', this._handlePeerOpen, null);
         this._peer.on('connection', this._handlePeerIncomingConnection, null);
         this._peer.on('disconnected', this._handlePeerDisconnected, null);
@@ -213,6 +219,8 @@ export default class PeerConnector {
         this._isConnectedToPeer = false; /* Only one connection is allowed at a time. */
         this._connection = null; /* Holds the current connection, or null if not connected */
         this._isHost = null; /* True if this peer has been connected by the other party. (Null if there's no connection.) */
+
+        this._idLength = 2;
 
         this._createPeer();
     }
