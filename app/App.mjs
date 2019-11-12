@@ -10,6 +10,7 @@ class App extends React.Component {
     render() {
         return React.createElement(BrowserRouter, {basename: '/'},
             React.createElement('header', {},
+                React.createElement('div', {className: 'logo'}),
                 React.createElement('nav', {},
                     React.createElement('ul', {},
                         React.createElement('li', {},

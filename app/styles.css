@@ -36,7 +36,8 @@ button { border: none; border-radius: 2px; }
 
 /* App layout and settings */
 #app { height: 100%; display: grid; grid-template-rows: 2em calc(100vh - 4em) 2em; }
-#app > header { padding: 0 0.2em; background-color: var(--dark-primary-color); }
+#app > header { display:grid; grid-template-columns: 2em auto; background-color: var(--dark-primary-color); }
+#app > header .logo { margin:0.2em; background: url('/app/images/favicon-64.png'); background-size:cover; }
 #app > header nav { height: 100%; }
 #app > header nav ul { margin: 0; padding: 0; display: table; height: 100%; list-style: none; }
 #app > header nav li { display: table-cell; vertical-align: middle; }

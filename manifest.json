@@ -1,0 +1,21 @@
+{
+  "short_name": "Pictionary",
+  "name": "Pictionary Game",
+  "icons": [
+    {
+      "src": "/app/images/logo-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/app/images/logo-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#009688",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#009688"
+}
