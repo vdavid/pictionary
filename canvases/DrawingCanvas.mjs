@@ -63,10 +63,14 @@ class DrawingCanvas extends React.Component {
             id: 'drawingCanvas',
             ref: 'drawingCanvas',
             onContextMenu: event => event.preventDefault(),
-            onMouseMove: this._handleMouseMoved,
-            onMouseDown: this._handleMouseDown,
-            onMouseUp: this._liftPen,
-            onMouseOut: this._liftPen,
+            onPointerDown: this._handleMouseDown,
+            onPointerMove: this._handleMouseMoved,
+            onPointerUp: this._liftPen,
+            onPointerCancel: this._liftPen,
+            onTouchStart: this._handleMouseDown,
+            onTouchMove: this._handleMouseMoved,
+            onTouchEnd: this._liftPen,
+            onTouchCancel: this._liftPen,
         });
     }
 
