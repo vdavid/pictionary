@@ -32,7 +32,9 @@ export default class ConnectToPeerBox extends React.Component {
                 value: this.state.remotePeerId,
                 disabled: this.props.isConnecting || this.props.isConnected,
                 maxLength: 6,
-                onChange: event => this.setState({remotePeerId: event.target.value}, null),
+                autoCapitalize: 'none',
+                autoCompleteType: 'off',
+                onChange: event => this.setState({remotePeerId: event.target.value.toLowerCase()}),
                 onKeyUp: this._onKeyUp,
             }),
             React.createElement('button', {

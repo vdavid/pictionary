@@ -74,8 +74,21 @@ class DrawingCanvas extends React.Component {
         });
     }
 
+    _handleMouseDown(event) {
+        if (this.props.isRoundStarted) {
+            event.preventDefault();
+            const canvas = this.refs.drawingCanvas;
+            this._isPenDown = true;
+            this._lastX = (event.clientX - canvas.getBoundingClientRect().left) / canvas.width;
+            this._lastY = (event.clientY - canvas.getBoundingClientRect().top) / canvas.height;
+            // this._drawingTools.drawDot(this._lastX, this._lastY);
+        }
+    }
+
     _handleMouseMoved(event) {
         if (this.props.isRoundStarted && this._isPenDown) {
+            event.preventDefault();
+
             const canvas = this.refs.drawingCanvas;
             const previousX = this._lastX;
             const previousY = this._lastY;
@@ -89,17 +102,6 @@ class DrawingCanvas extends React.Component {
 
             this._newlyDrawnLines.push(newLine);
             this._allDrawnLines.push(newLine);
-        }
-    }
-
-    _handleMouseDown(event) {
-        if (this.props.isRoundStarted) {
-            event.preventDefault();
-            const canvas = this.refs.drawingCanvas;
-            this._isPenDown = true;
-            this._lastX = (event.clientX - canvas.getBoundingClientRect().left) / canvas.width;
-            this._lastY = (event.clientY - canvas.getBoundingClientRect().top) / canvas.height;
-            this._drawingTools.drawDot(this._lastX, this._lastY);
         }
     }
 

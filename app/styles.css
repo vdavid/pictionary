@@ -79,7 +79,7 @@ button { border: none; border-radius: 2px; }
 #canvasSection { position: relative; }
 #canvasSection canvas { width: 100%; height: 100%; }
 #canvasSection button { position: absolute; right: 0; bottom: 0; width: 6em; height: 2.5em; font-size: 0.8em; }
-#drawingCanvas { cursor: crosshair; }
+#drawingCanvas { cursor: crosshair; touch-action: none; }
 
 /* Word */
 #wordDisplaySection { position: relative; }
