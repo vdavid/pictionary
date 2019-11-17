@@ -35,6 +35,7 @@ class GuessingCanvas extends React.Component {
 
         if (previousProps.lineCount > this.props.lineCount) {
             this._drawingTools.clearCanvas();
+            this._allDrawnLines = [];
         }
     }
 

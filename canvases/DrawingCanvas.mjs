@@ -49,6 +49,7 @@ class DrawingCanvas extends React.Component {
     componentDidUpdate(previousProps) {
         if (previousProps.lineCount > this.props.lineCount) {
             this._drawingTools.clearCanvas();
+            this._allDrawnLines = [];
         }
     }
 
