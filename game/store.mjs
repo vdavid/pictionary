@@ -10,6 +10,7 @@
  * @property {'local'|'remote'|undefined} whichPlayerDraws
  * @property {string|undefined} activePhrase
  * @property {boolean} isActivePhraseGuessedCorrectly
+ * @property {boolean} isFullscreen
  */
 
 export const actionTypes = {
@@ -21,6 +22,7 @@ export const actionTypes = {
     UPDATE_SECONDS_REMAINING: 'game/updateSecondsRemaining',
     SET_ACTIVE_PHRASE: 'game/setActivePhrase',
     PHRASE_GUESSED_CORRECTLY: 'game/phraseGuessedCorrectly',
+    CHANGE_FULLSCREEN: 'game/changeFullscreen',
 };
 
 /**
@@ -39,6 +41,7 @@ function _getStateCopy(state) {
         whichPlayerDraws: state.whichPlayerDraws,
         activePhrase: state.activePhrase,
         isActivePhraseGuessedCorrectly: state.isActivePhraseGuessedCorrectly,
+        isFullscreen: state.isFullscreen,
     } : {
         isGameStarted: false,
         isRoundStarting: false,
@@ -130,6 +133,14 @@ function _markPhraseGuessedCorrectly(state, phrase) {
 
 /**
  * @param {GameState} state
+ * @param {boolean} isFullscreen
+ */
+function _setIsFullscreen(state, isFullscreen) {
+    state.isFullscreen = isFullscreen;
+}
+
+/**
+ * @param {GameState} state
  * @param {{type: string, payload: *}} action
  * @return {GameState}
  */
@@ -143,6 +154,7 @@ export function reducer(state, action) {
         [actionTypes.UPDATE_SECONDS_REMAINING]: _updateSecondsRemaining,
         [actionTypes.SET_ACTIVE_PHRASE]: _updateActivePhrase,
         [actionTypes.PHRASE_GUESSED_CORRECTLY]: _markPhraseGuessedCorrectly,
+        [actionTypes.CHANGE_FULLSCREEN]: _setIsFullscreen,
     };
     const newState = _getStateCopy(state);
 

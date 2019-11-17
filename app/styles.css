@@ -11,7 +11,7 @@
     --divider-color: #bdbdbd;
     --card-background-color: #fafafa;
 
-    --chat-message-padding:0.4em;
+    --chat-message-padding: 0.4em;
 }
 
 
@@ -80,7 +80,9 @@ button { border: none; border-radius: 2px; }
 /* Canvases */
 #canvasSection { position: relative; }
 #canvasSection canvas { width: 100%; height: 100%; }
-#canvasSection button { position: absolute; right: 0; bottom: 0; width: 6em; height: 2.5em; font-size: 0.8em; }
+#canvasSection button { position: absolute; font-size: 0.8em; }
+#canvasSection .clearButton { right: 0; bottom: 0; width: 6em; height: 2.5em; font-size: 0.8em; }
+#canvasSection .fullscreenButton { right: 0; top: 0; width: 1.2em; height: 1.2em; padding: 0; font-size: 0.8em; line-height: 1em; cursor: pointer; }
 #drawingCanvas { cursor: crosshair; touch-action: none; }
 
 /* Word */
