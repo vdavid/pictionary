@@ -52,7 +52,7 @@ button { border: none; border-radius: 2px; }
 #gamePage { height: 100%; }
 #gamePageLayout { display: grid; height: 100%; grid-template-columns: auto 30%; grid-template-rows: 2em calc(70% - 6em) 2em 2em 30%; grid-template-areas: 'connection connection' 'canvas canvas' 'word word' 'timer timer' 'chat chat'; }
 @media (min-width: 650px) {
-    #gamePageLayout { grid-template-rows: 2em calc(100% - 6em) 4em; grid-template-areas: 'canvas connection' 'canvas chat' 'word timer'; }
+    #gamePageLayout { grid-template-rows: 2em calc(100% - 5em) 3em; grid-template-areas: 'canvas connection' 'canvas chat' 'word timer'; }
 }
 #canvasSection { grid-area: canvas; }
 #wordDisplaySection { background-color: var(--extra-light-primary-color); grid-area: word; }
@@ -88,7 +88,7 @@ button { border: none; border-radius: 2px; }
 #wordDisplaySection span { position: absolute; top: 50%; width: 100%; transform: translate(0, -50%); font-size: 1.2em; text-align: center; }
 
 /* Chat */
-#chatSection { display: grid; grid-template-rows: 2em calc(100% - 1.5em); grid-row-gap: 0.5em; padding: 1em; }
+#chatSection { display: grid; grid-template-rows: 1.5em calc(100% - 1.5em - 0.5em); grid-row-gap: 0.3em; padding: 0; }
 #chatSection .chatInputAndButton { display: grid; grid-template-columns: 70% 27%; grid-column-gap: 3%; }
 #chatSection input { width: 100%; box-sizing: border-box; padding: 0.3em; font-size: 0.8em; }
 #chatSection button { overflow: hidden; font-size: 0.8em; }
@@ -107,6 +107,9 @@ button { border: none; border-radius: 2px; }
 #chatSection li.out .message:before { right: auto; left: calc(-1 * var(--chat-message-padding)); border-color: var(--default-primary-color) var(--default-primary-color) transparent transparent; }
 #chatSection li.in.system .message:before { border-color: var(--accent-color) transparent transparent var(--accent-color); }
 #chatSection li.out.system .message:before { border-color: var(--accent-color) var(--accent-color) transparent transparent; }
+@media (min-width: 650px) {
+    #chatSection { grid-template-rows: 2em calc(100% - 2.5em); grid-row-gap: 0.5em; padding: 1em; }
+}
 
 /* Timer */
 #timerSection { position: relative; padding: 0.5em 1em; }
