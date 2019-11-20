@@ -65,11 +65,14 @@ button { border: none; border-radius: 2px; }
 #noConnectionBox button { margin-top: 1em; padding: 5px 20px; font-size: 1.5em; background-color: var(--accent-color); }
 
 /* Connect box */
-#connectBox { display: grid; grid-template-columns: 47% 6% 47%; padding: 1.4em 0.8em; }
+#connectBox { display: grid; grid-template-columns: 47% 6% 47%; grid-template-areas: 'instructions instructions instructions' 'host or connect'; padding: 1.4em 0.8em; }
+#connectBox .instructions { grid-area: instructions; }
 #connectBox > * { text-align: center; }
+#connectBox .hostConnectionBox { grid-area: host; }
 #connectBox .hostConnectionBox .localPeerId { text-align: center; font-size: 2.5em; }
-#connectBox .or { position: relative; }
+#connectBox .or { grid-area: or; position: relative; }
 #connectBox .or span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+#connectBox .connectToPeerBox { grid-area: connect; }
 #connectBox .connectToPeerBox input { display: inline-block; text-align: center; font-size: 2.5em; width: 80%; }
 #connectBox .connectToPeerBox button { margin-top: 0.5em; font-size: 1.5em; width: 80%; background-color: var(--accent-color); }
 

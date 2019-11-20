@@ -9,6 +9,7 @@ class ConnectBox extends React.Component {
         return React.createElement('div', {},
             React.createElement('div', {className: 'fullScreenSemiTransparentCover'}),
             React.createElement('div', {id: 'connectBox', className: 'midScreenBox'},
+                React.createElement('div', {className: 'instructions'}, 'This is a game for two players. One player is to draw a word that appears on the screen. The other player is to figure out what the word is, and type it in to the chat. One game takes 10 minutes.'),
                 React.createElement(HostConnectionBox, {localPeerId: this.props.localPeerId}),
                 React.createElement('div', {className: 'or'}, React.createElement('span', null, 'or')),
                 React.createElement(ConnectToPeerBox, {connect: this.props.connect, isConnecting: this.props.isConnecting, isConnected: this.props.isConnected}),
