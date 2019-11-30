@@ -15,7 +15,7 @@
 export const actionTypes = {
     SAVE_TYPED_MESSAGE: 'chat/saveTypedMessage',
     MESSAGE_RECEIVED: 'chat/messageReceived',
-    SEND_MESSAGE: 'chat/sendMessage',
+    SEND_MESSAGE: 'chat/broadcastChatMessage',
     MESSAGE_SENT: 'chat/messageSent',
     SENDING_FAILED: 'chat/sendingFailed',
     PHRASE_GUESSED_CORRECTLY: 'chat/phraseGuessedCorrectly',

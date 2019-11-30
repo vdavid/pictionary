@@ -15,6 +15,7 @@ export const actionTypes = {
     CONNECT_TO_HOST_FAILURE: 'connection/connectToHostFailure',
     CONNECTED: 'connection/connected',
     DISCONNECT: 'connection/disconnect',
+    DISCONNECTED: 'connection/disconnected',
     TRY_RECONNECTING_TO_PEER_SERVER: 'connection/tryReconnectingToPeerServer',
 };
 
@@ -79,14 +80,25 @@ function _connectToHostFailed(state, payload) {
 
 /**
  * @param {ConnectionState} state
- * @param {{remotePeerId: string, isHost: boolean}|boolean} payload Data, or false if just disconnected.
+ * @param {{newPeerId: string, isHost: boolean}|boolean} payload Data, or false if just disconnected.
  * @private
  */
 function _connected(state, payload) {
     state.isConnectingInProgress = false;
     state.isConnectedToPeer = !!payload;
     state.isHost = payload ? payload.isHost : undefined;
-    state.remotePeerId = payload ? payload.remotePeerId : undefined;
+    state.remotePeerId = payload ? payload.newPeerId : undefined;
+}
+
+/**
+ * @param {ConnectionState} state
+ * @private
+ */
+function _disconnected(state) {
+    state.isConnectingInProgress = false;
+    state.isConnectedToPeer = false;
+    state.isHost = undefined;
+    state.remotePeerId = undefined;
 }
 
 /**
@@ -101,6 +113,7 @@ export function reducer(state, action) {
         [actionTypes.CONNECT_TO_HOST]: _connectToHost,
         [actionTypes.CONNECT_TO_HOST_FAILURE]: _connectToHostFailed,
         [actionTypes.CONNECTED]: _connected,
+        [actionTypes.DISCONNECTED]: _disconnected,
     };
     const newState = _getStateCopy(state);
 

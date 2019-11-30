@@ -1,5 +1,6 @@
-import PeerServerConnector from './PeerServerConnector.mjs';
 import ConnectionPool from './ConnectionPool.mjs';
+import DataGateway from './DataGateway.mjs';
+import PeerServerConnector from './PeerServerConnector.mjs';
 
 /**
  * Documentation: https://docs.peerjs.com/
@@ -9,7 +10,7 @@ import ConnectionPool from './ConnectionPool.mjs';
  * @typedef {Object} PeerConnectorOptions
  * @property {function(id: string): void} [onStartedAcceptingConnections] Called when the connection to the PeerServer is established.
  * @property {function(): void} [onStoppedAcceptingConnections] Called when the connection to the PeerServer is closed.
- * @property {function(id: string, isHost: boolean): void} [onConnected] Called when the connection to the peer is established.
+ * @property {function(allConnections: DataConnection[], newConnection: DataConnection, isHost: boolean): void} [onConnected] Called when the connection to the peer is established.
  * @property {function(): void} [onDisconnected] Called when the connection to the peer is closed/lost.
  * @property {function(command: string, parameters: Object): void} [onCommandReceived] Called when a command is received from the peer.
  * @property {function(DrawnLine[]): void} [onDrawnLinesReceived] Called when new drawn lines were received from the peer.
@@ -26,23 +27,38 @@ export default class PeerConnector {
      * @param {PeerConnectorOptions} options
      */
     constructor(options) {
-        this._processOptions(options);
+        this._onConnectedCallback = options.onConnected || (() => {});
+        this._onDisconnectedCallback = options.onDisconnected || (() => {});
+        this._onErrorCallback = options.onError || (() => {});
 
         this._handlePeerIncomingConnection = this._handlePeerIncomingConnection.bind(this);
         this._handleConnectionOpen = this._handleConnectionOpen.bind(this);
-        this._handleConnectionDataReceived = this._handleConnectionDataReceived.bind(this);
         this._handleConnectionClose = this._handleConnectionClose.bind(this);
         this._handleConnectionError = this._handleConnectionError.bind(this);
 
         this._peerServerConnector = new PeerServerConnector({
             acceptingConnectionsCallback: options.onStartedAcceptingConnections,
             stoppedAcceptingConnectionsCallback: options.onStoppedAcceptingConnections,
-            //destroyedCallback: options.destroyedCallback,
             incomingConnectionCallback: this._handlePeerIncomingConnection,
             errorCallback: options.onError,
             debugLevel: options.debugLevel,
         });
         this._connectionPool = new ConnectionPool();
+        this._knownPeers = [];
+        this._dataGateway = new DataGateway(this._connectionPool, {
+            onCommandReceived: options.onCommandReceived || (() => {}),
+            onDrawnLinesReceived: options.onDrawnLinesReceived || (() => {}),
+            onMessageReceived: options.onMessageReceived || (() => {}),
+            onPeerIdsReceived: this._updateKnownPeerIds,
+        }, options.debugLevel);
+    }
+
+    _updateKnownPeerIds(peerIds) {
+        if (!this._isHost()) {
+            this._knownPeers = peerIds;
+        } else {
+            /* Hack attempt? */
+        }
     }
 
     /**
@@ -51,7 +67,7 @@ export default class PeerConnector {
     connectToHost(hostPeerId) {
         if (!this._connectionPool.getAllConnections().length) {
             const newConnection = this._peerServerConnector.connectToRemoteHost(hostPeerId);
-            this._setUpConnectionEventHandlers(newConnection, false);
+            this._setUpConnectionEventHandlers(newConnection, 'connectingToHost');
         }
     }
 
@@ -59,20 +75,14 @@ export default class PeerConnector {
      * @param {string} message
      */
     sendMessage(message) {
-        if (this._debugLevel >= 2) {
-            console.log('Sent: message: ' + message);
-        }
-        this._sendToAllPeers({type: 'message', payload: message});
+        this._dataGateway.broadcastChatMessage(message);
     }
 
     /**
      * @param {DrawnLine[]} newLines
      */
     sendNewLines(newLines) {
-        if (this._debugLevel >= 2) {
-            console.log('Sent: ' + newLines.length + ' new lines.');
-        }
-        this._sendToAllPeers({type: 'newLines', payload: newLines});
+        this._dataGateway.broadcastNewLines(newLines);
     }
 
     /**
@@ -80,10 +90,7 @@ export default class PeerConnector {
      * @param {Object} parameters
      */
     sendCommand(command, parameters) {
-        if (this._debugLevel >= 2) {
-            console.log('Sent: command: ' + command + ' with parameters: ' + JSON.stringify(parameters));
-        }
-        this._sendToAllPeers({type: 'command', payload: {command, parameters}});
+        this._dataGateway.broadcastCommand(command, parameters);
     }
 
     disconnectFromAllPeers() {
@@ -96,56 +103,17 @@ export default class PeerConnector {
     }
 
     /**
-     * @param {PeerConnectorOptions} options
+     * @param {DataConnection} newConnection
+     * @param {string} whatIsHappening One of "connectingToHost", "becomingTheHost" and "anotherClientEstablishingADirectConnection"
      * @private
      */
-    _processOptions(options) {
-        this._onConnectedCallback = options.onConnected || (() => {});
-        this._onDisconnectedCallback = options.onDisconnected || (() => {});
-        this._onCommandReceived = options.onCommandReceived || (() => {});
-        this._onDrawnLinesReceived = options.onDrawnLinesReceived || (() => {});
-        this._onMessageReceived = options.onMessageReceived || (() => {});
-        this._onErrorCallback = options.onError || (() => {});
-        this._debugLevel = options.debugLevel || 0;
-    }
-
-    /**
-     * @param {DataConnection} connection
-     * @param {boolean} isIncoming
-     * @private
-     */
-    _handleConnectionOpen(connection, isIncoming) {
-        this._connectionPool.add(connection, !isIncoming);
-        this._onConnectedCallback(connection, isIncoming);
-    }
-
-    /**
-     * @param {DataConnection} connection
-     * @param {{type: string, payload: *}} data
-     * @private
-     */
-    _handleConnectionDataReceived(connection, data) {
-        /* Log */
-        if (this._debugLevel >= 2) {
-            if (data.type === 'command') {
-                console.log('Received: command: ' + data.payload.command + ' with parameters: ' + data.payload.parameters);
-            } else if (data.type === 'newLines') {
-                console.log('Received: ' + data.payload.length + ' new lines.');
-            } else if (data.type === 'message') {
-                console.log('Received: message: ' + data.payload);
-            }
+    _handleConnectionOpen(newConnection, whatIsHappening) {
+        if (this._isHost()) {
+            // noinspection JSUnresolvedVariable
+            this._dataGateway.broadcastKnownPeerList([...this._connectionPool.getAllConnectedPeerIds(), newConnection.peer]);
         }
-
-        if (data.type === 'command') {
-            this._onCommandReceived(data.payload.command, data.payload.parameters);
-        } else if (data.type === 'newLines') {
-            this._onDrawnLinesReceived(data.payload);
-        } else if (data.type === 'message') {
-            this._onMessageReceived(data.payload);
-        } else {
-            console.error('Invalid data received from peer.');
-            console.error(data);
-        }
+        this._connectionPool.add(newConnection, whatIsHappening === 'connectingToHost');
+        this._onConnectedCallback(this._connectionPool.getAllConnections(), newConnection, this._isHost());
     }
 
     /**
@@ -170,14 +138,14 @@ export default class PeerConnector {
 
     /**
      * @param {DataConnection} connection
-     * @param {boolean} isIncoming
+     * @param {string} whatIsHappening One of "connectingToHost", "becomingTheHost" and "anotherClientEstablishingADirectConnection"
      * @private
      */
-    _setUpConnectionEventHandlers(connection, isIncoming) {
+    _setUpConnectionEventHandlers(connection, whatIsHappening) {
         // noinspection JSUnresolvedFunction
-        connection.on('open', () => this._handleConnectionOpen(connection, isIncoming), null);
+        connection.on('open', () => this._handleConnectionOpen(connection, whatIsHappening), null);
         // noinspection JSUnresolvedFunction
-        connection.on('data', (data) => this._handleConnectionDataReceived(connection, data), null);
+        connection.on('data', (data) => this._dataGateway.handleConnectionDataReceived(connection, data), null);
         // noinspection JSUnresolvedFunction
         connection.on('close', () => this._handleConnectionClose(connection), null);
         // noinspection JSUnresolvedFunction
@@ -189,20 +157,17 @@ export default class PeerConnector {
      * @private
      */
     _handlePeerIncomingConnection(connection) {
-        if (!this._connectionPool.getServerConnection()) { /* This is the host */
-            this._setUpConnectionEventHandlers(connection, true);
-        } else { /* This is a client. Don't allow connection. */
+        if (this._isHost() || this._connectionPool.getAllConnections().length === 0) {
+            this._setUpConnectionEventHandlers(connection, 'becomingTheHost');
+        } else if (this._knownPeers.includes(connection.peer)) {
+            this._setUpConnectionEventHandlers(connection, 'anotherClientEstablishingADirectConnection');
+        } else {
             // noinspection JSUnresolvedFunction
             connection.on('open', connection => connection.close(), null);
         }
     }
 
-    /**
-     * @param {Object} payload
-     * @private
-     */
-    _sendToAllPeers(payload) {
-        // noinspection JSUnresolvedFunction
-        this._connectionPool.getAllConnections().forEach(connection => connection.send(payload));
+    _isHost() {
+        return this._connectionPool.getAllConnections().length > 0 && !this._connectionPool.getServerConnection();
     }
 }

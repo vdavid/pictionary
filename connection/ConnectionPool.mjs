@@ -33,6 +33,10 @@ export default class ConnectionPool {
         return this._connections;
     }
 
+    getAllConnectedPeerIds() {
+        return this._connections.map(connection => connection.peer);
+    }
+
     // noinspection JSUnusedGlobalSymbols
     /**
      * @param {string} peerId

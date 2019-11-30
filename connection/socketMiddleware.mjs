@@ -6,23 +6,6 @@ import {actionTypes as drawingCanvasActions} from '../canvases/drawing-canvas-st
 import {actionTypes as guessingCanvasActions} from '../canvases/guessing-canvas-store.mjs';
 
 export default function socketMiddleware(store) {
-    function onStartedAcceptingConnections(localPeerId) {
-        store.dispatch({type: connectionActions.STARTED_ACCEPTING_CONNECTIONS, payload: localPeerId});
-    }
-
-    function onStoppedAcceptingConnections() {
-        store.dispatch({type: connectionActions.STOPPED_ACCEPTING_CONNECTIONS});
-    }
-
-    function onConnected(remotePeerId, isHost) {
-        store.dispatch({type: connectionActions.CONNECTED, payload: {remotePeerId, isHost}});
-        store.dispatch({type: gameActions.START_GAME});
-    }
-
-    function onDisconnected() {
-        store.dispatch({type: connectionActions.CONNECTED, payload: undefined});
-    }
-
     /**
      * @param {string} command
      * @param {Object} parameters
@@ -40,13 +23,6 @@ export default function socketMiddleware(store) {
     }
 
     /**
-     * @param {DrawnLine[] }drawnLines
-     */
-    function onDrawnLinesReceived(drawnLines) {
-        store.dispatch({type: guessingCanvasActions.DRAWING_UPDATED, payload: drawnLines});
-    }
-
-    /**
      * @param {string} message
      */
     function onMessageReceived(message) {
@@ -61,12 +37,16 @@ export default function socketMiddleware(store) {
     }
 
     const peerConnector = new PeerConnector({
-        onStartedAcceptingConnections,
-        onStoppedAcceptingConnections,
-        onConnected,
-        onDisconnected,
+        onStartedAcceptingConnections: localPeerId => store.dispatch({type: connectionActions.STARTED_ACCEPTING_CONNECTIONS, payload: localPeerId}),
+        onStoppedAcceptingConnections: () => store.dispatch({type: connectionActions.STOPPED_ACCEPTING_CONNECTIONS}),
+        onConnected: (allConnections, newConnection, isHost) => {
+            // noinspection JSUnresolvedVariable
+            store.dispatch({type: connectionActions.CONNECTED, payload: {newPeerId: newConnection.peer, isHost}});
+            store.dispatch({type: gameActions.START_GAME});
+        },
+        onDisconnected: () => store.dispatch({type: connectionActions.DISCONNECTED}),
         onCommandReceived,
-        onDrawnLinesReceived,
+        onDrawnLinesReceived: drawnLines => store.dispatch({type: guessingCanvasActions.DRAWING_UPDATED, payload: drawnLines}),
         onMessageReceived,
         debugLevel: window.location.href.startsWith('http://localhost') ? 2 : 1,
     });
