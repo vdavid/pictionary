@@ -5,20 +5,20 @@ import IndicatorLight from './IndicatorLight.mjs';
 class ConnectionStatus extends React.Component {
     render() {
         return React.createElement('section', {id: 'connectionSection'},
-            React.createElement(IndicatorLight, {color: this.props.isConnected ? 'green' : (this.props.isConnecting ? 'yellow' : 'red')}),
             React.createElement('div', {}, this._getStatusText()),
+            React.createElement(IndicatorLight, {color: this.props.isConnected ? 'green' : (this.props.isConnecting ? 'yellow' : 'red')}),
         );
     }
 
     _getStatusText() {
         if (!this.props.isAcceptingConnections) {
-            return 'Not accepting connections right now.';
+            return 'Not accepting connections.';
         } else if (this.props.isConnectingInProgress) {
             return 'Connecting to ' + this.props.remotePeerId + '...';
         } else if (this.props.isConnected) {
-            return 'I\'m ' + this.props.localPeerId + ', connected to ' + this.props.remotePeerId + '.';
+            return 'Connected. Game ID: ' + (this.props.isHost ? this.props.localPeerId : this.props.remotePeerId) + '.';
         } else {
-            return 'Awaiting connection at “' + this.props.localPeerId + '”.';
+            return 'Awaiting connection.';
         }
     }
 }

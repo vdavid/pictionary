@@ -8,6 +8,7 @@ class NoConnectionBox extends React.Component {
         this.state = {
             connectingToPeerServer: false,
         };
+        this._handleReconnectButtonClick = this._handleReconnectButtonClick.bind(this);
     }
 
     _handleReconnectButtonClick() {

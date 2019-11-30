@@ -38,7 +38,7 @@ button { border: none; border-radius: 2px; }
 
 /* App layout and settings */
 #app { height: 100%; display: grid; grid-template-rows: 2em calc(100vh - 4em) 2em; }
-#app > header { display: grid; grid-template-columns: 2em auto; background-color: var(--dark-primary-color); }
+#app > header { display: grid; grid-template-columns: 2em auto auto; background-color: var(--dark-primary-color); color: var(--text-primary-color); }
 #app > header .logo { margin: 0.2em; background: url('/app/images/favicon-64.png'); background-size: cover; }
 #app > header nav { height: 100%; }
 #app > header nav ul { margin: 0; padding: 0; display: table; height: 100%; list-style: none; }
@@ -47,16 +47,17 @@ button { border: none; border-radius: 2px; }
 #app > main { background-color: var(--card-background-color); }
 #app > footer { position: relative; background-color: var(--dark-primary-color); color: var(--text-primary-color); }
 #app > footer span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+#connectionSection { padding: 0.5em 1em; display: grid; grid-template-columns: auto 1em; grid-column-gap: 0.5em; text-align:right; }
 
 /* Game page layout */
 #gamePage { height: 100%; }
-#gamePageLayout { display: grid; height: 100%; grid-template-columns: auto 30%; grid-template-rows: 2em calc(70% - 6em) 2em 2em 30%; grid-template-areas: 'connection connection' 'canvas canvas' 'word word' 'timer timer' 'chat chat'; }
+#gamePageLayout { display: grid; height: 100%; grid-template-columns: auto 30%; grid-template-rows: 4em calc(70% - 6em) 2em 2em 30%; grid-template-areas: 'players' 'canvas canvas' 'word word' 'timer timer' 'chat chat'; }
 @media (min-width: 650px) {
-    #gamePageLayout { grid-template-rows: 2em calc(100% - 5em) 3em; grid-template-areas: 'canvas connection' 'canvas chat' 'word timer'; }
+    #gamePageLayout { grid-template-rows: 4em calc(100% - 5em) 3em; grid-template-areas: 'canvas players' 'canvas chat' 'word timer'; }
 }
 #canvasSection { grid-area: canvas; }
+#playerList { grid-area: players; background-color: var(--light-primary-color); }
 #wordDisplaySection { background-color: var(--extra-light-primary-color); grid-area: word; }
-#connectionSection { padding: 0.5em 1em; background-color: var(--light-primary-color); grid-area: connection; display: grid; grid-template-columns: 1em auto; grid-column-gap: 1em; }
 #chatSection { background-color: var(--light-primary-color); grid-area: chat; }
 #timerSection { background-color: var(--light-primary-color); grid-area: timer; }
 

@@ -1,5 +1,6 @@
 const React = window.React;
 import GamePage from './GamePage.mjs';
+import ConnectionStatus from '../connection/ConnectionStatus.mjs';
 
 const {BrowserRouter, Switch, Route, Redirect, Link} = window.ReactRouterDOM;
 
@@ -20,6 +21,7 @@ class App extends React.Component {
                         )
                     )
                 ),
+                React.createElement(ConnectionStatus),
             ),
             React.createElement('main', null,
                 React.createElement(Switch, null,

@@ -9,7 +9,6 @@ import RoundStartingBox from '../game/RoundStartingBox.mjs';
 import Canvases from '../canvases/Canvases.mjs';
 import WordDisplayComponent from '../game/WordDisplayComponent.mjs';
 
-import ConnectionStatus from '../connection/ConnectionStatus.mjs';
 import Chat from '../chat/Chat.mjs';
 import Timer from '../game/Timer.mjs';
 
@@ -19,7 +18,6 @@ class GamePage extends React.Component {
             React.createElement('div', {id: 'gamePageLayout'},
                 React.createElement(Canvases),
                 React.createElement(WordDisplayComponent),
-                React.createElement(ConnectionStatus),
                 React.createElement(Chat, {state: this.props.chat}),
                 React.createElement('section', {id: 'timerSection'},
                     this.props.isRoundStarted ? React.createElement(Timer, {durationInMilliseconds: 60 * 1000}) : null,
