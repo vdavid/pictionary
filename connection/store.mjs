@@ -11,7 +11,8 @@
 export const actionTypes = {
     STARTED_ACCEPTING_CONNECTIONS: 'connection/startedAcceptingConnections',
     STOPPED_ACCEPTING_CONNECTIONS: 'connection/stoppedAcceptingConnections',
-    CONNECT: 'connection/connect',
+    CONNECT_TO_HOST: 'connection/connectToHost',
+    CONNECT_TO_HOST_FAILURE: 'connection/connectToHostFailure',
     CONNECTED: 'connection/connected',
     DISCONNECT: 'connection/disconnect',
     TRY_RECONNECTING_TO_PEER_SERVER: 'connection/tryReconnectingToPeerServer',
@@ -64,8 +65,16 @@ function _stoppedAcceptingConnections(state, localPeerId) {
  * @param {string} payload The remote peer ID.
  * @private
  */
-function _connect(state, payload) {
+function _connectToHost(state, payload) {
     state.isConnectingInProgress = true;
+}
+/**
+ * @param {ConnectionState} state
+ * @param {string} payload The remote peer ID.
+ * @private
+ */
+function _connectToHostFailed(state, payload) {
+    state.isConnectingInProgress = false;
 }
 
 /**
@@ -89,7 +98,8 @@ export function reducer(state, action) {
     const actionTypeToFunctionMap = {
         [actionTypes.STARTED_ACCEPTING_CONNECTIONS]: _startedAcceptingConnections,
         [actionTypes.STOPPED_ACCEPTING_CONNECTIONS]: _stoppedAcceptingConnections,
-        [actionTypes.CONNECT]: _connect,
+        [actionTypes.CONNECT_TO_HOST]: _connectToHost,
+        [actionTypes.CONNECT_TO_HOST_FAILURE]: _connectToHostFailed,
         [actionTypes.CONNECTED]: _connected,
     };
     const newState = _getStateCopy(state);

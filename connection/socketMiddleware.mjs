@@ -72,17 +72,22 @@ export default function socketMiddleware(store) {
     });
 
     /**
-     * @param {string} remotePeerId
+     * @param {string} hostPeerId
      */
-    function _connectToPeer(remotePeerId) {
-        peerConnector.connect(remotePeerId);
+    function _connectToHost(hostPeerId) {
+        try {
+            peerConnector.connectToHost(hostPeerId);
+        } catch (error) {
+            store.dispatch({type: connectionActions.CONNECT_TO_HOST_FAILURE});
+            return false;
+        }
     }
 
     /**
      * TODO: Never dispatched as it's not implemented yet
      */
-    function _disconnectFromPeer() {
-        peerConnector.disconnect();
+    function _disconnectFromAllPeers() {
+        peerConnector.disconnectFromAllPeers();
     }
 
     /**
@@ -146,15 +151,20 @@ export default function socketMiddleware(store) {
         peerConnector.sendCommand('clearGuessingCanvas', {});
     }
 
+    /**
+     * @returns {boolean}
+     * @private
+     */
     function _tryReconnectingToPeerServer() {
-        peerConnector.createPeer();
+        peerConnector.tryReconnectingToPeerServer();
     }
 
     /* Returns the handler that will be called for each action dispatched */
     return next => action => {
+        /** @type {Object<string, function(*): boolean|void>} If they return ===false then next() won't be called */
         const actionTypeToFunctionMap = {
-            [connectionActions.CONNECT]: _connectToPeer, /* Peer (not host) side */
-            [connectionActions.DISCONNECT]: _disconnectFromPeer,
+            [connectionActions.CONNECT_TO_HOST]: _connectToHost, /* Client side */
+            [connectionActions.DISCONNECT]: _disconnectFromAllPeers,
             [chatActions.SEND_MESSAGE]: _sendChatMessage, /* Both sides */
             [drawingCanvasActions.DRAWING_UPDATED]: _drawingUpdated, /* Drawing side only */
             [gameActions.START_ROUND]: _sendStartSignalToPeerIfThisIsTheHost,
@@ -164,10 +174,10 @@ export default function socketMiddleware(store) {
             [drawingCanvasActions.TRY_RECONNECTING_TO_PEER_SERVER]: _tryReconnectingToPeerServer,
         };
 
-        if (actionTypeToFunctionMap[action.type]) {
-            actionTypeToFunctionMap[action.type](action.payload);
-        }
+        const result = (actionTypeToFunctionMap[action.type]) ? actionTypeToFunctionMap[action.type](action.payload) : undefined;
 
-        return next(action);
+        if (result !== false) {
+            next(action);
+        }
     };
 }

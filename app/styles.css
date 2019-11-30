@@ -51,9 +51,9 @@ button { border: none; border-radius: 2px; }
 
 /* Game page layout */
 #gamePage { height: 100%; }
-#gamePageLayout { display: grid; height: 100%; grid-template-columns: auto 30%; grid-template-rows: 4em calc(70% - 6em) 2em 2em 30%; grid-template-areas: 'players' 'canvas canvas' 'word word' 'timer timer' 'chat chat'; }
+#gamePageLayout { display: grid; height: 100%; grid-template-columns: auto 30%; grid-template-rows: 4em calc(70% - 8em) 2em 2em 30%; grid-template-areas: 'players' 'canvas canvas' 'word word' 'timer timer' 'chat chat'; }
 @media (min-width: 650px) {
-    #gamePageLayout { grid-template-rows: 4em calc(100% - 5em) 3em; grid-template-areas: 'canvas players' 'canvas chat' 'word timer'; }
+    #gamePageLayout { grid-template-rows: 4em calc(100% - 7em) 3em; grid-template-areas: 'canvas players' 'canvas chat' 'word timer'; }
 }
 #canvasSection { grid-area: canvas; }
 #playerList { grid-area: players; background-color: var(--light-primary-color); }
