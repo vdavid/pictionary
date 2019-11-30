@@ -1,3 +1,4 @@
+const React = window.React;
 export default class ConnectToPeerBox extends React.Component {
     constructor(props) {
         super(props);

@@ -1,3 +1,4 @@
+const React = window.React;
 export default class SendButton extends React.Component {
     render() {
         return React.createElement('button', {

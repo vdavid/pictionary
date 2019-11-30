@@ -1,3 +1,4 @@
+const React = window.React;
 export default class DrawingTools {
     constructor(canvas) {
         this._canvas = canvas;

@@ -1,3 +1,4 @@
+const React = window.React;
 const {connect} = window.ReactRedux;
 import IndicatorLight from './IndicatorLight.mjs';
 

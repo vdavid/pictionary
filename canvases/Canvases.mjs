@@ -1,3 +1,4 @@
+const React = window.React;
 const {connect} = window.ReactRedux;
 
 import DrawingCanvas from './DrawingCanvas.mjs';

@@ -1,3 +1,4 @@
+const React = window.React;
 import GamePage from './GamePage.mjs';
 
 const {BrowserRouter, Switch, Route, Redirect, Link} = window.ReactRouterDOM;

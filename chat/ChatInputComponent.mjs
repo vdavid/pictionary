@@ -1,3 +1,4 @@
+const React = window.React;
 export default class ChatInputComponent extends React.Component {
     constructor(props) {
         super(props);

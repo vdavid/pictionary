@@ -1,3 +1,4 @@
+const React = window.React;
 import {actionTypes as chatActionTypes} from './store.mjs';
 import SendButton from './SendButton.mjs';
 import ChatInputComponent from './ChatInputComponent.mjs';

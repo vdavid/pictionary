@@ -1,3 +1,4 @@
+const React = window.React;
 export default class MessageComponent extends React.Component {
     _formatDate(date) {
         const h = date.getHours();

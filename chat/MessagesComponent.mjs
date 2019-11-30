@@ -1,3 +1,4 @@
+const React = window.React;
 import MessageComponent from './MessageComponent.mjs';
 
 export default class MessagesComponent extends React.Component {

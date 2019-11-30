@@ -1,3 +1,4 @@
+const React = window.React;
 export default class HostConnectionBox extends React.Component {
     render() {
         return React.createElement('div', {className: 'hostConnectionBox'},

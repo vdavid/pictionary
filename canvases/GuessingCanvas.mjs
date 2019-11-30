@@ -1,3 +1,4 @@
+const React = window.React;
 const {connect} = window.ReactRedux;
 import {actionTypes as guessingCanvasActionTypes} from './guessing-canvas-store.mjs';
 import DrawingTools from './DrawingTools.mjs';
