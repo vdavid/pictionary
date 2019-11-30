@@ -1,6 +1,5 @@
-const React = window.React;
 import GamePage from './GamePage.mjs';
-import ConnectionStatus from '../connection/ConnectionStatus.mjs';
+import ConnectionStatus from '../../connection/components/ConnectionStatus.mjs';
 
 const {BrowserRouter, Switch, Route, Redirect, Link} = window.ReactRouterDOM;
 

@@ -1,4 +1,3 @@
-const React = window.React;
 export default class FullscreenButton extends React.Component {
     constructor(props) {
         super(props);

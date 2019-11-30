@@ -1,5 +1,5 @@
 const React = window.React;
-import {actionTypes as gameActionTypes} from './store.mjs';
+import {actionTypes as gameActionTypes} from '../store.mjs';
 
 const {connect} = window.ReactRedux;
 

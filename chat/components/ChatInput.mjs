@@ -1,5 +1,4 @@
-const React = window.React;
-export default class ChatInputComponent extends React.Component {
+export default class ChatInput extends React.Component {
     constructor(props) {
         super(props);
         this._onTyping = this._onTyping.bind(this);

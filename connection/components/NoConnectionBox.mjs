@@ -1,6 +1,6 @@
 const React = window.React;
 const {connect} = window.ReactRedux;
-import {actionTypes as connectionActionTypes} from './store.mjs';
+import {actionTypes as connectionActionTypes} from '../store.mjs';
 
 class NoConnectionBox extends React.Component {
     constructor(props) {

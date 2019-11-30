@@ -1,8 +1,7 @@
-const React = window.React;
-import {actionTypes as chatActionTypes} from './store.mjs';
+import {actionTypes as chatActionTypes} from '../store.mjs';
 import SendButton from './SendButton.mjs';
-import ChatInputComponent from './ChatInputComponent.mjs';
-import MessagesComponent from './MessagesComponent.mjs';
+import ChatInput from './ChatInput.mjs';
+import ChatMessages from './ChatMessages.mjs';
 
 const {connect} = window.ReactRedux;
 
@@ -17,7 +16,7 @@ class Chat extends React.Component {
     render() {
         return React.createElement('section', {id: 'chatSection'},
             React.createElement('div', {className: 'chatInputAndButton'},
-                React.createElement(ChatInputComponent, {
+                React.createElement(ChatInput, {
                     typedMessage: this.props.typedMessage,
                     saveTypedMessage: this.props.saveTypedMessage,
                     addMessage: this.props.addMessage,
@@ -29,7 +28,7 @@ class Chat extends React.Component {
                     addMessage: this.props.addMessage,
                 }),
             ),
-            React.createElement(MessagesComponent, {
+            React.createElement(ChatMessages, {
                 messages: this.props.messages
             }),
         );

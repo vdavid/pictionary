@@ -1,9 +1,9 @@
 const React = window.React;
 const {connect} = window.ReactRedux;
-import {actionTypes as gameActionTypes} from './store.mjs';
-import {getRandomPhrase} from '../data/phrases.mjs';
+import {actionTypes as gameActionTypes} from '../store.mjs';
+import {getRandomPhrase} from '../../data/phrases.mjs';
 
-class WordDisplayComponent extends React.Component {
+class WordDisplay extends React.Component {
     constructor(props) {
         super(props);
         this._getContentText = this._getContentText.bind(this);
@@ -56,4 +56,4 @@ function mapDispatchToProps(dispatch) {
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(WordDisplayComponent);
+export default connect(mapStateToProps, mapDispatchToProps)(WordDisplay);

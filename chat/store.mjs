@@ -1,5 +1,5 @@
 /**
- * @typedef {Object} MessageComponent
+ * @typedef {Object} ChatMessage
  * @property {string} text
  * @property {boolean} isIncoming
  * @property {boolean} isSystemMessage
@@ -9,7 +9,7 @@
  * @typedef {Object} ChatState
  * @property {string} typedMessage
  * @property {boolean} isSendingMessage
- * @property {MessageComponent[]} messages
+ * @property {ChatMessage[]} messages
  */
 
 export const actionTypes = {

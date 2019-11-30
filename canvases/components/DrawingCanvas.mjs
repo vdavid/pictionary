@@ -1,7 +1,6 @@
-const React = window.React;
 const {connect} = window.ReactRedux;
-import {actionTypes as drawingCanvasActionTypes} from './drawing-canvas-store.mjs';
-import DrawingTools from './DrawingTools.mjs';
+import {actionTypes as drawingCanvasActionTypes} from '../drawing-canvas-store.mjs';
+import DrawingTools from '../DrawingTools.mjs';
 
 class DrawingCanvas extends React.Component {
     constructor(props) {

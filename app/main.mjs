@@ -1,5 +1,5 @@
 const ReactDOM = window.ReactDOM;
-import App from './App.mjs';
+import App from './components/App.mjs';
 import store from './reduxStore.mjs';
 const {Provider} = window.ReactRedux;
 

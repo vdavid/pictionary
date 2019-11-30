@@ -1,5 +1,4 @@
-const React = window.React;
-export default class MessageComponent extends React.Component {
+export default class ChatMessage extends React.Component {
     _formatDate(date) {
         const h = date.getHours();
         const m = date.getMinutes().toString().padStart(2, '0');
