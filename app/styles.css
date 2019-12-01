@@ -61,7 +61,7 @@ button { border: none; border-radius: 2px; }
 .playerList li { list-style: none; position: relative; width: 6em; padding: 0.2em; font-size: 0.7em; }
 .playerList li.local { background-color: var(--default-primary-color); }
 .playerList li.host { background-color: var(--accent-color); }
-.playerList li > * { display: block; text-align: center; word-break: break-all; }
+.playerList li > * { display: block; text-align: center; word-break: break-word; }
 .playerList li .score { position: absolute; top: 0.2em; left: 0.2em; }
 .playerList li img { margin: auto; }
 #wordDisplaySection { background-color: var(--extra-light-primary-color); grid-area: word; }

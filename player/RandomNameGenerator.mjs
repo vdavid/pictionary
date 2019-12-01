@@ -7,6 +7,6 @@ export default class RandomNameGenerator {
         const name = getRandomName();
 
         return adjective.charAt(0).toUpperCase() + adjective.substring(1)
-            + name.charAt(0).toUpperCase() + name.substring(1);
+            + ' ' + name.charAt(0).toUpperCase() + name.substring(1);
     }
 }
