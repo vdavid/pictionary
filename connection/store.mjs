@@ -106,7 +106,7 @@ function _updateConnections(state, payload) {
 
 /**
  * @param {ConnectionState} state
- * @param {{type: string, payload: *}} action
+ * @param {{type: string, payload: *, error: boolean?, meta: *?}} action
  * @return {ConnectionState}
  */
 export function reducer(state, action) {

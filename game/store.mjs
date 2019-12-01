@@ -153,7 +153,7 @@ function _setIsFullscreen(state, isFullscreen) {
 
 /**
  * @param {GameState} state
- * @param {{type: string, payload: *}} action
+ * @param {{type: string, payload: *, error: boolean?, meta: *?}} action
  * @return {GameState}
  */
 export function reducer(state, action) {

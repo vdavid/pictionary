@@ -102,7 +102,7 @@ function _addSystemMessageThatPhraseWasGuessedCorrectly(state, {whoDrew, phrase}
 
 /**
  * @param {ChatState} state
- * @param {{type: string, payload: *}} action
+ * @param {{type: string, payload: *, error: boolean?, meta: *?}} action
  * @return {ChatState}
  */
 export function reducer(state, action) {

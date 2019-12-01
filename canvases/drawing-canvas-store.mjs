@@ -52,7 +52,7 @@ function _setLineCountToZero(state) {
 
 /**
  * @param {DrawingCanvasState} state
- * @param {{type: string, payload: *}} action
+ * @param {{type: string, payload: *, error: boolean?, meta: *?}} action
  * @return {DrawingCanvasState}
  */
 export function reducer(state, action) {
