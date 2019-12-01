@@ -11,6 +11,24 @@
  * @property {string|undefined} activePhrase
  * @property {boolean} isActivePhraseGuessedCorrectly
  * @property {boolean} isFullscreen
+ * @property {GameLog} gameLog
+ */
+/**
+ * @typedef {Object} GameLog
+ * @property {RoundLog[]} rounds
+ */
+/**
+ * @typedef {Object} RoundLog
+ * @property {string} phrase
+ * @property {string} drawerName
+ * @property {string[]} guesserNames
+ * @property {RoundTrialLog[]} trials
+ */
+/**
+ * @typedef {Object} RoundTrialLog
+ * @property {DrawnLine[]} lines
+ * @property {{guesserName: string, message: string, isCorrect: boolean}[]} guesses
+ * @property {'ongoing'|'cleared'|'foundOut'|'gaveUp'} trialResult
  */
 
 export const actionTypes = {
@@ -42,6 +60,21 @@ function _getStateCopy(state) {
         activePhrase: state.activePhrase,
         isActivePhraseGuessedCorrectly: state.isActivePhraseGuessedCorrectly,
         isFullscreen: state.isFullscreen,
+        gameLog: {
+            rounds: state.gameLog.rounds.map(round => ({
+                drawerName: round.drawerName,
+                guesserNames: [...round.guesserNames],
+                trials: round.trials.map(trial => ({
+                    lines: [...trial.lines],
+                    guesses: trial.guesses.map(guess => ({
+                        guesserName: guess.guesserName,
+                        message: guess.message,
+                        isCorrect: guess.isCorrect
+                    })),
+                    trialResult: trial.trialResult,
+                })),
+            })),
+        },
     } : {
         isGameStarted: false,
         isRoundStarting: false,
@@ -53,6 +86,7 @@ function _getStateCopy(state) {
         whichPlayerDraws: undefined,
         activePhrase: undefined,
         isActivePhraseGuessedCorrectly: false,
+        gameLog: {rounds: []},
     };
 }
 
@@ -75,6 +109,7 @@ function _markGameAsStarted(state) {
     state.isGameStarted = true;
     state.isRoundStarting = false;
     state.isRoundStarted = false;
+    state.gameLog = {rounds: []};
 }
 
 /**
@@ -95,6 +130,12 @@ function _markRoundAsStarted(state) {
     state.isRoundStarting = false;
     state.isRoundStarted = true;
     state.isRoundEnded = false;
+    state.gameLog.rounds.push({
+        phrase: 'horse', // TODO: Supply this info by to this action handler
+        drawerName: 'dunno', // TODO: Supply this info by to this action handler
+        guesserNames: ['no', 'idea'], // TODO: Supply this info by to this action handler
+        trials: [{lines: [], guesses: [], trialResult: 'ongoing'}]
+    });
 }
 
 /**
