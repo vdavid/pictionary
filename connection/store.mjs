@@ -13,10 +13,9 @@ export const actionTypes = {
     STOP_ACCEPTING_CONNECTIONS_SUCCESS: 'connection/STOP_ACCEPTING_CONNECTIONS_SUCCESS',
     CONNECT_TO_HOST_REQUEST: 'connection/CONNECT_TO_HOST_REQUEST',
     CONNECT_TO_HOST_FAILURE: 'connection/CONNECT_TO_HOST_FAILURE',
-    CONNECT_TO_PEER_SUCCESS: 'connection/CONNECT_TO_PEER_SUCCESS',
-    DISCONNECT_FROM_PEER_REQUEST: 'connection/DISCONNECT_FROM_PEER_REQUEST',
-    DISCONNECT_FROM_PEER_SUCCESS: 'connection/DISCONNECT_FROM_PEER_SUCCESS',
+    UPDATE_CONNECTIONS_SUCCESS: 'connection/UPDATE_CONNECTIONS_SUCCESS',
     TRY_RECONNECTING_TO_HOST_REQUEST: 'connection/TRY_RECONNECTING_TO_HOST_REQUEST',
+    SEND_GAME_STATUS_TO_CLIENT_REQUEST: 'connection/SEND_GAME_STATUS_TO_CLIENT_REQUEST',
 };
 
 /**
@@ -46,10 +45,9 @@ export const actionCreators = {
     createStopAcceptingConnectionsSuccess: () => ({type: actionTypes.STOP_ACCEPTING_CONNECTIONS_SUCCESS}),
     createConnectToHostRequest: (hostId) => ({type: actionTypes.CONNECT_TO_HOST_REQUEST, payload: hostId}),
     createConnectToHostFailure: () => ({type: actionTypes.CONNECT_TO_HOST_FAILURE}),
-    createConnectToPeerSuccess: (connectionData) => ({type: actionTypes.CONNECT_TO_PEER_SUCCESS, payload: connectionData}),
-    createDisconnectFromPeerRequest: () => ({type: actionTypes.DISCONNECT_FROM_PEER_REQUEST}),
-    createDisconnectFromPeerSuccess: () => ({type: actionTypes.DISCONNECT_FROM_PEER_SUCCESS}),
+    createUpdateConnectionsSuccess: (localPeerId, allPeerIds, hostPeerId) =>  ({type: actionTypes.UPDATE_CONNECTIONS_SUCCESS, payload: {localPeerId, allPeerIds, hostPeerId}}),
     createTryReconnectingToHostRequest: () => ({type: actionTypes.TRY_RECONNECTING_TO_HOST_REQUEST}),
+    createSendGameStatusToClientRequest: (clientPeerId) => ({type: actionTypes.SEND_GAME_STATUS_TO_CLIENT_REQUEST, payload: clientPeerId})
 };
 
 /**
@@ -91,25 +89,14 @@ function _connectToHostFailed(state, payload) {
 
 /**
  * @param {ConnectionState} state
- * @param {{newPeerId: string, isHost: boolean}|boolean} payload Data, or false if just disconnected.
+ * @param {{localPeerId: string, allPeerIds: string[], hostPeerId: string}} payload
  * @private
  */
-function _connected(state, payload) {
+function _updateConnections(state, payload) {
     state.isConnectingInProgress = false;
-    state.isConnectedToPeer = !!payload;
-    state.isHost = payload ? payload.isHost : undefined;
-    state.remotePeerId = payload ? payload.newPeerId : undefined;
-}
-
-/**
- * @param {ConnectionState} state
- * @private
- */
-function _disconnected(state) {
-    state.isConnectingInProgress = false;
-    state.isConnectedToPeer = false;
-    state.isHost = undefined;
-    state.remotePeerId = undefined;
+    state.isConnectedToPeer = payload.allPeerIds.length > 0;
+    state.isHost = state.isConnectedToPeer && (payload.localPeerId === payload.hostPeerId);
+    state.remotePeerId = state.isConnectedToPeer ? payload.allPeerIds[0] : undefined;
 }
 
 /**
@@ -123,8 +110,7 @@ export function reducer(state, action) {
         [actionTypes.STOP_ACCEPTING_CONNECTIONS_SUCCESS]: _stoppedAcceptingConnections,
         [actionTypes.CONNECT_TO_HOST_REQUEST]: _connectToHost,
         [actionTypes.CONNECT_TO_HOST_FAILURE]: _connectToHostFailed,
-        [actionTypes.CONNECT_TO_PEER_SUCCESS]: _connected,
-        [actionTypes.DISCONNECT_FROM_PEER_SUCCESS]: _disconnected,
+        [actionTypes.UPDATE_CONNECTIONS_SUCCESS]: _updateConnections,
     };
     const newState = _getStateCopy(state);
 

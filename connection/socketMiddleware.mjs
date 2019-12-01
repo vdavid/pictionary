@@ -4,6 +4,7 @@ import {actionTypes as gameActions, actionCreators as gameActionCreators} from '
 import {actionTypes as chatActions, actionCreators as chatActionCreators} from '../chat/store.mjs';
 import {actionTypes as drawingCanvasActions, actionCreators as drawingCanvasActionCreators} from '../canvases/drawing-canvas-store.mjs';
 import {actionCreators as guessingCanvasActionCreators} from '../canvases/guessing-canvas-store.mjs';
+import {connectionChanges} from './connection-changes.mjs';
 
 export default function socketMiddleware(store) {
     /**
@@ -39,12 +40,16 @@ export default function socketMiddleware(store) {
     const peerConnector = new PeerConnector({
         onStartedAcceptingConnections: localPeerId => store.dispatch(connectionActionCreators.createStartAcceptingConnectionsSuccess(localPeerId)),
         onStoppedAcceptingConnections: () => store.dispatch(connectionActionCreators.createStopAcceptingConnectionsSuccess()),
-        onConnected: (allConnections, newConnection, isHost) => {
-            // noinspection JSUnresolvedVariable
-            store.dispatch(connectionActionCreators.createConnectToPeerSuccess({newPeerId: newConnection.peer, isHost}));
-            store.dispatch(gameActionCreators.createStartGameRequest());
+        onConnectionsChanged: (connectionChange, relatedPeerId, localPeerId, allPeerIds, hostPeerId) => {
+            store.dispatch(connectionActionCreators.createUpdateConnectionsSuccess(localPeerId, allPeerIds, hostPeerId));
+            if(connectionChange === connectionChanges.hostBecomingTheHost || connectionChange === connectionChanges.clientConnectingToHost) {
+                store.dispatch(gameActionCreators.createStartGameRequest());
+            }
+            if (localPeerId === hostPeerId) {
+                // noinspection JSUnresolvedVariable
+                store.dispatch(connectionActionCreators.createSendGameStatusToClientRequest(relatedPeerId));
+            }
         },
-        onDisconnected: () => store.dispatch(connectionActionCreators.createDisconnectFromPeerSuccess()),
         onCommandReceived,
         onDrawnLinesReceived: drawnLines => store.dispatch(guessingCanvasActionCreators.createUpdateCanvasRequest(drawnLines)),
         onMessageReceived,
@@ -61,13 +66,6 @@ export default function socketMiddleware(store) {
             store.dispatch(connectionActionCreators.createConnectToHostFailure());
             return false;
         }
-    }
-
-    /**
-     * TODO: Never dispatched as it's not implemented yet
-     */
-    function _disconnectFromAllPeers() {
-        peerConnector.disconnectFromAllPeers();
     }
 
     /**
@@ -139,12 +137,24 @@ export default function socketMiddleware(store) {
         peerConnector.tryReconnectingToPeerServer();
     }
 
+    /**
+     * @param {string} clientPeerId
+     * @private
+     */
+    function _sendGameStatusToClientRequest(clientPeerId) {
+        /** @type {State} */
+        const state = store.getState();
+        peerConnector.sendGameStateToClient(clientPeerId, {
+            isGameStarted: state.game.isGameStarted,
+            isRoundStarted: state.game.isRoundStarted,
+        });
+    }
+
     /* Returns the handler that will be called for each action dispatched */
     return next => action => {
         /** @type {Object<string, function(*): boolean|void>} If they return ===false then next() won't be called */
         const actionTypeToFunctionMap = {
             [connectionActions.CONNECT_TO_HOST_REQUEST]: _connectToHost, /* Client side */
-            [connectionActions.DISCONNECT_FROM_PEER_REQUEST]: _disconnectFromAllPeers,
             [chatActions.SEND_MESSAGE_REQUEST]: _sendChatMessage, /* Both sides */
             [drawingCanvasActions.SEND_NEW_LINES_TO_GUESSERS_REQUEST]: _drawingUpdated, /* Drawing side only */
             [gameActions.START_ROUND_REQUEST]: _sendStartSignalToPeerIfThisIsTheHost,
@@ -152,6 +162,7 @@ export default function socketMiddleware(store) {
             [gameActions.SET_ACTIVE_PHRASE_REQUEST]: _setActivePhrase, /* Drawing side only */
             [drawingCanvasActions.CLEAR_REQUEST]: _notifyPeerToClearGuessingCanvas, /* Drawing side only */
             [connectionActions.TRY_RECONNECTING_TO_HOST_REQUEST]: _tryReconnectingToPeerServer,
+            [connectionActions.SEND_GAME_STATUS_TO_CLIENT_REQUEST]: _sendGameStatusToClientRequest,
         };
 
         const result = (actionTypeToFunctionMap[action.type]) ? actionTypeToFunctionMap[action.type](action.payload) : undefined;

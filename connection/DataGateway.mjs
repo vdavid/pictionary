@@ -13,7 +13,8 @@ export default class DataGateway {
             message: 'message',
             newLines: 'newLines',
             command: 'command',
-            peerList: 'newPeerJoinedTheGame',
+            peerList: 'peerList',
+            gameState: 'gameState',
         };
     }
 
@@ -60,6 +61,18 @@ export default class DataGateway {
     }
 
     /**
+     * @param {string} peerId
+     * @param {{isGameStarted: boolean, isRoundStarted: boolean}} gameState
+     */
+    sendGameStateToClient(peerId, gameState) {
+        const peerIds = this._connectionPool.getAllConnectedPeerIds();
+        peerIds.splice(peerIds.indexOf(peerId), 1);
+
+        // noinspection JSUnresolvedFunction
+        this._connectionPool.getByPeerId(peerId).send({type: this._messageTypes.gameState, payload: {...gameState, peerIds}});
+    }
+
+    /**
      * @param {DataConnection} connection
      * @param {{type: string, payload: *}} data
      * @private
@@ -75,6 +88,8 @@ export default class DataGateway {
                 console.log('Received: message: ' + data.payload);
             } else if (data.type === this._messageTypes.peerList) {
                 console.log('Received info: Peer IDs: ' + data.payload.join(', '));
+            } else if (data.type === this._messageTypes.gameState) {
+                console.log('Received info: Game state: ' + JSON.stringify(data.payload));
             }
         }
 
@@ -84,8 +99,10 @@ export default class DataGateway {
             this._eventHandlers.onDrawnLinesReceived(data.payload);
         } else if (data.type === this._messageTypes.message) {
             this._eventHandlers.onMessageReceived(data.payload);
-        } else if (data.type === this._messageTypes.message) {
-            this._eventHandlers.onPeerIdsReceived(data.payload);
+        } else if (data.type === this._messageTypes.peerList) {
+            this._eventHandlers.onPeerListReceived(data.payload);
+        } else if (data.type === this._messageTypes.gameState) {
+            this._eventHandlers.onGameStateReceived(data.payload);
 
         } else if (this._debugLevel >= 2) {
             console.warn('Invalid data received from peer.');

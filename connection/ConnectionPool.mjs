@@ -3,17 +3,17 @@ export default class ConnectionPool {
         /** @type {DataConnection[]} */
         this._connections = [];
         /** @type {DataConnection} */
-        this._serverConnection = null;
+        this._connectionToHost = null;
     }
 
     /**
      * @param {DataConnection} connection
-     * @param {boolean} isServerConnection
+     * @param {boolean} isConnectionToHost
      */
-    add(connection, isServerConnection) {
+    add(connection, isConnectionToHost) {
         this._connections.push(connection);
-        if (isServerConnection) {
-            this._serverConnection = connection;
+        if (isConnectionToHost) {
+            this._connectionToHost = connection;
         }
     }
 
@@ -37,7 +37,6 @@ export default class ConnectionPool {
         return this._connections.map(connection => connection.peer);
     }
 
-    // noinspection JSUnusedGlobalSymbols
     /**
      * @param {string} peerId
      * @returns {DataConnection}
@@ -50,7 +49,7 @@ export default class ConnectionPool {
     /**
      * @returns {DataConnection}
      */
-    getServerConnection() {
-        return this._serverConnection;
+    getConnectionToHost() {
+        return this._connectionToHost;
     }
 }

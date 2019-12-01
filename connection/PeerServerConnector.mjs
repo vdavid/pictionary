@@ -48,15 +48,19 @@ export default class PeerServerConnector {
     }
 
     /**
-     * @param {string} hostPeerId
+     * @param {string} peerId
      * @return {DataConnection}
      */
-    connectToRemoteHost(hostPeerId) {
-        if (hostPeerId !== this._peer.id) {
-            return this._peer.connect(hostPeerId/*, {label: undefined, metadata: {}, serialization: 'json', reliable: true}*/);
+    connectToRemotePeer(peerId) {
+        if (peerId !== this._peer.id) {
+            return this._peer.connect(peerId/*, {label: undefined, metadata: {}, serialization: 'json', reliable: true}*/);
         } else {
             throw new Error('Can\'t connect to self.');
         }
+    }
+
+    getLocalPeerId() {
+        return this._peer.id;
     }
 
     /**

@@ -1,6 +1,7 @@
 import ConnectionPool from './ConnectionPool.mjs';
 import DataGateway from './DataGateway.mjs';
 import PeerServerConnector from './PeerServerConnector.mjs';
+import {connectionChanges} from './connection-changes.mjs';
 
 /**
  * Documentation: https://docs.peerjs.com/
@@ -10,8 +11,8 @@ import PeerServerConnector from './PeerServerConnector.mjs';
  * @typedef {Object} PeerConnectorOptions
  * @property {function(id: string): void} [onStartedAcceptingConnections] Called when the connection to the PeerServer is established.
  * @property {function(): void} [onStoppedAcceptingConnections] Called when the connection to the PeerServer is closed.
- * @property {function(allConnections: DataConnection[], newConnection: DataConnection, isHost: boolean): void} [onConnected] Called when the connection to the peer is established.
- * @property {function(): void} [onDisconnected] Called when the connection to the peer is closed/lost.
+ * @property {function(connectionChange: string, relatedPeerId: string, localPeerId: string, allPeerIds: string[], hostPeerId: string): void} [onConnectionsChanged]
+ *           Called when a connection to a peer is established or lost.
  * @property {function(command: string, parameters: Object): void} [onCommandReceived] Called when a command is received from the peer.
  * @property {function(DrawnLine[]): void} [onDrawnLinesReceived] Called when new drawn lines were received from the peer.
  * @property {function(string): void} [onMessageReceived] Called when a message is received from the peer.
@@ -27,15 +28,17 @@ export default class PeerConnector {
      * @param {PeerConnectorOptions} options
      */
     constructor(options) {
-        this._onConnectedCallback = options.onConnected || (() => {});
-        this._onDisconnectedCallback = options.onDisconnected || (() => {});
-        this._onErrorCallback = options.onError || (() => {});
+        this._connectionsChangedCallback = options.onConnectionsChanged || (() => {});
+        this._errorCallback = options.onError || (() => {});
 
         this._handlePeerIncomingConnection = this._handlePeerIncomingConnection.bind(this);
         this._handleConnectionOpen = this._handleConnectionOpen.bind(this);
         this._handleConnectionClose = this._handleConnectionClose.bind(this);
         this._handleConnectionError = this._handleConnectionError.bind(this);
+        this._updateKnownPeerIds = this._updateKnownPeerIds.bind(this);
+        this._handleGameStateReceivedFromHost = this._handleGameStateReceivedFromHost.bind(this);
 
+        this._knownPeers = [];
         this._peerServerConnector = new PeerServerConnector({
             acceptingConnectionsCallback: options.onStartedAcceptingConnections,
             stoppedAcceptingConnectionsCallback: options.onStoppedAcceptingConnections,
@@ -44,21 +47,29 @@ export default class PeerConnector {
             debugLevel: options.debugLevel,
         });
         this._connectionPool = new ConnectionPool();
-        this._knownPeers = [];
         this._dataGateway = new DataGateway(this._connectionPool, {
             onCommandReceived: options.onCommandReceived || (() => {}),
             onDrawnLinesReceived: options.onDrawnLinesReceived || (() => {}),
             onMessageReceived: options.onMessageReceived || (() => {}),
-            onPeerIdsReceived: this._updateKnownPeerIds,
+            onPeerListReceived: this._updateKnownPeerIds,
+            onGameStateReceived: this._handleGameStateReceivedFromHost,
         }, options.debugLevel);
     }
 
-    _updateKnownPeerIds(peerIds) {
-        if (!this._isHost()) {
-            this._knownPeers = peerIds;
-        } else {
-            /* Hack attempt? */
-        }
+    /**
+     * @param {DataConnection} connection
+     * @param {string} connectionChange One of the connectionChanges constants
+     * @private
+     */
+    _setUpConnectionEventHandlers(connection, connectionChange) {
+        // noinspection JSUnresolvedFunction
+        connection.on('open', () => this._handleConnectionOpen(connection, connectionChange), null);
+        // noinspection JSUnresolvedFunction
+        connection.on('data', (data) => this._dataGateway.handleConnectionDataReceived(connection, data), null);
+        // noinspection JSUnresolvedFunction
+        connection.on('close', () => this._handleConnectionClose(connection), null);
+        // noinspection JSUnresolvedFunction
+        connection.on('error', (error) => this._handleConnectionError(connection, error), null);
     }
 
     /**
@@ -66,8 +77,50 @@ export default class PeerConnector {
      */
     connectToHost(hostPeerId) {
         if (!this._connectionPool.getAllConnections().length) {
-            const newConnection = this._peerServerConnector.connectToRemoteHost(hostPeerId);
-            this._setUpConnectionEventHandlers(newConnection, 'connectingToHost');
+            const newConnection = this._peerServerConnector.connectToRemotePeer(hostPeerId);
+            this._setUpConnectionEventHandlers(newConnection, connectionChanges.clientConnectingToHost);
+        }
+    }
+
+    /**
+     * @param {string} peerId
+     */
+    connectToOtherClient(peerId) {
+        const newConnection = this._peerServerConnector.connectToRemotePeer(peerId);
+        this._setUpConnectionEventHandlers(newConnection, connectionChanges.clientConnectingToAnotherClient);
+    }
+
+    /**
+     * @param {{isGameStarted: boolean, isRoundStarted: boolean, peerIds: string[]}} gameState
+     * @private
+     */
+    _handleGameStateReceivedFromHost(gameState) {
+        // TODO: Send game state
+        this._connectToOtherClientsAsClient(gameState.peerIds);
+    }
+
+    /**
+     * @param {string[]} peerIds
+     * @private
+     */
+    _connectToOtherClientsAsClient(peerIds) {
+        peerIds.map(peerId => this.connectToOtherClient(peerId));
+    }
+
+    /**
+     * @param {DataConnection} connection
+     * @private
+     */
+    _handlePeerIncomingConnection(connection) {
+        if (this._connectionPool.getAllConnections().length === 0) {
+            this._setUpConnectionEventHandlers(connection, connectionChanges.hostBecomingTheHost);
+        } else if (this._isHost()) {
+            this._setUpConnectionEventHandlers(connection, connectionChanges.hostReceivingConnectionFromANewClient);
+        } else if (this._knownPeers.includes(connection.peer)) {
+            this._setUpConnectionEventHandlers(connection, connectionChanges.clientReceivingConnectionFromAnotherClient);
+        } else {
+            // noinspection JSUnresolvedFunction
+            connection.on('open', connection => connection.close(), null);
         }
     }
 
@@ -93,6 +146,14 @@ export default class PeerConnector {
         this._dataGateway.broadcastCommand(command, parameters);
     }
 
+    /**
+     * @param {string} clientPeerId
+     * @param {{isGameStarted: boolean, isRoundStarted: boolean}} gameState
+     */
+    sendGameStateToClient(clientPeerId, gameState) {
+        this._dataGateway.sendGameStateToClient(clientPeerId, gameState);
+    }
+
     disconnectFromAllPeers() {
         // noinspection JSUnresolvedFunction
         this._connectionPool.getAllConnections().forEach(connection => connection.close());
@@ -104,16 +165,19 @@ export default class PeerConnector {
 
     /**
      * @param {DataConnection} newConnection
-     * @param {string} whatIsHappening One of "connectingToHost", "becomingTheHost" and "anotherClientEstablishingADirectConnection"
+     * @param {string} connectionChange One of the connectionChanges constants
      * @private
      */
-    _handleConnectionOpen(newConnection, whatIsHappening) {
-        if (this._isHost()) {
+    _handleConnectionOpen(newConnection, connectionChange) {
+        if (connectionChange === connectionChanges.hostReceivingConnectionFromANewClient) {
             // noinspection JSUnresolvedVariable
             this._dataGateway.broadcastKnownPeerList([...this._connectionPool.getAllConnectedPeerIds(), newConnection.peer]);
         }
-        this._connectionPool.add(newConnection, whatIsHappening === 'connectingToHost');
-        this._onConnectedCallback(this._connectionPool.getAllConnections(), newConnection, this._isHost());
+        this._connectionPool.add(newConnection, connectionChange === connectionChanges.clientConnectingToHost);
+
+        const hostPeerId = this._connectionPool.getConnectionToHost() ? this._connectionPool.getConnectionToHost().peer : (this._isHost() ? this._peerServerConnector.getLocalPeerId() : undefined);
+        // noinspection JSUnresolvedVariable
+        this._connectionsChangedCallback(connectionChange, newConnection.peer, this._peerServerConnector.getLocalPeerId(), this._connectionPool.getAllConnectedPeerIds(), hostPeerId);
     }
 
     /**
@@ -121,8 +185,16 @@ export default class PeerConnector {
      * @private
      */
     _handleConnectionClose(connection) {
+        // noinspection JSUnresolvedVariable
+        const connectionChange = this._isHost()
+            ? connectionChanges.hostDisconnectedFromAClient
+            : (this._connectionPool.getConnectionToHost() && (this._connectionPool.getConnectionToHost().peer === connection.peer)
+                ? connectionChanges.clientDisconnectedFromHost
+                : connectionChanges.clientDisconnectedFromAnotherClient);
         this._connectionPool.remove(connection);
-        this._onDisconnectedCallback();
+        const hostPeerId = this._connectionPool.getConnectionToHost() ? this._connectionPool.getConnectionToHost().peer : (this._isHost() ? this._peerServerConnector.getLocalPeerId() : undefined);
+        // noinspection JSUnresolvedVariable
+        this._connectionsChangedCallback(connectionChange, connection.peer, this._peerServerConnector.getLocalPeerId(), this._connectionPool.getAllConnectedPeerIds(), hostPeerId);
     }
 
     /**
@@ -133,41 +205,18 @@ export default class PeerConnector {
     _handleConnectionError(connection, error) {
         console.log('Connection error.');
         console.log(error);
-        this._onErrorCallback(error);
+        this._errorCallback(error);
     }
 
-    /**
-     * @param {DataConnection} connection
-     * @param {string} whatIsHappening One of "connectingToHost", "becomingTheHost" and "anotherClientEstablishingADirectConnection"
-     * @private
-     */
-    _setUpConnectionEventHandlers(connection, whatIsHappening) {
-        // noinspection JSUnresolvedFunction
-        connection.on('open', () => this._handleConnectionOpen(connection, whatIsHappening), null);
-        // noinspection JSUnresolvedFunction
-        connection.on('data', (data) => this._dataGateway.handleConnectionDataReceived(connection, data), null);
-        // noinspection JSUnresolvedFunction
-        connection.on('close', () => this._handleConnectionClose(connection), null);
-        // noinspection JSUnresolvedFunction
-        connection.on('error', (error) => this._handleConnectionError(connection, error), null);
-    }
-
-    /**
-     * @param {DataConnection} connection
-     * @private
-     */
-    _handlePeerIncomingConnection(connection) {
-        if (this._isHost() || this._connectionPool.getAllConnections().length === 0) {
-            this._setUpConnectionEventHandlers(connection, 'becomingTheHost');
-        } else if (this._knownPeers.includes(connection.peer)) {
-            this._setUpConnectionEventHandlers(connection, 'anotherClientEstablishingADirectConnection');
+    _updateKnownPeerIds(peerIds) {
+        if (!this._isHost()) {
+            this._knownPeers = peerIds;
         } else {
-            // noinspection JSUnresolvedFunction
-            connection.on('open', connection => connection.close(), null);
+            /* Hack attempt? */
         }
     }
 
     _isHost() {
-        return this._connectionPool.getAllConnections().length > 0 && !this._connectionPool.getServerConnection();
+        return this._connectionPool.getAllConnections().length > 0 && !this._connectionPool.getConnectionToHost();
     }
 }
