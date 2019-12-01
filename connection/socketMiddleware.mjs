@@ -1,58 +1,12 @@
 import PeerConnector from './PeerConnector.mjs';
 import {actionTypes as connectionActions, actionCreators as connectionActionCreators} from './store.mjs';
-import {actionTypes as gameActions, actionCreators as gameActionCreators} from '../game/store.mjs';
+import {actionTypes as gameActions} from '../game/store.mjs';
 import {actionTypes as chatActions, actionCreators as chatActionCreators} from '../chat/store.mjs';
 import {actionTypes as drawingCanvasActions, actionCreators as drawingCanvasActionCreators} from '../canvases/drawing-canvas-store.mjs';
 import {actionCreators as guessingCanvasActionCreators} from '../canvases/guessing-canvas-store.mjs';
-import {connectionChanges} from './connection-changes.mjs';
 
 export default function socketMiddleware(store) {
-    /**
-     * @param {string} command
-     * @param {Object} parameters
-     */
-    function onCommandReceived(command, parameters) {
-        if (command === 'startRound') {
-            store.dispatch(gameActionCreators.createStartRoundRequest(parameters.whichPlayerDraws));
-        } else if (command === 'phraseGuessedCorrectly') {
-            store.dispatch(gameActionCreators.createMarkPhaseGuessedRequest(parameters.phrase));
-            store.dispatch(chatActionCreators.createSendPhraseGuessedRequest({whoDrew: 'remote', phrase: parameters.phrase}));
-        } else if (command === 'clearGuessingCanvas') {
-            // TODO: Add system message to chat about canvas clearing
-            store.dispatch(guessingCanvasActionCreators.createClearRequest());
-        }
-    }
-
-    /**
-     * @param {string} message
-     */
-    function onMessageReceived(message) {
-        /** @type {State} */
-        const state = store.getState();
-        store.dispatch(chatActionCreators.createAddReceivedMessageRequest(message));
-
-        if ((state.game.whichPlayerDraws === 'local') && (message.trim().toLowerCase().indexOf(state.game.activePhrase.toLowerCase()) > -1)) {
-            store.dispatch(gameActionCreators.createMarkPhaseGuessedRequest(state.game.activePhrase));
-            store.dispatch(chatActionCreators.createSendPhraseGuessedRequest({whoDrew: 'local', phrase: state.game.activePhrase}));
-        }
-    }
-
-    const peerConnector = new PeerConnector({
-        onStartedAcceptingConnections: localPeerId => store.dispatch(connectionActionCreators.createStartAcceptingConnectionsSuccess(localPeerId)),
-        onStoppedAcceptingConnections: () => store.dispatch(connectionActionCreators.createStopAcceptingConnectionsSuccess()),
-        onConnectionsChanged: (connectionChange, relatedPeerId, localPeerId, allPeerIds, hostPeerId) => {
-            store.dispatch(connectionActionCreators.createUpdateConnectionsSuccess(localPeerId, allPeerIds, hostPeerId));
-            if(connectionChange === connectionChanges.hostBecomingTheHost || connectionChange === connectionChanges.clientConnectingToHost) {
-                store.dispatch(gameActionCreators.createStartGameRequest());
-            }
-            if (localPeerId === hostPeerId) {
-                // noinspection JSUnresolvedVariable
-                store.dispatch(connectionActionCreators.createSendGameStatusToClientRequest(relatedPeerId));
-            }
-        },
-        onCommandReceived,
-        onDrawnLinesReceived: drawnLines => store.dispatch(guessingCanvasActionCreators.createUpdateCanvasRequest(drawnLines)),
-        onMessageReceived,
+    const peerConnector = new PeerConnector(store, {
         debugLevel: window.location.href.startsWith('http://localhost') ? 2 : 1,
     });
 
@@ -168,7 +122,7 @@ export default function socketMiddleware(store) {
         const result = (actionTypeToFunctionMap[action.type]) ? actionTypeToFunctionMap[action.type](action.payload) : undefined;
 
         if (result !== false) {
-            next(action);
+            return next(action);
         }
     };
 }
