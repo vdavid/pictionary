@@ -60,7 +60,7 @@ function _saveTypedMessage(state, messageText) {
  * @param {ChatState} state
  * @param {string} messageText
  */
-function _messageReceived(state, messageText) {
+function _addReceivedMessage(state, messageText) {
     state.messages.push({text: messageText.substr(0, 160), isIncoming: true, isSystemMessage: false, dateTime: new Date()});
 }
 
@@ -68,7 +68,7 @@ function _messageReceived(state, messageText) {
  * @param {ChatState} state
  * @param {string} messageText
  */
-function _sendMessage(state, messageText) {
+function _addMessageAsSending(state, messageText) {
     state.messages.push({text: messageText.substr(0, 160), isIncoming: false, isSystemMessage: false, dateTime: new Date()});
     state.typedMessage = '';
     state.isSendingMessage = true;
@@ -77,14 +77,14 @@ function _sendMessage(state, messageText) {
 /**
  * @param {ChatState} state
  */
-function _messageSent(state) {
+function _indicateSendingSucceeded(state) {
     state.isSendingMessage = false;
 }
 
 /**
  * @param {ChatState} state
  */
-function _sendingFailed(state) {
+function _addSendingFailedSystemMessage(state) {
     state.messages.push({text: 'Sending failed.', isIncoming: false, isSystemMessage: true, dateTime: new Date()});
     state.isSendingMessage = false;
 }
@@ -94,7 +94,7 @@ function _sendingFailed(state) {
  * @param {{whoDrew: 'local'|'remote', phrase: string}} argument2
  * @private
  */
-function _addSystemMessageThatPhraseWasGuessedCorrectly(state, {whoDrew, phrase}) {
+function _addPhraseFoundOutSystemMessage(state, {whoDrew, phrase}) {
     const text = (whoDrew === 'local')
         ? 'Yay! Your friend guessed it right! Let\'s see another one!'
         : 'Yay! You guessed it right, it was indeed “' + phrase + '”! Let\'s see another one!';
@@ -106,7 +106,7 @@ function _addSystemMessageThatPhraseWasGuessedCorrectly(state, {whoDrew, phrase}
  * @param {'local'|'remote'} whoDrew
  * @private
  */
-function _addSystemMessageThatCanvasWasCleared(state, whoDrew) {
+function _addCanvasClearedSystemMessage(state, whoDrew) {
     const text = 'Let\'s try this again.';
     state.messages.push({text, isIncoming: (whoDrew === 'remote'), isSystemMessage: true, dateTime: new Date()});
 }
@@ -119,12 +119,12 @@ function _addSystemMessageThatCanvasWasCleared(state, whoDrew) {
 export function reducer(state, action) {
     const actionTypeToFunctionMap = {
         [actionTypes.SAVE_TYPED_MESSAGE_REQUEST]: _saveTypedMessage,
-        [actionTypes.ADD_RECEIVED_MESSAGE_REQUEST]: _messageReceived,
-        [actionTypes.SEND_MESSAGE_REQUEST]: _sendMessage,
-        [actionTypes.SEND_MESSAGE_SUCCESS]: _messageSent,
-        [actionTypes.SEND_MESSAGE_FAILURE]: _sendingFailed,
-        [actionTypes.SEND_PHRASE_GUESSED_REQUEST]: _addSystemMessageThatPhraseWasGuessedCorrectly,
-        [actionTypes.NOTE_CANVAS_WAS_CLEARED_REQUEST]: _addSystemMessageThatCanvasWasCleared,
+        [actionTypes.ADD_RECEIVED_MESSAGE_REQUEST]: _addReceivedMessage,
+        [actionTypes.SEND_MESSAGE_REQUEST]: _addMessageAsSending,
+        [actionTypes.SEND_MESSAGE_SUCCESS]: _indicateSendingSucceeded,
+        [actionTypes.SEND_MESSAGE_FAILURE]: _addSendingFailedSystemMessage,
+        [actionTypes.SEND_PHRASE_GUESSED_REQUEST]: _addPhraseFoundOutSystemMessage,
+        [actionTypes.NOTE_CANVAS_WAS_CLEARED_REQUEST]: _addCanvasClearedSystemMessage,
     };
     const newState = _getStateCopy(state);
 
