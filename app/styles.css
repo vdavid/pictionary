@@ -47,7 +47,7 @@ button { border: none; border-radius: 2px; }
 #app > main { background-color: var(--card-background-color); }
 #app > footer { position: relative; background-color: var(--dark-primary-color); color: var(--text-primary-color); }
 #app > footer span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-#connectionSection { padding: 0.5em 1em; display: grid; grid-template-columns: auto 1em; grid-column-gap: 0.5em; text-align:right; }
+#connectionSection { padding: 0.5em 1em; display: grid; grid-template-columns: auto 1em; grid-column-gap: 0.5em; text-align: right; }
 
 /* Game page layout */
 #gamePage { height: 100%; }
@@ -56,7 +56,13 @@ button { border: none; border-radius: 2px; }
     #gamePageLayout { grid-template-rows: 4em calc(100% - 7em) 3em; grid-template-areas: 'canvas players' 'canvas chat' 'word timer'; }
 }
 #canvasSection { grid-area: canvas; }
-#playerList { grid-area: players; background-color: var(--light-primary-color); }
+.playerList { grid-area: players; background-color: var(--light-primary-color); }
+.playerList ul { display: flex; flex-flow: row nowrap; justify-content: flex-start; align-items: stretch; align-content: flex-start; margin: 0; padding: 0; }
+.playerList li { list-style: none; width: 60px; padding: 0; font-size: 0.6em; }
+.playerList li.local { background-color: var(--default-primary-color); }
+.playerList li.host { background-color: var(--accent-color); }
+.playerList li > * { display: block; text-align: center; word-break: break-all; }
+.playerList li img { margin: auto; }
 #wordDisplaySection { background-color: var(--extra-light-primary-color); grid-area: word; }
 #chatSection { background-color: var(--light-primary-color); grid-area: chat; }
 #timerSection { background-color: var(--light-primary-color); grid-area: timer; }
@@ -67,10 +73,10 @@ button { border: none; border-radius: 2px; }
 
 /* Connect box */
 #connectBox { display: grid; grid-template-columns: 32% 6% 26% 6% 26%; grid-template-areas: 'instructions instructions instructions instructions instructions' 'player then host or connect'; grid-column-gap: 1%; grid-row-gap: 1em; padding: 1.4em 0.8em; }
-#connectBox .instructions { grid-area: instructions; font-size:0.7em; }
+#connectBox .instructions { grid-area: instructions; font-size: 0.7em; }
 #connectBox > * { text-align: center; }
 #connectBox .playerNameBox { grid-area: player; }
-#connectBox .playerNameBox input { width:100%; text-align: center; font-size: 0.9em; }
+#connectBox .playerNameBox input { width: 100%; text-align: center; font-size: 0.9em; }
 #connectBox .then { grid-area: then; position: relative; }
 #connectBox .then span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
 #connectBox .hostConnectionBox { grid-area: host; }

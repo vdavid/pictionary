@@ -57,7 +57,7 @@ export default function socketMiddleware(store) {
         const state = store.getState();
 
         if (state.connection.isHost) {
-            peerConnector.sendCommand('startRound', {whichPlayerDraws: ((whichPlayerDraws === 'local') ? 'remote' : 'local')});
+            peerConnector.sendStartRoundSignal(((whichPlayerDraws === 'local') ? 'remote' : 'local'));
         }
     }
 
@@ -69,7 +69,7 @@ export default function socketMiddleware(store) {
         const state = store.getState();
 
         if (state.game.whichPlayerDraws === 'local') {
-            peerConnector.sendCommand('phraseGuessedCorrectly', {phrase});
+            peerConnector.sendPhraseFiguredOut(phrase);
         } else {
             store.dispatch(guessingCanvasActionCreators.createClearRequest());
         }
@@ -80,7 +80,7 @@ export default function socketMiddleware(store) {
     }
 
     function _notifyPeerToClearGuessingCanvas() {
-        peerConnector.sendCommand('clearGuessingCanvas', {});
+        peerConnector.sendClearCanvasCommand();
     }
 
     /**
@@ -89,19 +89,6 @@ export default function socketMiddleware(store) {
      */
     function _tryReconnectingToPeerServer() {
         peerConnector.tryReconnectingToPeerServer();
-    }
-
-    /**
-     * @param {string} clientPeerId
-     * @private
-     */
-    function _sendGameStatusToClientRequest(clientPeerId) {
-        /** @type {State} */
-        const state = store.getState();
-        peerConnector.sendGameStateToClient(clientPeerId, {
-            isGameStarted: state.game.isGameStarted,
-            isRoundStarted: state.game.isRoundStarted,
-        });
     }
 
     /* Returns the handler that will be called for each action dispatched */
@@ -116,7 +103,6 @@ export default function socketMiddleware(store) {
             [gameActions.SET_ACTIVE_PHRASE_REQUEST]: _setActivePhrase, /* Drawing side only */
             [drawingCanvasActions.CLEAR_REQUEST]: _notifyPeerToClearGuessingCanvas, /* Drawing side only */
             [connectionActions.TRY_RECONNECTING_TO_HOST_REQUEST]: _tryReconnectingToPeerServer,
-            [connectionActions.SEND_GAME_STATUS_TO_CLIENT_REQUEST]: _sendGameStatusToClientRequest,
         };
 
         const result = (actionTypeToFunctionMap[action.type]) ? actionTypeToFunctionMap[action.type](action.payload) : undefined;

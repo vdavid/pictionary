@@ -8,6 +8,7 @@ import RoundStartingBox from '../../game/components/RoundStartingBox.mjs';
 import Canvases from '../../canvases/components/Canvases.mjs';
 import WordDisplayComponent from '../../game/components/WordDisplay.mjs';
 
+import PlayerList from '../../player/components/PlayerList.mjs';
 import Chat from '../../chat/components/Chat.mjs';
 import Timer from '../../game/components/Timer.mjs';
 
@@ -17,6 +18,7 @@ class GamePage extends React.Component {
             React.createElement('div', {id: 'gamePageLayout'},
                 React.createElement(Canvases),
                 React.createElement(WordDisplayComponent),
+                React.createElement(PlayerList),
                 React.createElement(Chat, {state: this.props.chat}),
                 React.createElement('section', {id: 'timerSection'},
                     this.props.isRoundStarted ? React.createElement(Timer, {durationInMilliseconds: 60 * 1000}) : null,

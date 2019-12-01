@@ -16,7 +16,6 @@ export const actionTypes = {
     CONNECT_TO_HOST_FAILURE: 'connection/CONNECT_TO_HOST_FAILURE',
     UPDATE_CONNECTIONS_SUCCESS: 'connection/UPDATE_CONNECTIONS_SUCCESS',
     TRY_RECONNECTING_TO_HOST_REQUEST: 'connection/TRY_RECONNECTING_TO_HOST_REQUEST',
-    SEND_GAME_STATUS_TO_CLIENT_REQUEST: 'connection/SEND_GAME_STATUS_TO_CLIENT_REQUEST',
 };
 
 /**
@@ -50,7 +49,6 @@ export const actionCreators = {
     createConnectToHostFailure: () => ({type: actionTypes.CONNECT_TO_HOST_FAILURE}),
     createUpdateConnectionsSuccess: (localPeerId, allPeerIds, hostPeerId) =>  ({type: actionTypes.UPDATE_CONNECTIONS_SUCCESS, payload: {localPeerId, allPeerIds, hostPeerId}}),
     createTryReconnectingToHostRequest: () => ({type: actionTypes.TRY_RECONNECTING_TO_HOST_REQUEST}),
-    createSendGameStatusToClientRequest: (clientPeerId) => ({type: actionTypes.SEND_GAME_STATUS_TO_CLIENT_REQUEST, payload: clientPeerId})
 };
 
 /**

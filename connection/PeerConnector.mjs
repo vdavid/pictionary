@@ -4,6 +4,7 @@ import PeerServerConnector from './PeerServerConnector.mjs';
 import {connectionChanges} from './connection-changes.mjs';
 import {actionCreators as connectionActionCreators} from './store.mjs';
 import {actionCreators as gameActionCreators} from '../game/store.mjs';
+import {actionCreators as playerActionCreators} from '../player/store.mjs';
 
 /**
  * Documentation: https://docs.peerjs.com/
@@ -20,13 +21,14 @@ import {actionCreators as gameActionCreators} from '../game/store.mjs';
 
 export default class PeerConnector {
     /**
-     * @param {{dispatch: function, getState(): State}} store
+     * @param {{dispatch: function, getState: function(): State}} store
      * @param {PeerConnectorOptions} options
      */
     constructor(store, options) {
         this._store = store;
         this._errorCallback = options.onError || (() => {});
 
+        this._handleAcceptingConnections = this._handleAcceptingConnections.bind(this);
         this._handlePeerIncomingConnection = this._handlePeerIncomingConnection.bind(this);
         this._handleConnectionOpen = this._handleConnectionOpen.bind(this);
         this._handleConnectionClose = this._handleConnectionClose.bind(this);
@@ -36,7 +38,7 @@ export default class PeerConnector {
 
         this._knownPeers = [];
         this._peerServerConnector = new PeerServerConnector({
-            acceptingConnectionsCallback: localPeerId => this._store.dispatch(connectionActionCreators.createStartAcceptingConnectionsSuccess(localPeerId)),
+            acceptingConnectionsCallback: this._handleAcceptingConnections,
             stoppedAcceptingConnectionsCallback: () => this._store.dispatch(connectionActionCreators.createStopAcceptingConnectionsSuccess()),
             incomingConnectionCallback: this._handlePeerIncomingConnection,
             errorCallback: options.onError,
@@ -56,7 +58,7 @@ export default class PeerConnector {
         }
         if (localPeerId === hostPeerId) {
             // noinspection JSUnresolvedVariable
-            this._store.dispatch(connectionActionCreators.createSendGameStatusToClientRequest(relatedPeerId));
+            this.sendGameStateToClient(relatedPeerId);
         }
     }
 
@@ -111,6 +113,11 @@ export default class PeerConnector {
         peerIds.map(peerId => this.connectToOtherClient(peerId));
     }
 
+    _handleAcceptingConnections(localPeerId) {
+        this._store.dispatch(playerActionCreators.createUpdateLocalPlayerRequest({peerId: localPeerId}));
+        this._store.dispatch(connectionActionCreators.createStartAcceptingConnectionsSuccess(localPeerId));
+    }
+
     /**
      * @param {DataConnection} connection
      * @private
@@ -143,19 +150,30 @@ export default class PeerConnector {
     }
 
     /**
-     * @param {string} command
-     * @param {Object} parameters
+     * @param {'local'|'remote'} whichPlayerDraws
      */
-    sendCommand(command, parameters) {
-        this._dataGateway.broadcastCommand(command, parameters);
+    sendStartRoundSignal(whichPlayerDraws) {
+        this._dataGateway.broadcastStartRoundSignal(whichPlayerDraws);
+    }
+
+    /**
+     * @param {string} phrase
+     */
+    sendPhraseFiguredOut(phrase) {
+        this._dataGateway.broadcastPhraseFiguredOut(phrase);
+    }
+
+    /**
+     */
+    sendClearCanvasCommand() {
+        this._dataGateway.broadcastClearCanvasCommand();
     }
 
     /**
      * @param {string} clientPeerId
-     * @param {{isGameStarted: boolean, isRoundStarted: boolean}} gameState
      */
-    sendGameStateToClient(clientPeerId, gameState) {
-        this._dataGateway.sendGameStateToClient(clientPeerId, gameState);
+    sendGameStateToClient(clientPeerId) {
+        this._dataGateway.sendGameStateToClient(clientPeerId);
     }
 
     disconnectFromAllPeers() {
@@ -173,15 +191,21 @@ export default class PeerConnector {
      * @private
      */
     _handleConnectionOpen(newConnection, connectionChange) {
+        // noinspection JSUnresolvedVariable
+        const newPeerId = newConnection.peer;
         if (connectionChange === connectionChanges.hostReceivingConnectionFromANewClient) {
-            // noinspection JSUnresolvedVariable
-            this._dataGateway.broadcastKnownPeerList([...this._connectionPool.getAllConnectedPeerIds(), newConnection.peer]);
+            this._dataGateway.broadcastKnownPeerList([...this._connectionPool.getAllConnectedPeerIds(), newPeerId]);
         }
         this._connectionPool.add(newConnection, connectionChange === connectionChanges.clientConnectingToHost);
 
         const hostPeerId = this._connectionPool.getConnectionToHost() ? this._connectionPool.getConnectionToHost().peer : (this._isHost() ? this._peerServerConnector.getLocalPeerId() : undefined);
-        // noinspection JSUnresolvedVariable
-        this._onConnectionsChanged(connectionChange, newConnection.peer, this._peerServerConnector.getLocalPeerId(), this._connectionPool.getAllConnectedPeerIds(), hostPeerId);
+
+        /* If the other side is unknown, send them your name */
+        if (!this._store.getState().players.otherPlayers.find(player => player.peerId === newPeerId)) {
+            this._dataGateway.sendLocalPlayerDataToClient(newPeerId);
+        }
+
+        this._onConnectionsChanged(connectionChange, newPeerId, this._peerServerConnector.getLocalPeerId(), this._connectionPool.getAllConnectedPeerIds(), hostPeerId);
     }
 
     /**
@@ -190,15 +214,19 @@ export default class PeerConnector {
      */
     _handleConnectionClose(connection) {
         // noinspection JSUnresolvedVariable
+        const remotePeerId = connection.peer;
         const connectionChange = this._isHost()
             ? connectionChanges.hostDisconnectedFromAClient
-            : (this._connectionPool.getConnectionToHost() && (this._connectionPool.getConnectionToHost().peer === connection.peer)
+            : (this._connectionPool.getConnectionToHost() && (this._connectionPool.getConnectionToHost().peer === remotePeerId)
                 ? connectionChanges.clientDisconnectedFromHost
                 : connectionChanges.clientDisconnectedFromAnotherClient);
         this._connectionPool.remove(connection);
         const hostPeerId = this._connectionPool.getConnectionToHost() ? this._connectionPool.getConnectionToHost().peer : (this._isHost() ? this._peerServerConnector.getLocalPeerId() : undefined);
-        // noinspection JSUnresolvedVariable
-        this._onConnectionsChanged(connectionChange, connection.peer, this._peerServerConnector.getLocalPeerId(), this._connectionPool.getAllConnectedPeerIds(), hostPeerId);
+
+        /* Remove player from the list of players */
+        this._store.dispatch(playerActionCreators.createRemoveRemotePlayerRequest(remotePeerId));
+
+        this._onConnectionsChanged(connectionChange, remotePeerId, this._peerServerConnector.getLocalPeerId(), this._connectionPool.getAllConnectedPeerIds(), hostPeerId);
     }
 
     /**
