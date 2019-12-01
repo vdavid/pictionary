@@ -66,9 +66,13 @@ button { border: none; border-radius: 2px; }
 #noConnectionBox button { margin-top: 1em; padding: 5px 20px; font-size: 1.5em; background-color: var(--accent-color); }
 
 /* Connect box */
-#connectBox { display: grid; grid-template-columns: 47% 6% 47%; grid-template-areas: 'instructions instructions instructions' 'host or connect'; padding: 1.4em 0.8em; }
-#connectBox .instructions { grid-area: instructions; }
+#connectBox { display: grid; grid-template-columns: 32% 6% 26% 6% 26%; grid-template-areas: 'instructions instructions instructions instructions instructions' 'player then host or connect'; grid-column-gap: 1%; grid-row-gap: 1em; padding: 1.4em 0.8em; }
+#connectBox .instructions { grid-area: instructions; font-size:0.7em; }
 #connectBox > * { text-align: center; }
+#connectBox .playerNameBox { grid-area: player; }
+#connectBox .playerNameBox input { width:100%; text-align: center; font-size: 0.9em; }
+#connectBox .then { grid-area: then; position: relative; }
+#connectBox .then span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
 #connectBox .hostConnectionBox { grid-area: host; }
 #connectBox .hostConnectionBox .localPeerId { text-align: center; font-size: 2.5em; }
 #connectBox .or { grid-area: or; position: relative; }
