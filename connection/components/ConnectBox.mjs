@@ -1,6 +1,6 @@
 const React = window.React;
 const {connect} = window.ReactRedux;
-import {actionTypes as connectionActionTypes} from '../store.mjs';
+import {actionCreators as connectionActionCreators} from '../store.mjs';
 
 import HostConnectionBox from './HostConnectionBox.mjs';
 import ConnectToPeerBox from './ConnectToPeerBox.mjs';
@@ -34,7 +34,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return {
         connectToHost: hostId => {
-            dispatch({type: connectionActionTypes.CONNECT_TO_HOST, payload: hostId});
+            dispatch(connectionActionCreators.createConnectToHostRequest(hostId));
         },
     };
 }

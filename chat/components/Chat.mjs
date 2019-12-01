@@ -1,4 +1,4 @@
-import {actionTypes as chatActionTypes} from '../store.mjs';
+import {actionCreators as chatActionCreators} from '../store.mjs';
 import SendButton from './SendButton.mjs';
 import ChatInput from './ChatInput.mjs';
 import ChatMessages from './ChatMessages.mjs';
@@ -51,10 +51,10 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return {
         saveTypedMessage: message => {
-            dispatch({type: chatActionTypes.SAVE_TYPED_MESSAGE, payload: message});
+            dispatch(chatActionCreators.createSaveTypedMessageRequest(message));
         },
         addMessage: message => {
-            dispatch({type: chatActionTypes.SEND_MESSAGE, payload: message});
+            dispatch(chatActionCreators.createSendMessageRequest(message));
         },
     };
 }

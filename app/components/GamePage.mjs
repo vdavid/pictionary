@@ -1,5 +1,5 @@
 const {connect} = window.ReactRedux;
-import {actionTypes as gameActionTypes} from '../../game/store.mjs';
+import {actionCreators as gameActionCreators} from '../../game/store.mjs';
 
 import ConnectBox from '../../connection/components/ConnectBox.mjs';
 import NoConnectionBox from '../../connection/components/NoConnectionBox.mjs';
@@ -28,6 +28,7 @@ class GamePage extends React.Component {
         );
     }
 
+    // noinspection JSUnusedGlobalSymbols
     componentDidUpdate() {
         if (this.props.isConnected && this.props.isHost && !this.props.isRoundStarting && !this.props.isRoundStarted) {
             this.props.startRound();
@@ -52,7 +53,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return {
         startRound: () => {
-            dispatch({type: gameActionTypes.START_ROUND, payload: getRandomStartingPlayer()});
+            dispatch(gameActionCreators.createStartRoundRequest(getRandomStartingPlayer()));
         },
     };
 }

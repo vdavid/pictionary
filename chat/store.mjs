@@ -13,12 +13,12 @@
  */
 
 export const actionTypes = {
-    SAVE_TYPED_MESSAGE: 'chat/saveTypedMessage',
-    MESSAGE_RECEIVED: 'chat/messageReceived',
-    SEND_MESSAGE: 'chat/broadcastChatMessage',
-    MESSAGE_SENT: 'chat/messageSent',
-    SENDING_FAILED: 'chat/sendingFailed',
-    PHRASE_GUESSED_CORRECTLY: 'chat/phraseGuessedCorrectly',
+    SAVE_TYPED_MESSAGE_REQUEST: 'chat/SAVE_TYPED_MESSAGE_REQUEST',
+    ADD_RECEIVED_MESSAGE_REQUEST: 'chat/ADD_RECEIVED_MESSAGE_REQUEST',
+    SEND_MESSAGE_REQUEST: 'chat/SEND_MESSAGE_REQUEST',
+    SEND_MESSAGE_SUCCESS: 'chat/SEND_MESSAGE_SUCCESS',
+    SEND_MESSAGE_FAILURE: 'chat/SEND_MESSAGE_FAILURE',
+    SEND_PHRASE_GUESSED_REQUEST: 'chat/SEND_PHRASE_GUESSED_REQUEST',
 };
 
 /**
@@ -36,6 +36,15 @@ function _getStateCopy(state) {
         messages: [{text: 'Chat is ready.', isIncoming: true, isSystemMessage: true, dateTime: new Date()}]
     };
 }
+
+export const actionCreators = {
+    createSaveTypedMessageRequest: (message) => ({type: actionTypes.SAVE_TYPED_MESSAGE_REQUEST, payload: message}),
+    createAddReceivedMessageRequest: (message) => ({type: actionTypes.ADD_RECEIVED_MESSAGE_REQUEST, payload: message}),
+    createSendMessageRequest: (message) => ({type: actionTypes.SEND_MESSAGE_REQUEST, payload: message}),
+    createSendMessageSuccess: () => ({type: actionTypes.SEND_MESSAGE_SUCCESS}),
+    createSendMessageFailure: () => ({type: actionTypes.SEND_MESSAGE_FAILURE}),
+    createSendPhraseGuessedRequest: (whoDrewAndPhrase) => ({type: actionTypes.SEND_PHRASE_GUESSED_REQUEST, payload: whoDrewAndPhrase}),
+};
 
 /**
  * @param {ChatState} state
@@ -98,12 +107,12 @@ function _addSystemMessageThatPhraseWasGuessedCorrectly(state, {whoDrew, phrase}
  */
 export function reducer(state, action) {
     const actionTypeToFunctionMap = {
-        [actionTypes.SAVE_TYPED_MESSAGE]: _saveTypedMessage,
-        [actionTypes.MESSAGE_RECEIVED]: _messageReceived,
-        [actionTypes.SEND_MESSAGE]: _sendMessage,
-        [actionTypes.MESSAGE_SENT]: _messageSent,
-        [actionTypes.SENDING_FAILED]: _sendingFailed,
-        [actionTypes.PHRASE_GUESSED_CORRECTLY]: _addSystemMessageThatPhraseWasGuessedCorrectly,
+        [actionTypes.SAVE_TYPED_MESSAGE_REQUEST]: _saveTypedMessage,
+        [actionTypes.ADD_RECEIVED_MESSAGE_REQUEST]: _messageReceived,
+        [actionTypes.SEND_MESSAGE_REQUEST]: _sendMessage,
+        [actionTypes.SEND_MESSAGE_SUCCESS]: _messageSent,
+        [actionTypes.SEND_MESSAGE_FAILURE]: _sendingFailed,
+        [actionTypes.SEND_PHRASE_GUESSED_REQUEST]: _addSystemMessageThatPhraseWasGuessedCorrectly,
     };
     const newState = _getStateCopy(state);
 

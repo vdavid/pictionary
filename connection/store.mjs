@@ -9,14 +9,14 @@
  */
 
 export const actionTypes = {
-    STARTED_ACCEPTING_CONNECTIONS: 'connection/startedAcceptingConnections',
-    STOPPED_ACCEPTING_CONNECTIONS: 'connection/stoppedAcceptingConnections',
-    CONNECT_TO_HOST: 'connection/connectToHost',
-    CONNECT_TO_HOST_FAILURE: 'connection/connectToHostFailure',
-    CONNECTED: 'connection/connected',
-    DISCONNECT: 'connection/disconnect',
-    DISCONNECTED: 'connection/disconnected',
-    TRY_RECONNECTING_TO_PEER_SERVER: 'connection/tryReconnectingToPeerServer',
+    START_ACCEPTING_CONNECTIONS_SUCCESS: 'connection/START_ACCEPTING_CONNECTIONS_SUCCESS',
+    STOP_ACCEPTING_CONNECTIONS_SUCCESS: 'connection/STOP_ACCEPTING_CONNECTIONS_SUCCESS',
+    CONNECT_TO_HOST_REQUEST: 'connection/CONNECT_TO_HOST_REQUEST',
+    CONNECT_TO_HOST_FAILURE: 'connection/CONNECT_TO_HOST_FAILURE',
+    CONNECT_TO_PEER_SUCCESS: 'connection/CONNECT_TO_PEER_SUCCESS',
+    DISCONNECT_FROM_PEER_REQUEST: 'connection/DISCONNECT_FROM_PEER_REQUEST',
+    DISCONNECT_FROM_PEER_SUCCESS: 'connection/DISCONNECT_FROM_PEER_SUCCESS',
+    TRY_RECONNECTING_TO_HOST_REQUEST: 'connection/TRY_RECONNECTING_TO_HOST_REQUEST',
 };
 
 /**
@@ -40,6 +40,17 @@ function _getStateCopy(state) {
         remotePeerId: undefined,
     };
 }
+
+export const actionCreators = {
+    createStartAcceptingConnectionsSuccess: (localPeerId) => ({type: actionTypes.START_ACCEPTING_CONNECTIONS_SUCCESS, payload: localPeerId}),
+    createStopAcceptingConnectionsSuccess: () => ({type: actionTypes.STOP_ACCEPTING_CONNECTIONS_SUCCESS}),
+    createConnectToHostRequest: (hostId) => ({type: actionTypes.CONNECT_TO_HOST_REQUEST, payload: hostId}),
+    createConnectToHostFailure: () => ({type: actionTypes.CONNECT_TO_HOST_FAILURE}),
+    createConnectToPeerSuccess: (connectionData) => ({type: actionTypes.CONNECT_TO_PEER_SUCCESS, payload: connectionData}),
+    createDisconnectFromPeerRequest: () => ({type: actionTypes.DISCONNECT_FROM_PEER_REQUEST}),
+    createDisconnectFromPeerSuccess: () => ({type: actionTypes.DISCONNECT_FROM_PEER_SUCCESS}),
+    createTryReconnectingToHostRequest: () => ({type: actionTypes.TRY_RECONNECTING_TO_HOST_REQUEST}),
+};
 
 /**
  * @param {ConnectionState} state
@@ -108,12 +119,12 @@ function _disconnected(state) {
  */
 export function reducer(state, action) {
     const actionTypeToFunctionMap = {
-        [actionTypes.STARTED_ACCEPTING_CONNECTIONS]: _startedAcceptingConnections,
-        [actionTypes.STOPPED_ACCEPTING_CONNECTIONS]: _stoppedAcceptingConnections,
-        [actionTypes.CONNECT_TO_HOST]: _connectToHost,
+        [actionTypes.START_ACCEPTING_CONNECTIONS_SUCCESS]: _startedAcceptingConnections,
+        [actionTypes.STOP_ACCEPTING_CONNECTIONS_SUCCESS]: _stoppedAcceptingConnections,
+        [actionTypes.CONNECT_TO_HOST_REQUEST]: _connectToHost,
         [actionTypes.CONNECT_TO_HOST_FAILURE]: _connectToHostFailed,
-        [actionTypes.CONNECTED]: _connected,
-        [actionTypes.DISCONNECTED]: _disconnected,
+        [actionTypes.CONNECT_TO_PEER_SUCCESS]: _connected,
+        [actionTypes.DISCONNECT_FROM_PEER_SUCCESS]: _disconnected,
     };
     const newState = _getStateCopy(state);
 

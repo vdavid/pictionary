@@ -1,5 +1,5 @@
 const {connect} = window.ReactRedux;
-import {actionTypes as guessingCanvasActionTypes} from '../guessing-canvas-store.mjs';
+import {actionCreators as guessingCanvasActionCreators} from '../guessing-canvas-store.mjs';
 import DrawingTools from '../DrawingTools.mjs';
 
 class GuessingCanvas extends React.Component {
@@ -62,7 +62,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return {
         markNewLinesAsProcessed: lineCount => {
-            dispatch({type: guessingCanvasActionTypes.NEW_LINES_PROCESSED, payload: lineCount});
+            dispatch(guessingCanvasActionCreators.createUpdateCanvasSuccess(lineCount));
         },
     };
 }

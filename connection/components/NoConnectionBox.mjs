@@ -1,6 +1,6 @@
 const React = window.React;
 const {connect} = window.ReactRedux;
-import {actionTypes as connectionActionTypes} from '../store.mjs';
+import {actionCreators as connectionActionCreators} from '../store.mjs';
 
 class NoConnectionBox extends React.Component {
     constructor(props) {
@@ -49,7 +49,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return {
         reconnectToPeerServer: () => {
-            dispatch({type: connectionActionTypes.TRY_RECONNECTING_TO_PEER_SERVER});
+            dispatch(connectionActionCreators.createTryReconnectingToHostRequest());
         },
     };
 }

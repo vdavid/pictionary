@@ -1,5 +1,5 @@
 const React = window.React;
-import {actionTypes as gameActionTypes} from '../store.mjs';
+import {actionCreators as gameActionCreators} from '../store.mjs';
 
 const {connect} = window.ReactRedux;
 
@@ -71,10 +71,10 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return {
         updateSecondsRemaining: seconds => {
-            dispatch({type: gameActionTypes.UPDATE_SECONDS_REMAINING, payload: seconds});
+            dispatch(gameActionCreators.createUpdateRemainingRoundTimeRequest(seconds));
         },
         timeIsUp: () => {
-            dispatch({type: gameActionTypes.TIME_IS_UP});
+            dispatch(gameActionCreators.createSetRemainingRoundTimeToZeroRequest());
         },
     };
 }

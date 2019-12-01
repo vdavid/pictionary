@@ -1,5 +1,5 @@
 const React = window.React;
-import {actionTypes as gameActionTypes} from '../store.mjs';
+import {actionCreators as gameActionCreators} from '../store.mjs';
 
 const {connect} = window.ReactRedux;
 
@@ -58,7 +58,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return {
         startGame: () => {
-            dispatch({type: gameActionTypes.ROUND_STARTED});
+            dispatch(gameActionCreators.createStartRoundSuccess());
         },
     };
 }

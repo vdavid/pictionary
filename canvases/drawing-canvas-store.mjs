@@ -12,9 +12,9 @@
  */
 
 export const actionTypes = {
-    DRAWING_UPDATED: 'drawingCanvas/drawingUpdated',
-    NEW_LINES_PROCESSED: 'drawingCanvas/newLinesProcessed',
-    CLEARING_NEEDED: 'drawingCanvas/clearingNeeded',
+    SEND_NEW_LINES_TO_GUESSERS_REQUEST: 'drawingCanvas/SEND_NEW_LINES_TO_GUESSERS_REQUEST',
+    SEND_NEW_LINES_TO_GUESSERS_SUCCESS: 'drawingCanvas/SEND_NEW_LINES_TO_GUESSERS_SUCCESS',
+    CLEAR_REQUEST: 'drawingCanvas/CLEAR_REQUEST',
 };
 
 /**
@@ -28,6 +28,12 @@ function _getStateCopy(state) {
         lineCount: 0,
     };
 }
+
+export const actionCreators = {
+    createSendNewLinesToGuessersRequest: (newLines) => ({type: actionTypes.SEND_NEW_LINES_TO_GUESSERS_REQUEST, payload: newLines}),
+    createSendNewLinesToGuessersSuccess: (numberOfNewLines) => ({type: actionTypes.SEND_NEW_LINES_TO_GUESSERS_SUCCESS, payload: numberOfNewLines}),
+    createClearRequest: () => ({type: actionTypes.CLEAR_REQUEST}),
+};
 
 /**
  * @param {DrawingCanvasState} state
@@ -51,8 +57,8 @@ function _setLineCountToZero(state) {
  */
 export function reducer(state, action) {
     const actionTypeToFunctionMap = {
-        [actionTypes.DRAWING_UPDATED]: _increaseLineCount,
-        [actionTypes.CLEARING_NEEDED]: _setLineCountToZero,
+        [actionTypes.SEND_NEW_LINES_TO_GUESSERS_REQUEST]: _increaseLineCount,
+        [actionTypes.CLEAR_REQUEST]: _setLineCountToZero,
     };
     const newState = _getStateCopy(state);
 

@@ -1,5 +1,5 @@
 const {connect} = window.ReactRedux;
-import {actionTypes as drawingCanvasActionTypes} from '../drawing-canvas-store.mjs';
+import {actionCreators as drawingCanvasActionCreators} from '../drawing-canvas-store.mjs';
 import DrawingTools from '../DrawingTools.mjs';
 
 class DrawingCanvas extends React.Component {
@@ -132,7 +132,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return {
         sendNewlyDrawnLines: newLines => {
-            dispatch({type: drawingCanvasActionTypes.DRAWING_UPDATED, payload: newLines});
+            dispatch(drawingCanvasActionCreators.createSendNewLinesToGuessersRequest(newLines));
         },
     };
 }

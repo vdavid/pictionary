@@ -1,6 +1,6 @@
 const React = window.React;
 const {connect} = window.ReactRedux;
-import {actionTypes as gameActionTypes} from '../store.mjs';
+import {actionCreators as gameActionCreators} from '../store.mjs';
 import {getRandomPhrase} from '../../data/phrases.mjs';
 
 class WordDisplay extends React.Component {
@@ -51,7 +51,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return {
         setActivePhrase: phrase => {
-            dispatch({type: gameActionTypes.SET_ACTIVE_PHRASE, payload: phrase});
+            dispatch(gameActionCreators.createSetActivePhraseRequest(phrase));
         },
     };
 }

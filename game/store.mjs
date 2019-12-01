@@ -14,15 +14,15 @@
  */
 
 export const actionTypes = {
-    START_GAME: 'game/startGame',
-    START_ROUND: 'game/startRound',
-    ROUND_STARTED: 'game/roundStarted',
-    TIME_IS_UP: 'game/timeIsUp',
-    ROUND_ENDED: 'game/roundEnded',
-    UPDATE_SECONDS_REMAINING: 'game/updateSecondsRemaining',
-    SET_ACTIVE_PHRASE: 'game/setActivePhrase',
-    PHRASE_GUESSED_CORRECTLY: 'game/phraseGuessedCorrectly',
-    CHANGE_FULLSCREEN: 'game/changeFullscreen',
+    START_GAME_REQUEST: 'game/START_GAME_REQUEST',
+    START_ROUND_REQUEST: 'game/START_ROUND_REQUEST',
+    START_ROUND_SUCCESS: 'game/START_ROUND_SUCCESS',
+    UPDATE_REMAINING_ROUND_TIME_REQUEST: 'game/UPDATE_REMAINING_ROUND_TIME_REQUEST',
+    SET_REMAINING_ROUND_TIME_TO_ZERO_REQUEST: 'game/SET_REMAINING_ROUND_TIME_TO_ZERO_REQUEST',
+    MARK_ROUND_AS_ENDED_REQUEST: 'game/MARK_ROUND_AS_ENDED_REQUEST',
+    SET_ACTIVE_PHRASE_REQUEST: 'game/SET_ACTIVE_PHRASE_REQUEST',
+    MARK_PHASE_GUESSED_REQUEST: 'game/MARK_PHASE_GUESSED_REQUEST',
+    SET_FULLSCREEN_STATE_REQUEST: 'game/SET_FULLSCREEN_STATE_REQUEST',
 };
 
 /**
@@ -55,6 +55,18 @@ function _getStateCopy(state) {
         isActivePhraseGuessedCorrectly: false,
     };
 }
+
+export const actionCreators = {
+    createStartGameRequest: () => ({type: actionTypes.START_GAME_REQUEST}),
+    createStartRoundRequest: (localOrRemote) => ({type: actionTypes.START_ROUND_REQUEST, payload: localOrRemote}),
+    createStartRoundSuccess: () => ({type: actionTypes.START_ROUND_SUCCESS}),
+    createUpdateRemainingRoundTimeRequest: (seconds) => ({type: actionTypes.UPDATE_REMAINING_ROUND_TIME_REQUEST, payload: seconds}),
+    createSetRemainingRoundTimeToZeroRequest: () => ({type: actionTypes.SET_REMAINING_ROUND_TIME_TO_ZERO_REQUEST}),
+    createMarkRoundAsEndedRequest: () => ({type: actionTypes.MARK_ROUND_AS_ENDED_REQUEST}),
+    createSetActivePhraseRequest: (phrase) => ({type: actionTypes.SET_ACTIVE_PHRASE_REQUEST, payload: phrase}),
+    createMarkPhaseGuessedRequest: (phrase) => ({type: actionTypes.MARK_PHASE_GUESSED_REQUEST, payload: phrase}),
+    createSetFullscreenStateRequest: (isFullscreen) => ({type: actionTypes.SET_FULLSCREEN_STATE_REQUEST, payload: isFullscreen}),
+};
 
 /**
  * @param {GameState} state
@@ -146,15 +158,15 @@ function _setIsFullscreen(state, isFullscreen) {
  */
 export function reducer(state, action) {
     const actionTypeToFunctionMap = {
-        [actionTypes.START_GAME]: _markGameAsStarted,
-        [actionTypes.START_ROUND]: _markRoundAsStartingAndSetDrawingPlayer,
-        [actionTypes.ROUND_STARTED]: _markRoundAsStarted,
-        [actionTypes.TIME_IS_UP]: _setSecondsRemainingToZero,
-        [actionTypes.ROUND_ENDED]: _markRoundAsEnded,
-        [actionTypes.UPDATE_SECONDS_REMAINING]: _updateSecondsRemaining,
-        [actionTypes.SET_ACTIVE_PHRASE]: _updateActivePhrase,
-        [actionTypes.PHRASE_GUESSED_CORRECTLY]: _markPhraseGuessedCorrectly,
-        [actionTypes.CHANGE_FULLSCREEN]: _setIsFullscreen,
+        [actionTypes.START_GAME_REQUEST]: _markGameAsStarted,
+        [actionTypes.START_ROUND_REQUEST]: _markRoundAsStartingAndSetDrawingPlayer,
+        [actionTypes.START_ROUND_SUCCESS]: _markRoundAsStarted,
+        [actionTypes.UPDATE_REMAINING_ROUND_TIME_REQUEST]: _updateSecondsRemaining,
+        [actionTypes.SET_REMAINING_ROUND_TIME_TO_ZERO_REQUEST]: _setSecondsRemainingToZero,
+        [actionTypes.MARK_ROUND_AS_ENDED_REQUEST]: _markRoundAsEnded,
+        [actionTypes.SET_ACTIVE_PHRASE_REQUEST]: _updateActivePhrase,
+        [actionTypes.MARK_PHASE_GUESSED_REQUEST]: _markPhraseGuessedCorrectly,
+        [actionTypes.SET_FULLSCREEN_STATE_REQUEST]: _setIsFullscreen,
     };
     const newState = _getStateCopy(state);
 
