@@ -9,6 +9,7 @@ class WordDisplay extends React.Component {
         this._getContentText = this._getContentText.bind(this);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     componentDidUpdate(previousProps) {
         if (this.props.whichPlayerDraws === 'local'
             && ((!previousProps.isRoundStarted && this.props.isRoundStarted)

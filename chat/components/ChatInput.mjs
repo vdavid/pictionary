@@ -5,6 +5,7 @@ export default class ChatInput extends React.Component {
         this._onKeyUp = this._onKeyUp.bind(this);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     componentDidUpdate() {
         const input = this.refs['chatInput'];
         if (this.props.isRoundStarted && (document.activeElement !== input) && (this.props.whichPlayerDraws === 'remote')) {

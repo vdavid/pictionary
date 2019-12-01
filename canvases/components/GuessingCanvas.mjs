@@ -8,6 +8,8 @@ class GuessingCanvas extends React.Component {
         this._clearAndRedraw = this._clearAndRedraw.bind(this);
 
     }
+
+    // noinspection JSUnusedGlobalSymbols
     componentDidMount() {
         this._allDrawnLines = [];
         this._drawingTools = new DrawingTools(this.refs.guessingCanvas);
@@ -23,6 +25,7 @@ class GuessingCanvas extends React.Component {
         this._drawLines(this._allDrawnLines);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     componentDidUpdate(previousProps) {
         const newLines = this.props.newLines;
         if (newLines.length) {

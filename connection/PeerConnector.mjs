@@ -127,11 +127,14 @@ export default class PeerConnector {
             this._setUpConnectionEventHandlers(connection, connectionChanges.hostBecomingTheHost);
         } else if (this._isHost()) {
             this._setUpConnectionEventHandlers(connection, connectionChanges.hostReceivingConnectionFromANewClient);
-        } else if (this._knownPeers.includes(connection.peer)) {
-            this._setUpConnectionEventHandlers(connection, connectionChanges.clientReceivingConnectionFromAnotherClient);
         } else {
-            // noinspection JSUnresolvedFunction
-            connection.on('open', connection => connection.close(), null);
+            // noinspection JSUnresolvedVariable
+            if (this._knownPeers.includes(connection.peer)) {
+                this._setUpConnectionEventHandlers(connection, connectionChanges.clientReceivingConnectionFromAnotherClient);
+            } else {
+                // noinspection JSUnresolvedFunction
+                connection.on('open', connection => connection.close(), null);
+            }
         }
     }
 
@@ -176,6 +179,7 @@ export default class PeerConnector {
         this._dataGateway.sendGameStateToClient(clientPeerId);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     disconnectFromAllPeers() {
         // noinspection JSUnresolvedFunction
         this._connectionPool.getAllConnections().forEach(connection => connection.close());

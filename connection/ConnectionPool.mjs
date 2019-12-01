@@ -34,6 +34,7 @@ export default class ConnectionPool {
     }
 
     getAllConnectedPeerIds() {
+        // noinspection JSUnresolvedVariable
         return this._connections.map(connection => connection.peer);
     }
 

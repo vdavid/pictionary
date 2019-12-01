@@ -10,6 +10,7 @@ class Timer extends React.Component {
         this._timeIsUp = this._timeIsUp.bind(this);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     componentDidMount() {
         this._startDateTime = new Date();
         this._endDateTime = new Date(this._startDateTime.getTime() + this.props.durationInMilliseconds);
@@ -17,6 +18,7 @@ class Timer extends React.Component {
         this._finishTimer = setTimeout(this._timeIsUp, this.props.durationInMilliseconds);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     componentWillUnmount() {
         clearInterval(this._intervalTimer);
         clearInterval(this._finishTimer);

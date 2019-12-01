@@ -12,11 +12,13 @@ class RoundStartingBox extends React.Component {
         this.state = {secondsRemaining: Math.ceil(this.props.durationInMilliseconds / 1000)};
     }
 
+    // noinspection JSUnusedGlobalSymbols
     componentDidMount() {
         this._intervalTimer = setInterval(this._updateSecondsRemaining, 1000);
         setTimeout(this._timeIsUp, this.props.durationInMilliseconds);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     componentWillUnmount() {
         clearInterval(this._intervalTimer);
     }

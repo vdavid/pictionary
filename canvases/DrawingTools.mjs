@@ -9,18 +9,6 @@ export default class DrawingTools {
     }
 
     /**
-     * @param {Number} x
-     * @param {Number} y
-     */
-    drawDot(x, y) {
-        const context = this._canvas.getContext('2d');
-        context.beginPath();
-        context.arc(x * this._canvas.width, y * this._canvas.height, 2, 0, 2 * Math.PI, true);
-        context.fill();
-        context.closePath();
-    }
-
-    /**
      * @param {DrawnLine} line
      */
     drawLine(line) {

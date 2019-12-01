@@ -17,6 +17,7 @@ class NoConnectionBox extends React.Component {
         this.props.reconnectToPeerServer();
     }
 
+    // noinspection JSUnusedGlobalSymbols
     componentWillUnmount() {
         this.state.connectingToPeerServer = false;
         clearInterval(this._connectingProgressTimeout);
