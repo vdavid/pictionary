@@ -1,11 +1,16 @@
+const {connect} = window.ReactRedux;
 import GamePage from './GamePage.mjs';
 import ConnectionStatus from '../../connection/components/ConnectionStatus.mjs';
+import {loadPlayerName} from '../localStoragePersistence.mjs';
+import RandomNameGenerator from '../../player/RandomNameGenerator.mjs';
+import {actionCreators as playerActionCreators} from '../../player/store.mjs';
 
 const {BrowserRouter, Switch, Route, Redirect, Link} = window.ReactRouterDOM;
 
 class App extends React.Component {
     constructor(props) {
         super(props);
+        this.props.initializePlayerName();
     }
 
     render() {
@@ -34,4 +39,22 @@ class App extends React.Component {
     }
 }
 
-export default App;
+/**
+ * @param {State} state
+ * @returns {Object}
+ */
+function mapStateToProps(state) {
+    return {};
+}
+
+function mapDispatchToProps(dispatch) {
+    return {
+        initializePlayerName: () => {
+            const playerNameFromLocalStorage = loadPlayerName();
+            const playerName = playerNameFromLocalStorage || (new RandomNameGenerator()).getRandomName();
+            dispatch(playerActionCreators.createUpdateLocalPlayerRequest({name: playerName}));
+        },
+    };
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);

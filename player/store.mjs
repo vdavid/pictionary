@@ -1,5 +1,3 @@
-import RandomNameGenerator from './RandomNameGenerator.mjs';
-
 /**
  * @typedef {Object} Player
  * @property {string} name
@@ -33,7 +31,7 @@ function _getStateCopy(state) {
         },
         otherPlayers: state.otherPlayers.map(player => ({name: player.name, score: player.score, peerId: player.peerId})),
     } : {
-        localPlayer: {name: (new RandomNameGenerator()).getRandomName(), score: 0, peerId: undefined},
+        localPlayer: {name: '', score: 0, peerId: undefined},
         otherPlayers: [],
     };
 }
