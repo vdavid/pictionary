@@ -13,7 +13,7 @@ class ConnectBox extends React.Component {
                 React.createElement('div', {className: 'instructions'}, 'This is a game for two players. One player is to draw a word that appears on the screen. The other player is to figure out what the word is, and type it in to the chat. One game takes 10 minutes.'),
                 React.createElement(HostConnectionBox, {localPeerId: this.props.localPeerId}),
                 React.createElement('div', {className: 'or'}, React.createElement('span', null, 'or')),
-                React.createElement(ConnectToPeerBox, {connect: this.props.connectToHost, isConnecting: this.props.isConnecting, isConnected: this.props.isConnected}),
+                React.createElement(ConnectToPeerBox, {connect: this.props.connectToHost, isConnectingToHost: this.props.isConnectingToHost, isConnectedToAnyPeers: this.props.isConnectedToAnyPeers}),
             ),
         );
     }
@@ -26,8 +26,8 @@ class ConnectBox extends React.Component {
 function mapStateToProps(state) {
     return {
         localPeerId: state.connection.localPeerId,
-        isConnecting: state.connection.isConnectingInProgress,
-        isConnected: state.connection.isConnectedToPeer,
+        isConnectingToHost: state.connection.isConnectingToHost,
+        isConnectedToAnyPeers: state.connection.isConnectedToAnyPeers,
     };
 }
 

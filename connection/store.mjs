@@ -1,11 +1,12 @@
 /**
  * @typedef {Object} ConnectionState
  * @property {boolean} isAcceptingConnections
- * @property {boolean} isConnectingInProgress
- * @property {boolean} isConnectedToPeer
+ * @property {boolean} isConnectingToHost
+ * @property {{peerId: string}[]} aliveConnections
+ * @property {boolean} isConnectedToAnyPeers
  * @property {boolean} isHost
  * @property {string|undefined} localPeerId Only if listening.
- * @property {string|undefined} remotePeerId Only if connected.
+ * @property {string|undefined} hostPeerId Only if connected.
  */
 
 export const actionTypes = {
@@ -25,18 +26,20 @@ export const actionTypes = {
 function _getStateCopy(state) {
     return state ? {
         isAcceptingConnections: state.isAcceptingConnections,
-        isConnectingInProgress: state.isConnectingInProgress,
-        isConnectedToPeer: state.isConnectedToPeer,
+        isConnectingToHost: state.isConnectingToHost,
+        aliveConnections: state.aliveConnections,
+        isConnectedToAnyPeers: state.isConnectedToAnyPeers,
         isHost: state.isHost,
         localPeerId: state.localPeerId,
-        remotePeerId: state.remotePeerId,
+        hostPeerId: state.hostPeerId,
     } : {
         isAcceptingConnections: false,
-        isConnectingInProgress: false,
-        isConnectedToPeer: false,
-        isHost: undefined,
+        isConnectingToHost: false,
+        aliveConnections: [],
+        isConnectedToAnyPeers: false,
+        isHost: false,
         localPeerId: undefined,
-        remotePeerId: undefined,
+        hostPeerId: undefined,
     };
 }
 
@@ -76,7 +79,7 @@ function _stoppedAcceptingConnections(state, localPeerId) {
  * @private
  */
 function _connectToHost(state, payload) {
-    state.isConnectingInProgress = true;
+    state.isConnectingToHost = true;
 }
 /**
  * @param {ConnectionState} state
@@ -84,7 +87,7 @@ function _connectToHost(state, payload) {
  * @private
  */
 function _connectToHostFailed(state, payload) {
-    state.isConnectingInProgress = false;
+    state.isConnectingToHost = false;
 }
 
 /**
@@ -93,10 +96,12 @@ function _connectToHostFailed(state, payload) {
  * @private
  */
 function _updateConnections(state, payload) {
-    state.isConnectingInProgress = false;
-    state.isConnectedToPeer = payload.allPeerIds.length > 0;
-    state.isHost = state.isConnectedToPeer && (payload.localPeerId === payload.hostPeerId);
-    state.remotePeerId = state.isConnectedToPeer ? payload.allPeerIds[0] : undefined;
+    state.isConnectingToHost = false;
+    state.aliveConnections = payload.allPeerIds.map(peerId => ({peerId}));
+    state.isConnectedToAnyPeers = payload.allPeerIds.length > 0;
+    state.isHost = state.isConnectedToAnyPeers && (payload.localPeerId === payload.hostPeerId);
+    state.localPeerId = payload.localPeerId || undefined;
+    state.hostPeerId = payload.hostPeerId || undefined;
 }
 
 /**

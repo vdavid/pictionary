@@ -9,6 +9,7 @@ export default class ConnectToPeerBox extends React.Component {
         this._connectToCurrentlyEnteredRemotePeer = this._connectToCurrentlyEnteredRemotePeer.bind(this);
     }
 
+    // noinspection JSUnusedGlobalSymbols
     componentDidMount() {
         this.refs['hostId'].focus();
     }
@@ -31,7 +32,7 @@ export default class ConnectToPeerBox extends React.Component {
                 ref: 'hostId',
                 title: 'Input the ID.',
                 value: this.state.remotePeerId,
-                disabled: this.props.isConnecting || this.props.isConnected,
+                disabled: this.props.isConnectingToHost || this.props.isConnectedToAnyPeers,
                 maxLength: 6,
                 autoCapitalize: 'none',
                 autoCompleteType: 'off',
@@ -41,7 +42,7 @@ export default class ConnectToPeerBox extends React.Component {
             React.createElement('button', {
                 className: 'connectButton',
                 onClick: this._connectToCurrentlyEnteredRemotePeer,
-                disabled: this.props.isConnecting || this.props.isConnected || !this.state.remotePeerId,
+                disabled: this.props.isConnectingToHost || this.props.isConnectedToAnyPeers || !this.state.remotePeerId,
             }, 'Connect'),
         );
     }

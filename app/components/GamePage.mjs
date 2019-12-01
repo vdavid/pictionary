@@ -23,14 +23,14 @@ class GamePage extends React.Component {
                 ),
             ),
             !this.props.isAcceptingConnections ? React.createElement(NoConnectionBox) : null,
-            (this.props.isAcceptingConnections && !this.props.isConnected) ? React.createElement(ConnectBox) : null,
+            (this.props.isAcceptingConnections && !this.props.isConnectedToAnyPeers) ? React.createElement(ConnectBox) : null,
             this.props.isRoundStarting ? React.createElement(RoundStartingBox, {durationInMilliseconds: 3 * 1000}) : null,
         );
     }
 
     // noinspection JSUnusedGlobalSymbols
     componentDidUpdate() {
-        if (this.props.isConnected && this.props.isHost && !this.props.isRoundStarting && !this.props.isRoundStarted) {
+        if (this.props.isConnectedToAnyPeers && this.props.isHost && !this.props.isRoundStarting && !this.props.isRoundStarted) {
             this.props.startRound();
         }
     }
@@ -43,7 +43,7 @@ class GamePage extends React.Component {
 function mapStateToProps(state) {
     return {
         isAcceptingConnections: state.connection.isAcceptingConnections,
-        isConnected: state.connection.isConnectedToPeer,
+        isConnectedToAnyPeers: state.connection.isConnectedToAnyPeers,
         isRoundStarted: state.game.isRoundStarted,
         isRoundStarting: state.game.isRoundStarting,
         isHost: state.connection.isHost,

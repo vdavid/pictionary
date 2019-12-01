@@ -73,7 +73,7 @@ export default function socketMiddleware(store) {
      */
     function _sendChatMessage(message) {
         const state = store.getState();
-        if (state.connection.isConnectedToPeer) {
+        if (state.connection.isConnectedToAnyPeers) {
             if (state.game.whichPlayerDraws !== 'local' || (message.toLowerCase() !== state.game.activePhrase)) {
                 peerConnector.sendMessage(message);
             } else {

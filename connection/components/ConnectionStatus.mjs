@@ -6,17 +6,17 @@ class ConnectionStatus extends React.Component {
     render() {
         return React.createElement('section', {id: 'connectionSection'},
             React.createElement('div', {}, this._getStatusText()),
-            React.createElement(IndicatorLight, {color: this.props.isConnected ? 'green' : (this.props.isConnecting ? 'yellow' : 'red')}),
+            React.createElement(IndicatorLight, {color: this.props.isConnectedToAnyPeers ? 'green' : (this.props.isConnectingToHost ? 'yellow' : 'red')}),
         );
     }
 
     _getStatusText() {
         if (!this.props.isAcceptingConnections) {
             return 'Not accepting connections.';
-        } else if (this.props.isConnectingInProgress) {
-            return 'Connecting to ' + this.props.remotePeerId + '...';
-        } else if (this.props.isConnected) {
-            return 'Connected. Game ID: ' + (this.props.isHost ? this.props.localPeerId : this.props.remotePeerId) + '.';
+        } else if (this.props.isConnectingToHost) {
+            return 'Connecting to ' + this.props.hostPeerId + '...';
+        } else if (this.props.isConnectedToAnyPeers) {
+            return 'Connected. Game ID: ' + this.props.hostPeerId + '.';
         } else {
             return 'Awaiting connection.';
         }
@@ -30,11 +30,11 @@ class ConnectionStatus extends React.Component {
 function mapStateToProps(state) {
     return {
         isAcceptingConnections: state.connection.isAcceptingConnections,
-        isConnectingInProgress: state.connection.isConnectingInProgress,
-        isConnected: state.connection.isConnectedToPeer,
+        isConnectingToHost: state.connection.isConnectingToHost,
+        isConnectedToAnyPeers: state.connection.isConnectedToAnyPeers,
         isHost: state.connection.isHost,
         localPeerId: state.connection.localPeerId,
-        remotePeerId: state.connection.remotePeerId
+        hostPeerId: state.connection.hostPeerId
     };
 }
 

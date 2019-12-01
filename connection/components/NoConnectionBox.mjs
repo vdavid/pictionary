@@ -41,8 +41,8 @@ class NoConnectionBox extends React.Component {
 function mapStateToProps(state) {
     return {
         localPeerId: state.connection.localPeerId,
-        isConnecting: state.connection.isConnectingInProgress,
-        isConnected: state.connection.isConnectedToPeer,
+        isConnectingToHost: state.connection.isConnectingToHost,
+        isConnectedToAnyPeers: state.connection.isConnectedToAnyPeers,
     };
 }
 
