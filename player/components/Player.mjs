@@ -6,7 +6,6 @@ export default class Player extends React.Component {
             React.createElement(Avatar, {name: this.props.name, size: 40}),
             React.createElement('span', {className: 'name'}, this.props.name),
             React.createElement('span', {className: 'score'}, this.props.score),
-            React.createElement('span', {className: 'peerId'}, this.props.peerId),
         );
     }
 }

@@ -19,6 +19,7 @@ export const actionTypes = {
     SEND_MESSAGE_SUCCESS: 'chat/SEND_MESSAGE_SUCCESS',
     SEND_MESSAGE_FAILURE: 'chat/SEND_MESSAGE_FAILURE',
     SEND_PHRASE_GUESSED_REQUEST: 'chat/SEND_PHRASE_GUESSED_REQUEST',
+    NOTE_CANVAS_WAS_CLEARED_REQUEST: 'chat/NOTE_CANVAS_WAS_CLEARED_REQUEST',
 };
 
 /**
@@ -44,6 +45,7 @@ export const actionCreators = {
     createSendMessageSuccess: () => ({type: actionTypes.SEND_MESSAGE_SUCCESS}),
     createSendMessageFailure: () => ({type: actionTypes.SEND_MESSAGE_FAILURE}),
     createSendPhraseGuessedRequest: (whoDrewAndPhrase) => ({type: actionTypes.SEND_PHRASE_GUESSED_REQUEST, payload: whoDrewAndPhrase}),
+    createNoteCanvasWasClearedRequest: (whoDrew) => ({type: actionTypes.NOTE_CANVAS_WAS_CLEARED_REQUEST, payload: whoDrew}),
 };
 
 /**
@@ -89,8 +91,7 @@ function _sendingFailed(state) {
 
 /**
  * @param {ChatState} state
- * @param {'local'|'remote'} whoSaysIt
- * @param {string} phrase
+ * @param {{whoDrew: 'local'|'remote', phrase: string}} argument2
  * @private
  */
 function _addSystemMessageThatPhraseWasGuessedCorrectly(state, {whoDrew, phrase}) {
@@ -98,6 +99,16 @@ function _addSystemMessageThatPhraseWasGuessedCorrectly(state, {whoDrew, phrase}
         ? 'Yay! Your friend guessed it right! Let\'s see another one!'
         : 'Yay! You guessed it right, it was indeed “' + phrase + '”! Let\'s see another one!';
     state.messages.push({text, isIncoming: true, isSystemMessage: true, dateTime: new Date()});
+}
+
+/**
+ * @param {ChatState} state
+ * @param {'local'|'remote'} whoDrew
+ * @private
+ */
+function _addSystemMessageThatCanvasWasCleared(state, whoDrew) {
+    const text = 'Let\'s try this again.';
+    state.messages.push({text, isIncoming: (whoDrew === 'remote'), isSystemMessage: true, dateTime: new Date()});
 }
 
 /**
@@ -113,6 +124,7 @@ export function reducer(state, action) {
         [actionTypes.SEND_MESSAGE_SUCCESS]: _messageSent,
         [actionTypes.SEND_MESSAGE_FAILURE]: _sendingFailed,
         [actionTypes.SEND_PHRASE_GUESSED_REQUEST]: _addSystemMessageThatPhraseWasGuessedCorrectly,
+        [actionTypes.NOTE_CANVAS_WAS_CLEARED_REQUEST]: _addSystemMessageThatCanvasWasCleared,
     };
     const newState = _getStateCopy(state);
 

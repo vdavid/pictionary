@@ -7,7 +7,7 @@
  * @property {function(error: {type: string}): void} [errorCallback] Called when an error occurs in the underlying socket
  *           or PeerConnections. (Note: Errors on the peer are almost always fatal and will destroy the peer.)
  *           More info: https://docs.peerjs.com/#peeron-error
- * @property {int} [debugLevel] 0 Prints no logs. 1 Prints only errors. 2 Prints errors and warnings. 3 Prints all logs.
+ * @property {int} [debugLevel] 0 Prints no logs. 1 Prints only errors. 2 Prints errors and warnings. 3 Prints infos. 4 Verbose logging.
  *        Default is 0.
  */
 
@@ -69,7 +69,7 @@ export default class PeerServerConnector {
      * @private
      */
     _createPeer(peerId = null) {
-        const peer = new peerjs.Peer(peerId || this._generateRandomId(), {debug: this._debugLevel});
+        const peer = new peerjs.Peer(peerId || this._generateRandomId(), {debug: this._debugLevel - 1});
         peer.on('open', this._acceptingConnectionsCallback, null);
         peer.on('connection', this._incomingConnectionCallback, null);
         peer.on('disconnected', this._stoppedAcceptingConnectionsCallback, null);

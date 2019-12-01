@@ -8,7 +8,7 @@ export default class DataGateway {
      * @param {{dispatch: function, getState: function(): State}} store
      * @param {ConnectionPool} connectionPool
      * @param {Object<string, function>} eventHandlers
-     * @param {int} [debugLevel] 0 Prints no logs. 1 Prints only errors. 2 Prints errors and warnings. 3 Prints all logs.
+     * @param {int} [debugLevel] 0 Prints no logs. 1 Prints only errors. 2 Prints errors and warnings. 3 Prints infos. 4 Verbose logging.
      *        Default is 0.
      */
     constructor(store, connectionPool, eventHandlers, debugLevel = 0) {
@@ -32,59 +32,29 @@ export default class DataGateway {
     /**
      * @param {string} message
      */
-    broadcastChatMessage(message) {
-        if (this._debugLevel >= 2) {
-            console.log('Sent: message: ' + message);
-        }
-        this._sendToAllPeers({type: this._messageTypes.message, payload: message});
-    }
+    broadcastChatMessage(message) {this._sendToAllPeers(this._messageTypes.message, message);}
 
     /**
      * @param {DrawnLine[]} newLines
      */
-    broadcastNewLines(newLines) {
-        if (this._debugLevel >= 2) {
-            console.log('Sent: ' + newLines.length + ' new lines.');
-        }
-        this._sendToAllPeers({type: this._messageTypes.newLines, payload: newLines});
-    }
+    broadcastNewLines(newLines) {this._sendToAllPeers(this._messageTypes.newLines, newLines);}
 
     /**
      * @param {'local'|'remote'} whichPlayerDraws
      */
-    broadcastStartRoundSignal(whichPlayerDraws) {
-        if (this._debugLevel >= 2) {
-            console.log('Sent: Start round: ' + whichPlayerDraws);
-        }
-        this._sendToAllPeers({type: this._messageTypes.startRoundSignal, payload: whichPlayerDraws});
-    }
+    broadcastStartRoundSignal(whichPlayerDraws) {this._sendToAllPeers(this._messageTypes.startRoundSignal, whichPlayerDraws);}
 
     /**
      * @param {string} phrase
      */
-    broadcastPhraseFiguredOut(phrase) {
-        if (this._debugLevel >= 2) {
-            console.log('Sent: Phrase figured out: ' + phrase);
-        }
-        this._sendToAllPeers({type: this._messageTypes.phraseFiguredOut, payload: phrase});
-    }
+    broadcastPhraseFiguredOut(phrase) {this._sendToAllPeers(this._messageTypes.phraseFiguredOut, phrase);}
 
-    broadcastClearCanvasCommand() {
-        if (this._debugLevel >= 2) {
-            console.log('Sent: Clear canvas');
-        }
-        this._sendToAllPeers({type: this._messageTypes.clearCanvasCommand});
-    }
+    broadcastClearCanvasCommand() {this._sendToAllPeers(this._messageTypes.clearCanvasCommand, null);}
 
     /**
      * @param {string[]} latestPeerIds
      */
-    broadcastKnownPeerList(latestPeerIds) {
-        if (this._debugLevel >= 2) {
-            console.log('Sent: peer IDs: ' + latestPeerIds.join(', '));
-        }
-        this._sendToAllPeers({type: this._messageTypes.peerList, payload: latestPeerIds});
-    }
+    broadcastKnownPeerList(latestPeerIds) {this._sendToAllPeers(this._messageTypes.peerList, latestPeerIds);}
 
     /**
      * @param {string} recipientPeerId
@@ -94,21 +64,24 @@ export default class DataGateway {
         const peerIds = this._connectionPool.getAllConnectedPeerIds();
         peerIds.splice(peerIds.indexOf(recipientPeerId), 1);
 
-        // noinspection JSUnresolvedFunction
-        this._connectionPool.getByPeerId(recipientPeerId).send({
-            type: this._messageTypes.gameState, payload: {
-                isGameStarted: state.game.isGameStarted,
-                isRoundStarted: state.game.isRoundStarted,
-                peerIds
-            }
-        });
+        const gameState = {
+            isGameStarted: state.game.isGameStarted,
+            isRoundStarted: state.game.isRoundStarted,
+            peerIds
+        };
+
+        if (this._debugLevel >= 3) {
+            console.log('Sent game state to ' + recipientPeerId + ': ' + JSON.stringify(gameState));
+        }
+        this._connectionPool.getByPeerId(recipientPeerId).send({type: this._messageTypes.gameState, payload: gameState});
     }
 
     sendLocalPlayerDataToClient(recipientPeerId) {
         const state = this._store.getState();
-        this._connectionPool.getByPeerId(recipientPeerId).send({
-            type: this._messageTypes.localPlayerData, payload: state.players.localPlayer
-        });
+        if (this._debugLevel >= 3) {
+            console.log('Sent local player data to ' + recipientPeerId + ': ' + JSON.stringify(state.players.localPlayer));
+        }
+        this._connectionPool.getByPeerId(recipientPeerId).send({type: this._messageTypes.localPlayerData, payload: state.players.localPlayer});
     }
 
     /**
@@ -118,7 +91,7 @@ export default class DataGateway {
      */
     handleConnectionDataReceived(connection, data) {
         /* Log */
-        if (this._debugLevel >= 2) {
+        if (this._debugLevel >= 3) {
             if (data.type === this._messageTypes.command) {
                 console.log('Received: command: ' + data.payload.command + ' with parameters: ' + data.payload.parameters);
             } else if (data.type === this._messageTypes.newLines) {
@@ -144,7 +117,10 @@ export default class DataGateway {
             this._store.dispatch(chatActionCreators.createSendPhraseGuessedRequest({whoDrew: 'remote', phrase}));
 
         } else if (data.type === this._messageTypes.clearCanvasCommand) {
-            // TODO: Add system message to chat about canvas clearing
+            const state = this._store.getState();
+            if (state.guessingCanvas.lineCount > 0) {
+                this._store.dispatch(chatActionCreators.createNoteCanvasWasClearedRequest('remote'));
+            }
             this._store.dispatch(guessingCanvasActionCreators.createClearRequest());
 
         } else if (data.type === this._messageTypes.newLines) {
@@ -179,11 +155,27 @@ export default class DataGateway {
     }
 
     /**
-     * @param {Object} payload
+     * @param {string} type
+     * @param {*} payload
      * @private
      */
-    _sendToAllPeers(payload) {
+    _sendToAllPeers(type, payload) {
+        /* Log */
+        if (this._debugLevel >= 3) {
+            if (type === this._messageTypes.newLines) {
+                console.log('Sent: ' + length + ' new lines.');
+            } else if (type === this._messageTypes.message) {
+                console.log('Sent: message: ' + payload);
+            } else if (type === this._messageTypes.peerList) {
+                console.log('Sent: peer IDs: ' + payload.join(', '));
+            } else if (type === this._messageTypes.gameState) {
+                console.log('Received info: Game state: ' + JSON.stringify(payload));
+            } else {
+                console.log('Sent: ' + type + ': ' + JSON.stringify(payload));
+            }
+        }
+
         // noinspection JSUnresolvedFunction
-        this._connectionPool.getAllConnections().forEach(connection => connection.send(payload));
+        this._connectionPool.getAllConnections().forEach(connection => connection.send({type, payload}));
     }
 }

@@ -51,17 +51,18 @@ button { border: none; border-radius: 2px; }
 
 /* Game page layout */
 #gamePage { height: 100%; }
-#gamePageLayout { display: grid; height: 100%; grid-template-columns: auto 30%; grid-template-rows: 4em calc(70% - 8em) 2em 2em 30%; grid-template-areas: 'players' 'canvas canvas' 'word word' 'timer timer' 'chat chat'; }
+#gamePageLayout { display: grid; height: 100%; grid-template-columns: auto 30%; grid-template-rows: 4em calc(70% - 8em) 2em 2em 30%; grid-template-areas: 'players players' 'canvas canvas' 'word word' 'timer timer' 'chat chat'; }
 @media (min-width: 650px) {
-    #gamePageLayout { grid-template-rows: 4em calc(100% - 7em) 3em; grid-template-areas: 'canvas players' 'canvas chat' 'word timer'; }
+    #gamePageLayout { grid-template-rows: 5em calc(100% - 8em) 3em; grid-template-areas: 'canvas players' 'canvas chat' 'word timer'; }
 }
 #canvasSection { grid-area: canvas; }
-.playerList { grid-area: players; background-color: var(--light-primary-color); }
-.playerList ul { display: flex; flex-flow: row nowrap; justify-content: flex-start; align-items: stretch; align-content: flex-start; margin: 0; padding: 0; }
-.playerList li { list-style: none; width: 60px; padding: 0; font-size: 0.6em; }
+.playerList { grid-area: players; background-color: var(--light-primary-color); overflow: hidden; }
+.playerList ul { display: flex; flex-flow: row nowrap; justify-content: flex-start; align-items: stretch; align-content: flex-start; margin: 0; padding: 0; height: 100%; }
+.playerList li { list-style: none; position: relative; width: 6em; padding: 0.2em; font-size: 0.7em; }
 .playerList li.local { background-color: var(--default-primary-color); }
 .playerList li.host { background-color: var(--accent-color); }
 .playerList li > * { display: block; text-align: center; word-break: break-all; }
+.playerList li .score { position: absolute; top: 0.2em; left: 0.2em; }
 .playerList li img { margin: auto; }
 #wordDisplaySection { background-color: var(--extra-light-primary-color); grid-area: word; }
 #chatSection { background-color: var(--light-primary-color); grid-area: chat; }

@@ -7,7 +7,7 @@ import {actionCreators as guessingCanvasActionCreators} from '../canvases/guessi
 
 export default function socketMiddleware(store) {
     const peerConnector = new PeerConnector(store, {
-        debugLevel: window.location.href.startsWith('http://localhost') ? 2 : 1,
+        debugLevel: window.location.href.startsWith('http://localhost') ? 3 : 1,
     });
 
     /**

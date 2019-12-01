@@ -1,3 +1,5 @@
+import {actionCreators as chatActionCreators} from '../../chat/store.mjs';
+
 const {connect} = window.ReactRedux;
 
 import DrawingCanvas from './DrawingCanvas.mjs';
@@ -36,6 +38,7 @@ function mapDispatchToProps(dispatch) {
         },
         clearDrawingCanvas: () => {
             dispatch(drawingCanvasActionCreators.createClearRequest());
+            dispatch(chatActionCreators.createNoteCanvasWasClearedRequest('local'));
         },
     };
 }

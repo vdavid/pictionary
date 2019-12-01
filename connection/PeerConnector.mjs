@@ -12,10 +12,10 @@ import {actionCreators as playerActionCreators} from '../player/store.mjs';
 
 /**
  * @typedef {Object} PeerConnectorOptions
- * @property {function(error: {type: string}): void} [onError] Called when an error happens in the underlying socket
+ * @property {function(error: {message: string, stack: string}, severity: int): void} [onError] Called when an error happens in the underlying socket
  *        and PeerConnections. (Note: Errors on the peer are almost always fatal and will destroy the peer.)
  *        More info: https://docs.peerjs.com/#peeron-error
- * @property {int} [debugLevel] 0 Prints no logs. 1 Prints only errors. 2 Prints errors and warnings. 3 Prints all logs.
+ * @property {int} [debugLevel] 0 Prints no logs. 1 Prints only errors. 2 Prints errors and warnings. 3 Prints infos. 4 Verbose logging.
  *        Default is 0.
  */
 
@@ -27,6 +27,7 @@ export default class PeerConnector {
     constructor(store, options) {
         this._store = store;
         this._errorCallback = options.onError || (() => {});
+        this._debugLevel = options.debugLevel;
 
         this._handleAcceptingConnections = this._handleAcceptingConnections.bind(this);
         this._handlePeerIncomingConnection = this._handlePeerIncomingConnection.bind(this);
@@ -101,7 +102,7 @@ export default class PeerConnector {
      * @private
      */
     _handleGameStateReceivedFromHost(gameState) {
-        // TODO: Send game state
+        // TODO: Dispatch action to update app state
         this._connectToOtherClientsAsClient(gameState.peerIds);
     }
 
@@ -235,13 +236,14 @@ export default class PeerConnector {
 
     /**
      * @param {DataConnection} connection
-     * @param {{type: string}} error TODO: Errors might have other properties, dunno.
+     * @param {{message: string, stack: string}} error
      * @private
      */
     _handleConnectionError(connection, error) {
-        console.log('Connection error.');
-        console.log(error);
-        this._errorCallback(error);
+        if (this._debugLevel >= 2) {
+            console.log(error);
+        }
+        this._errorCallback(error, 2);
     }
 
     _updateKnownPeerIds(peerIds) {
