@@ -8,7 +8,7 @@ export default class ChatInput extends React.Component {
     // noinspection JSUnusedGlobalSymbols
     componentDidUpdate() {
         const input = this.refs['chatInput'];
-        if (this.props.isRoundStarted && (document.activeElement !== input) && (this.props.whichPlayerDraws === 'remote')) {
+        if (this.props.isRoundStarted && (document.activeElement !== input) && (!this.props.isLocalPlayerDrawing)) {
             input.focus();
             input.setSelectionRange(input.value.length, input.value.length);
         }

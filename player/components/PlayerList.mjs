@@ -12,7 +12,7 @@ class PlayerList extends React.Component {
                     isHost: (this.props.hostPeerId === this.props.localPlayer.peerId),
                     isLocal: true,
                 }),
-                this.props.otherPlayers.map((player, index) => React.createElement(Player, {
+                this.props.remotePlayers.map((player, index) => React.createElement(Player, {
                     key: index,
                     name: player.name,
                     score: player.score,
@@ -30,9 +30,9 @@ class PlayerList extends React.Component {
  */
 function mapStateToProps(state) {
     return {
-        localPlayer: state.players.localPlayer,
-        otherPlayers: state.players.otherPlayers,
-        hostPeerId: state.connection.hostPeerId,
+        localPlayer: state.game.localPlayer,
+        remotePlayers: state.game.remotePlayers,
+        hostPeerId: state.game.hostPeerId,
     };
 }
 

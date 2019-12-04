@@ -36,7 +36,7 @@ class RoundStartingBox extends React.Component {
             React.createElement('div', {id: 'gameStartingBox', className: 'midScreenBox'},
                 React.createElement('p', {}, 'Game is starting in'),
                 React.createElement('div', {className: 'timer'}, this.state.secondsRemaining),
-                React.createElement('p', {className: 'whoDraws'}, this.props.whichPlayerDraws === 'local' ? 'You\'ll be the one drawing.' : 'You\'ll be the one guessing.'),
+                React.createElement('p', {className: 'whoDraws'}, this.props.isLocalPlayerDrawing ? 'You\'ll be the one drawing.' : 'You\'ll be the one guessing.'),
             ),
         );
     }
@@ -53,7 +53,7 @@ class RoundStartingBox extends React.Component {
  */
 function mapStateToProps(state) {
     return {
-        whichPlayerDraws: state.game.whichPlayerDraws
+        isLocalPlayerDrawing: state.game.drawerPeerId === state.game.localPlayer.peerId
     };
 }
 

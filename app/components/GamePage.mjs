@@ -30,10 +30,24 @@ class GamePage extends React.Component {
         );
     }
 
+    /**
+     * @returns {Player}
+     * @private
+     */
+    _getRandomStartingPlayer() {
+        /* Create list of potential next drawers. If someone had the past 2 rounds, take them out of the potentials. */
+        const potentialNextDrawers = [this.props.localPlayer, ...this.props.remotePlayers];
+        if (this.props.previousDrawerPeerId && (this.props.previousDrawerPeerId === this.props.currentDrawerPeerId)) {
+            potentialNextDrawers.splice(potentialNextDrawers.findIndex(
+                player => player.peerId === this.props.currentDrawerPeerId));
+        }
+        return potentialNextDrawers[Math.floor(Math.random() * potentialNextDrawers.length)];
+    }
+
     // noinspection JSUnusedGlobalSymbols
     componentDidUpdate() {
-        if (this.props.isConnectedToAnyPeers && this.props.isHost && !this.props.isRoundStarting && !this.props.isRoundStarted) {
-            this.props.startRound();
+        if ((this.props.remotePlayers.length > 0)  && this.props.isHost && !this.props.isRoundStarting && !this.props.isRoundStarted) {
+            this.props.startRound(this._getRandomStartingPlayer().peerId);
         }
     }
 }
@@ -48,20 +62,20 @@ function mapStateToProps(state) {
         isConnectedToAnyPeers: state.connection.isConnectedToAnyPeers,
         isRoundStarted: state.game.isRoundStarted,
         isRoundStarting: state.game.isRoundStarting,
-        isHost: state.connection.isHost,
+        isHost: state.game.hostPeerId === state.game.localPlayer.peerId,
+        previousDrawerPeerId: state.game.previousDrawerPeerId,
+        currentDrawerPeerId: state.game.drawerPeerId,
+        localPlayer: state.game.localPlayer,
+        remotePlayers: state.game.remotePlayers,
     };
 }
 
 function mapDispatchToProps(dispatch) {
     return {
-        startRound: () => {
-            dispatch(gameActionCreators.createStartRoundRequest(getRandomStartingPlayer()));
+        startRound: (nextDrawerPeerId) => {
+            dispatch(gameActionCreators.createStartRoundRequest(nextDrawerPeerId));
         },
     };
-}
-
-function getRandomStartingPlayer() {
-    return Math.round(Math.random()) === 1 ? 'remote' : 'local';
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(GamePage);

@@ -12,10 +12,10 @@ import {actionCreators as gameActionCreators} from '../../game/store.mjs';
 class Canvases extends React.Component {
     render() {
         return React.createElement('section', {id: 'canvasSection'},
-            this.props.whichPlayerDraws === 'local' ? React.createElement(DrawingCanvas, {updateEventDispatchIntervalInMilliseconds: 500}) : null,
-            this.props.whichPlayerDraws === 'local' ? React.createElement(ClearButton, {clearDrawingCanvas: this.props.clearDrawingCanvas}) : null,
+            this.props.isLocalPlayerDrawing ? React.createElement(DrawingCanvas, {updateEventDispatchIntervalInMilliseconds: 500}) : null,
+            this.props.isLocalPlayerDrawing ? React.createElement(ClearButton, {clearDrawingCanvas: this.props.clearDrawingCanvas}) : null,
             React.createElement(FullscreenButton, {isFullscreen: this.props.isFullscreen, changeFullscreen: this.props.changeFullscreen}),
-            this.props.whichPlayerDraws === 'remote' ? React.createElement(GuessingCanvas) : null,
+            !this.props.isLocalPlayerDrawing ? React.createElement(GuessingCanvas) : null,
         );
     }
 }
@@ -26,7 +26,7 @@ class Canvases extends React.Component {
  */
 function mapStateToProps(state) {
     return {
-        whichPlayerDraws: state.game.whichPlayerDraws,
+        isLocalPlayerDrawing: state.game.drawerPeerId === state.game.localPlayer.peerId,
         isFullscreen: state.game.isFullscreen,
     };
 }
@@ -38,7 +38,8 @@ function mapDispatchToProps(dispatch) {
         },
         clearDrawingCanvas: () => {
             dispatch(drawingCanvasActionCreators.createClearRequest());
-            dispatch(chatActionCreators.createNoteCanvasWasClearedRequest('local'));
+            dispatch(gameActionCreators.createStartNewTrialAfterClearingRequest());
+            dispatch(chatActionCreators.createNoteCanvasWasClearedRequest(true));
         },
     };
 }

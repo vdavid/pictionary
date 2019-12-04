@@ -4,7 +4,6 @@
  * @property {boolean} isConnectingToHost
  * @property {{peerId: string}[]} aliveConnections
  * @property {boolean} isConnectedToAnyPeers
- * @property {boolean} isHost
  * @property {string|undefined} localPeerId Only if listening.
  * @property {string|undefined} hostPeerId Only if connected.
  */
@@ -28,7 +27,6 @@ function _getStateCopy(state) {
         isConnectingToHost: state.isConnectingToHost,
         aliveConnections: state.aliveConnections,
         isConnectedToAnyPeers: state.isConnectedToAnyPeers,
-        isHost: state.isHost,
         localPeerId: state.localPeerId,
         hostPeerId: state.hostPeerId,
     } : {
@@ -36,7 +34,6 @@ function _getStateCopy(state) {
         isConnectingToHost: false,
         aliveConnections: [],
         isConnectedToAnyPeers: false,
-        isHost: false,
         localPeerId: undefined,
         hostPeerId: undefined,
     };
@@ -97,7 +94,6 @@ function _updateConnections(state, payload) {
     state.isConnectingToHost = false;
     state.aliveConnections = payload.allPeerIds.map(peerId => ({peerId}));
     state.isConnectedToAnyPeers = payload.allPeerIds.length > 0;
-    state.isHost = state.isConnectedToAnyPeers && (payload.localPeerId === payload.hostPeerId);
     state.localPeerId = payload.localPeerId || undefined;
     state.hostPeerId = payload.hostPeerId || undefined;
 }

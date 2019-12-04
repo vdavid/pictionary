@@ -1,7 +1,7 @@
 const React = window.React;
 const {connect} = window.ReactRedux;
 import {actionCreators as connectionActionCreators} from '../store.mjs';
-import {actionCreators as playerActionCreators} from '../../player/store.mjs';
+import {actionCreators as gameActionCreators} from '../../game/store.mjs';
 import PlayerNameBox from '../../player/components/PlayerNameBox.mjs';
 import HostConnectionBox from './HostConnectionBox.mjs';
 import ConnectToPeerBox from './ConnectToPeerBox.mjs';
@@ -29,7 +29,7 @@ class ConnectBox extends React.Component {
 function mapStateToProps(state) {
     return {
         localPeerId: state.connection.localPeerId,
-        localPlayerName: state.players.localPlayer.name,
+        localPlayerName: state.game.localPlayer.name,
         isConnectingToHost: state.connection.isConnectingToHost,
         isConnectedToAnyPeers: state.connection.isConnectedToAnyPeers,
     };
@@ -38,7 +38,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return {
         setPlayerName: name => {
-            dispatch(playerActionCreators.createUpdateLocalPlayerRequest({name}))
+            dispatch(gameActionCreators.createUpdateLocalPlayerNameRequest(name))
         },
         connectToHost: hostId => {
             dispatch(connectionActionCreators.createConnectToHostRequest(hostId));

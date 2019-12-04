@@ -21,7 +21,7 @@ class Chat extends React.Component {
                     saveTypedMessage: this.props.saveTypedMessage,
                     addMessage: this.props.addMessage,
                     isRoundStarted: this.props.isRoundStarted,
-                    whichPlayerDraws: this.props.whichPlayerDraws,
+                    isLocalPlayerDrawing: this.props.isLocalPlayerDrawing,
                 }),
                 React.createElement(SendButton, {
                     typedMessage: this.props.typedMessage,
@@ -44,7 +44,7 @@ function mapStateToProps(state) {
         typedMessage: state.chat.typedMessage,
         messages: state.chat.messages,
         isRoundStarted: state.game.isRoundStarted,
-        whichPlayerDraws: state.game.whichPlayerDraws,
+        isLocalPlayerDrawing: state.game.drawerPeerId === state.game.localPlayer.peerId,
     };
 }
 

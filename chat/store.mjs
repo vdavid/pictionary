@@ -18,7 +18,7 @@ export const actionTypes = {
     SEND_MESSAGE_REQUEST: 'chat/SEND_MESSAGE_REQUEST',
     SEND_MESSAGE_SUCCESS: 'chat/SEND_MESSAGE_SUCCESS',
     SEND_MESSAGE_FAILURE: 'chat/SEND_MESSAGE_FAILURE',
-    SEND_PHRASE_GUESSED_REQUEST: 'chat/SEND_PHRASE_GUESSED_REQUEST',
+    SEND_ROUND_SOLVED_REQUEST: 'chat/SEND_ROUND_SOLVED_REQUEST',
     NOTE_CANVAS_WAS_CLEARED_REQUEST: 'chat/NOTE_CANVAS_WAS_CLEARED_REQUEST',
 };
 
@@ -40,12 +40,12 @@ function _getStateCopy(state) {
 
 export const actionCreators = {
     createSaveTypedMessageRequest: (message) => ({type: actionTypes.SAVE_TYPED_MESSAGE_REQUEST, payload: message}),
-    createAddReceivedMessageRequest: (message) => ({type: actionTypes.ADD_RECEIVED_MESSAGE_REQUEST, payload: message}),
+    createAddReceivedMessageRequest: (senderPlayerName, messageText) => ({type: actionTypes.ADD_RECEIVED_MESSAGE_REQUEST, payload: {senderPlayerName, messageText}}),
     createSendMessageRequest: (message) => ({type: actionTypes.SEND_MESSAGE_REQUEST, payload: message}),
     createSendMessageSuccess: () => ({type: actionTypes.SEND_MESSAGE_SUCCESS}),
     createSendMessageFailure: () => ({type: actionTypes.SEND_MESSAGE_FAILURE}),
-    createSendPhraseGuessedRequest: (whoDrewAndPhrase) => ({type: actionTypes.SEND_PHRASE_GUESSED_REQUEST, payload: whoDrewAndPhrase}),
-    createNoteCanvasWasClearedRequest: (whoDrew) => ({type: actionTypes.NOTE_CANVAS_WAS_CLEARED_REQUEST, payload: whoDrew}),
+    createSendRoundSolvedRequest: (drawerPeerId, solverPeerId, solverPeerName, localPeerId, phrase) => ({type: actionTypes.SEND_ROUND_SOLVED_REQUEST, payload: {drawerPeerId, solverPeerId, solverPeerName, localPeerId, phrase}}),
+    createNoteCanvasWasClearedRequest: (isLocalPlayerDrawing) => ({type: actionTypes.NOTE_CANVAS_WAS_CLEARED_REQUEST, payload: isLocalPlayerDrawing}),
 };
 
 /**
@@ -58,10 +58,10 @@ function _saveTypedMessage(state, messageText) {
 
 /**
  * @param {ChatState} state
- * @param {string} messageText
+ * @param {{senderPlayerName: string, messageText: string}} messageData
  */
-function _addReceivedMessage(state, messageText) {
-    state.messages.push({text: messageText.substr(0, 160), isIncoming: true, isSystemMessage: false, dateTime: new Date()});
+function _addReceivedMessage(state, {senderPlayerName, messageText}) {
+    state.messages.push({senderName: senderPlayerName, text: messageText.substr(0, 160), isIncoming: true, isSystemMessage: false, dateTime: new Date()});
 }
 
 /**
@@ -91,24 +91,26 @@ function _addSendingFailedSystemMessage(state) {
 
 /**
  * @param {ChatState} state
- * @param {{whoDrew: 'local'|'remote', phrase: string}} argument2
+ * @param {{drawerPeerId: string, solverPeerId: string, solverPeerName: string, localPeerId: string, phrase: string}} drawerPeerIdAndPhrase
  * @private
  */
-function _addPhraseFoundOutSystemMessage(state, {whoDrew, phrase}) {
-    const text = (whoDrew === 'local')
-        ? 'Yay! Your friend guessed it right! Let\'s see another one!'
-        : 'Yay! You guessed it right, it was indeed “' + phrase + '”! Let\'s see another one!';
+function _addRoundSolvedSystemMessage(state, {drawerPeerId, solverPeerId, solverPeerName, localPeerId, phrase}) {
+    const text = (drawerPeerId === localPeerId)
+        ? 'Yay! ' + solverPeerName + ' guessed it right! Let\'s see another one!'
+        : ((solverPeerId === localPeerId)
+            ? 'Yay! You guessed it right, it was indeed “' + phrase + '”! Let\'s see another one!'
+            : solverPeerName + ' guessed it right! The solution was “' + phrase + '”!');
     state.messages.push({text, isIncoming: true, isSystemMessage: true, dateTime: new Date()});
 }
 
 /**
  * @param {ChatState} state
- * @param {'local'|'remote'} whoDrew
+ * @param {boolean} isLocalPlayerDrawing
  * @private
  */
-function _addCanvasClearedSystemMessage(state, whoDrew) {
+function _addCanvasClearedSystemMessage(state, isLocalPlayerDrawing) {
     const text = 'Let\'s try this again.';
-    state.messages.push({text, isIncoming: (whoDrew === 'remote'), isSystemMessage: true, dateTime: new Date()});
+    state.messages.push({text, isIncoming: !isLocalPlayerDrawing, isSystemMessage: true, dateTime: new Date()});
 }
 
 /**
@@ -123,7 +125,7 @@ export function reducer(state, action) {
         [actionTypes.SEND_MESSAGE_REQUEST]: _addMessageAsSending,
         [actionTypes.SEND_MESSAGE_SUCCESS]: _indicateSendingSucceeded,
         [actionTypes.SEND_MESSAGE_FAILURE]: _addSendingFailedSystemMessage,
-        [actionTypes.SEND_PHRASE_GUESSED_REQUEST]: _addPhraseFoundOutSystemMessage,
+        [actionTypes.SEND_ROUND_SOLVED_REQUEST]: _addRoundSolvedSystemMessage,
         [actionTypes.NOTE_CANVAS_WAS_CLEARED_REQUEST]: _addCanvasClearedSystemMessage,
     };
     const newState = _getStateCopy(state);

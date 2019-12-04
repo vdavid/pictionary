@@ -32,8 +32,6 @@ function mapStateToProps(state) {
         isAcceptingConnections: state.connection.isAcceptingConnections,
         isConnectingToHost: state.connection.isConnectingToHost,
         isConnectedToAnyPeers: state.connection.isConnectedToAnyPeers,
-        isHost: state.connection.isHost,
-        localPeerId: state.connection.localPeerId,
         hostPeerId: state.connection.hostPeerId
     };
 }

@@ -28,7 +28,7 @@ export default function socketMiddleware(store) {
     function _sendChatMessage(message) {
         const state = store.getState();
         if (state.connection.isConnectedToAnyPeers) {
-            if (state.game.whichPlayerDraws !== 'local' || (message.toLowerCase() !== state.game.activePhrase)) {
+            if ((state.game.drawerPeerId !== state.game.localPlayer.peerId) || (message.toLowerCase() !== state.game.activePhrase)) {
                 peerConnector.sendMessage(message);
             } else {
                 /* Silently just not sending the active phrase */
@@ -50,33 +50,35 @@ export default function socketMiddleware(store) {
     }
 
     /**
-     * @param {'local'|'remote'} whichPlayerDraws
+     * @param {string} nextDrawerPeerId
      */
-    function _sendStartSignalToPeerIfThisIsTheHost(whichPlayerDraws) {
+    function _clearCanvasIfDrawingAndSendStartSignalIfHost(nextDrawerPeerId) {
         /** @type {State} */
         const state = store.getState();
 
-        if (state.connection.isHost) {
-            peerConnector.sendStartRoundSignal(((whichPlayerDraws === 'local') ? 'remote' : 'local'));
+        /* Clear drawing canvas if this player will be drawing */
+        if (nextDrawerPeerId === state.game.localPlayer.peerId) {
+            store.dispatch(drawingCanvasActionCreators.createClearRequest());
+        }
+
+        /* Send "start round" signal to everyone if this is the host */
+        if (state.game.localPlayer.peerId === state.game.hostPeerId) {
+            peerConnector.sendStartRoundSignal(nextDrawerPeerId);
         }
     }
 
     /**
-     * @param {string} phrase
+     * @param {{phrase: string, solverPeerId: string}} phraseAndSolverPeerId
      */
-    function _sendPhraseGuessedCorrectlyCommandIfThisIsTheDrawingPlayer(phrase) {
+    function _sendRoundSolvedCommandIfThisIsTheDrawer({phrase, solverPeerId}) {
         /** @type {State} */
         const state = store.getState();
 
-        if (state.game.whichPlayerDraws === 'local') {
-            peerConnector.sendPhraseFiguredOut(phrase);
+        if (state.game.drawerPeerId === state.game.localPlayer.peerId) {
+            peerConnector.sendPhraseFiguredOut(phrase, solverPeerId);
         } else {
             store.dispatch(guessingCanvasActionCreators.createClearRequest());
         }
-    }
-
-    function _setActivePhrase() {
-        store.dispatch(drawingCanvasActionCreators.createClearRequest());
     }
 
     function _notifyPeerToClearGuessingCanvas() {
@@ -98,9 +100,8 @@ export default function socketMiddleware(store) {
             [connectionActions.CONNECT_TO_HOST_REQUEST]: _connectToHost, /* Client side */
             [chatActions.SEND_MESSAGE_REQUEST]: _sendChatMessage, /* Both sides */
             [drawingCanvasActions.SEND_NEW_LINES_TO_GUESSERS_REQUEST]: _drawingUpdated, /* Drawing side only */
-            [gameActions.START_ROUND_REQUEST]: _sendStartSignalToPeerIfThisIsTheHost,
-            [gameActions.MARK_PHASE_GUESSED_REQUEST]: _sendPhraseGuessedCorrectlyCommandIfThisIsTheDrawingPlayer, /* Both sides */
-            [gameActions.SET_ACTIVE_PHRASE_REQUEST]: _setActivePhrase, /* Drawing side only */
+            [gameActions.START_ROUND_REQUEST]: _clearCanvasIfDrawingAndSendStartSignalIfHost,
+            [gameActions.MARK_ROUND_SOLVED_REQUEST]: _sendRoundSolvedCommandIfThisIsTheDrawer, /* Both sides */
             [drawingCanvasActions.CLEAR_REQUEST]: _notifyPeerToClearGuessingCanvas, /* Drawing side only */
             [connectionActions.TRY_RECONNECTING_TO_HOST_REQUEST]: _tryReconnectingToPeerServer,
         };

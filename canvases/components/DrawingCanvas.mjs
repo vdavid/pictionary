@@ -1,3 +1,5 @@
+import {actionCreators as gameActionCreators} from '../../game/store.mjs';
+
 const {connect} = window.ReactRedux;
 import {actionCreators as drawingCanvasActionCreators} from '../drawing-canvas-store.mjs';
 import DrawingTools from '../DrawingTools.mjs';
@@ -132,6 +134,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return {
         sendNewlyDrawnLines: newLines => {
+            dispatch(gameActionCreators.createSaveNewLinesRequest(newLines));
             dispatch(drawingCanvasActionCreators.createSendNewLinesToGuessersRequest(newLines));
         },
     };

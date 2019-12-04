@@ -4,7 +4,6 @@ import PeerServerConnector from './PeerServerConnector.mjs';
 import {connectionChanges} from './connection-changes.mjs';
 import {actionCreators as connectionActionCreators} from './store.mjs';
 import {actionCreators as gameActionCreators} from '../game/store.mjs';
-import {actionCreators as playerActionCreators} from '../player/store.mjs';
 
 /**
  * Documentation: https://docs.peerjs.com/
@@ -53,6 +52,7 @@ export default class PeerConnector {
     }
 
     _onConnectionsChanged(connectionChange, relatedPeerId, localPeerId, allPeerIds, hostPeerId) {
+        this._store.dispatch(gameActionCreators.createUpdateConnectionsSuccess(hostPeerId));
         this._store.dispatch(connectionActionCreators.createUpdateConnectionsSuccess(localPeerId, allPeerIds, hostPeerId));
         if (connectionChange === connectionChanges.hostBecomingTheHost || connectionChange === connectionChanges.clientConnectingToHost) {
             this._store.dispatch(gameActionCreators.createStartGameRequest());
@@ -98,7 +98,7 @@ export default class PeerConnector {
     }
 
     /**
-     * @param {{isGameStarted: boolean, isRoundStarted: boolean, peerIds: string[]}} gameState
+     * @param {GameStateToSendToNewPeer} gameState
      * @private
      */
     _handleGameStateReceivedFromHost(gameState) {
@@ -115,7 +115,7 @@ export default class PeerConnector {
     }
 
     _handleAcceptingConnections(localPeerId) {
-        this._store.dispatch(playerActionCreators.createUpdateLocalPlayerRequest({peerId: localPeerId}));
+        this._store.dispatch(gameActionCreators.createUpdateLocalPlayerPeerIdRequest(localPeerId));
         this._store.dispatch(connectionActionCreators.createStartAcceptingConnectionsSuccess(localPeerId));
     }
 
@@ -154,17 +154,18 @@ export default class PeerConnector {
     }
 
     /**
-     * @param {'local'|'remote'} whichPlayerDraws
+     * @param {string} nextDrawerPeerId
      */
-    sendStartRoundSignal(whichPlayerDraws) {
-        this._dataGateway.broadcastStartRoundSignal(whichPlayerDraws);
+    sendStartRoundSignal(nextDrawerPeerId) {
+        this._dataGateway.broadcastStartRoundSignal(nextDrawerPeerId);
     }
 
     /**
      * @param {string} phrase
+     * @param {string} solverPeerId
      */
-    sendPhraseFiguredOut(phrase) {
-        this._dataGateway.broadcastPhraseFiguredOut(phrase);
+    sendPhraseFiguredOut(phrase, solverPeerId) {
+        this._dataGateway.broadcastPhraseFiguredOut(phrase, solverPeerId);
     }
 
     /**
@@ -206,7 +207,7 @@ export default class PeerConnector {
         const hostPeerId = this._connectionPool.getConnectionToHost() ? this._connectionPool.getConnectionToHost().peer : (this._isHost() ? this._peerServerConnector.getLocalPeerId() : undefined);
 
         /* If the other side is unknown, send them your name */
-        if (!this._store.getState().players.otherPlayers.find(player => player.peerId === newPeerId)) {
+        if (!this._store.getState().game.remotePlayers.find(player => player.peerId === newPeerId)) {
             this._dataGateway.sendLocalPlayerDataToClient(newPeerId);
         }
 
@@ -229,7 +230,7 @@ export default class PeerConnector {
         const hostPeerId = this._connectionPool.getConnectionToHost() ? this._connectionPool.getConnectionToHost().peer : (this._isHost() ? this._peerServerConnector.getLocalPeerId() : undefined);
 
         /* Remove player from the list of players */
-        this._store.dispatch(playerActionCreators.createRemoveRemotePlayerRequest(remotePeerId));
+        this._store.dispatch(gameActionCreators.createRemoveRemotePlayerRequest(remotePeerId));
 
         this._onConnectionsChanged(connectionChange, remotePeerId, this._peerServerConnector.getLocalPeerId(), this._connectionPool.getAllConnectedPeerIds(), hostPeerId);
     }

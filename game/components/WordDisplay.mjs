@@ -1,22 +1,10 @@
 const React = window.React;
 const {connect} = window.ReactRedux;
-import {actionCreators as gameActionCreators} from '../store.mjs';
-import {getRandomPhrase} from '../../data/phrases.mjs';
 
 class WordDisplay extends React.Component {
     constructor(props) {
         super(props);
         this._getContentText = this._getContentText.bind(this);
-    }
-
-    // noinspection JSUnusedGlobalSymbols
-    componentDidUpdate(previousProps) {
-        if (this.props.whichPlayerDraws === 'local'
-            && ((!previousProps.isRoundStarted && this.props.isRoundStarted)
-                || (!previousProps.isActivePhraseGuessedCorrectly && this.props.isActivePhraseGuessedCorrectly))) {
-            const randomPhrase = getRandomPhrase();
-            this.props.setActivePhrase(randomPhrase);
-        }
     }
 
     render() {
@@ -28,7 +16,7 @@ class WordDisplay extends React.Component {
     _getContentText() {
         if (!this.props.isRoundStarted) {
             return '';
-        } else if (this.props.whichPlayerDraws === 'local') {
+        } else if (this.props.isLocalPlayerDrawing) {
             return 'Draw: “' + this.props.activePhrase + '”';
         } else {
             return 'See the drawing and start guessing what it is!';
@@ -43,18 +31,10 @@ class WordDisplay extends React.Component {
 function mapStateToProps(state) {
     return {
         isRoundStarted: state.game.isRoundStarted,
-        whichPlayerDraws: state.game.whichPlayerDraws,
+        isLocalPlayerDrawing: state.game.drawerPeerId === state.game.localPlayer.peerId,
         activePhrase: state.game.activePhrase,
-        isActivePhraseGuessedCorrectly: state.game.isActivePhraseGuessedCorrectly,
+        isRoundSolved: state.game.isRoundSolved,
     };
 }
 
-function mapDispatchToProps(dispatch) {
-    return {
-        setActivePhrase: phrase => {
-            dispatch(gameActionCreators.createSetActivePhraseRequest(phrase));
-        },
-    };
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(WordDisplay);
+export default connect(mapStateToProps)(WordDisplay);

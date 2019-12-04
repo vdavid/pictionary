@@ -3,7 +3,7 @@
  */
 export function saveState(state) {
     try {
-        localStorage.setItem('pictionary.playerName', state.players.localPlayer.name);
+        localStorage.setItem('pictionary.playerName', state.game.localPlayer.name);
     } catch {
         /* Ignore write errors */
     }

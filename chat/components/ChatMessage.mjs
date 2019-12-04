@@ -9,7 +9,7 @@ export default class ChatMessage extends React.Component {
     render() {
         return React.createElement('li', {className: [this.props.message.isIncoming ? 'in' : 'out', this.props.message.isSystemMessage ? 'system' : ''].join(' ').trim()},
             React.createElement('div', {className: 'message'},
-                React.createElement('span', {className: 'text'}, this.props.message.text),
+                React.createElement('span', {className: 'text'}, (this.props.message.senderName ? this.props.message.senderName + ': ' : '') + this.props.message.text),
                 React.createElement('span', {className: 'dateTime'}, this._formatDate(this.props.message.dateTime)),
             ),
         );
