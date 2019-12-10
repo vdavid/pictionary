@@ -1,9 +1,10 @@
 /**
  * @typedef {Object} ChatMessage
+ * @property {string|null} senderPeerId
  * @property {string} text
  * @property {boolean} isIncoming
  * @property {boolean} isSystemMessage
- * @property {Date} dateTime
+ * @property {string} dateTimeString
  */
 /**
  * @typedef {Object} ChatState
@@ -34,84 +35,19 @@ function _getStateCopy(state) {
     } : {
         typedMessage: '',
         isSendingMessage: false,
-        messages: [{text: 'Chat is ready.', isIncoming: true, isSystemMessage: true, dateTime: new Date()}]
+        messages: [{senderPeerId: null, text: 'Chat is ready.', isIncoming: true, isSystemMessage: true, dateTimeString: new Date().toISOString()}]
     };
 }
 
 export const actionCreators = {
     createSaveTypedMessageRequest: (message) => ({type: actionTypes.SAVE_TYPED_MESSAGE_REQUEST, payload: message}),
-    createAddReceivedMessageRequest: (senderPlayerName, messageText) => ({type: actionTypes.ADD_RECEIVED_MESSAGE_REQUEST, payload: {senderPlayerName, messageText}}),
-    createSendMessageRequest: (message) => ({type: actionTypes.SEND_MESSAGE_REQUEST, payload: message}),
+    createAddReceivedMessageRequest: (senderPeerId, messageText) => ({type: actionTypes.ADD_RECEIVED_MESSAGE_REQUEST, payload: {senderPeerId, messageText}}),
+    createSendMessageRequest: (senderPeerId, message) => ({type: actionTypes.SEND_MESSAGE_REQUEST, payload: {senderPeerId, message}}),
     createSendMessageSuccess: () => ({type: actionTypes.SEND_MESSAGE_SUCCESS}),
     createSendMessageFailure: () => ({type: actionTypes.SEND_MESSAGE_FAILURE}),
     createSendRoundSolvedRequest: (drawerPeerId, solverPeerId, solverPeerName, localPeerId, phrase) => ({type: actionTypes.SEND_ROUND_SOLVED_REQUEST, payload: {drawerPeerId, solverPeerId, solverPeerName, localPeerId, phrase}}),
     createNoteCanvasWasClearedRequest: (isLocalPlayerDrawing) => ({type: actionTypes.NOTE_CANVAS_WAS_CLEARED_REQUEST, payload: isLocalPlayerDrawing}),
 };
-
-/**
- * @param {ChatState} state
- * @param {string} messageText
- */
-function _saveTypedMessage(state, messageText) {
-    state.typedMessage = messageText;
-}
-
-/**
- * @param {ChatState} state
- * @param {{senderPlayerName: string, messageText: string}} messageData
- */
-function _addReceivedMessage(state, {senderPlayerName, messageText}) {
-    state.messages.push({senderName: senderPlayerName, text: messageText.substr(0, 160), isIncoming: true, isSystemMessage: false, dateTime: new Date()});
-}
-
-/**
- * @param {ChatState} state
- * @param {string} messageText
- */
-function _addMessageAsSending(state, messageText) {
-    state.messages.push({text: messageText.substr(0, 160), isIncoming: false, isSystemMessage: false, dateTime: new Date()});
-    state.typedMessage = '';
-    state.isSendingMessage = true;
-}
-
-/**
- * @param {ChatState} state
- */
-function _indicateSendingSucceeded(state) {
-    state.isSendingMessage = false;
-}
-
-/**
- * @param {ChatState} state
- */
-function _addSendingFailedSystemMessage(state) {
-    state.messages.push({text: 'Sending failed.', isIncoming: false, isSystemMessage: true, dateTime: new Date()});
-    state.isSendingMessage = false;
-}
-
-/**
- * @param {ChatState} state
- * @param {{drawerPeerId: string, solverPeerId: string, solverPeerName: string, localPeerId: string, phrase: string}} drawerPeerIdAndPhrase
- * @private
- */
-function _addRoundSolvedSystemMessage(state, {drawerPeerId, solverPeerId, solverPeerName, localPeerId, phrase}) {
-    const text = (drawerPeerId === localPeerId)
-        ? 'Yay! ' + solverPeerName + ' guessed it right! Let\'s see another one!'
-        : ((solverPeerId === localPeerId)
-            ? 'Yay! You guessed it right, it was indeed “' + phrase + '”! Let\'s see another one!'
-            : solverPeerName + ' guessed it right! The solution was “' + phrase + '”!');
-    state.messages.push({text, isIncoming: true, isSystemMessage: true, dateTime: new Date()});
-}
-
-/**
- * @param {ChatState} state
- * @param {boolean} isLocalPlayerDrawing
- * @private
- */
-function _addCanvasClearedSystemMessage(state, isLocalPlayerDrawing) {
-    const text = 'Let\'s try this again.';
-    state.messages.push({text, isIncoming: !isLocalPlayerDrawing, isSystemMessage: true, dateTime: new Date()});
-}
 
 /**
  * @param {ChatState} state
@@ -135,4 +71,69 @@ export function reducer(state, action) {
     }
 
     return newState;
+}
+
+/**
+ * @param {ChatState} state
+ * @param {string} messageText
+ */
+function _saveTypedMessage(state, messageText) {
+    state.typedMessage = messageText;
+}
+
+/**
+ * @param {ChatState} state
+ * @param {{senderPeerId: string, messageText: string}} messageData
+ */
+function _addReceivedMessage(state, {senderPeerId, messageText}) {
+    state.messages.push({senderPeerId, text: messageText.substr(0, 160), isIncoming: true, isSystemMessage: false, dateTimeString: new Date().toISOString()});
+}
+
+/**
+ * @param {ChatState} state
+ * @param {{senderPeerId: string, messageText: string}} messageData
+ */
+function _addMessageAsSending(state, {senderPeerId, messageText}) {
+    state.messages.push({senderPeerId, text: messageText.substr(0, 160), isIncoming: false, isSystemMessage: false, dateTimeString: new Date().toISOString()});
+    state.typedMessage = '';
+    state.isSendingMessage = true;
+}
+
+/**
+ * @param {ChatState} state
+ */
+function _indicateSendingSucceeded(state) {
+    state.isSendingMessage = false;
+}
+
+/**
+ * @param {ChatState} state
+ */
+function _addSendingFailedSystemMessage(state) {
+    state.messages.push({senderPeerId: null, text: 'Sending failed.', isIncoming: false, isSystemMessage: true, dateTimeString: new Date().toISOString()});
+    state.isSendingMessage = false;
+}
+
+/**
+ * @param {ChatState} state
+ * @param {{drawerPeerId: string, solverPeerId: string, solverPeerName: string, localPeerId: string, phrase: string}} drawerPeerIdAndPhrase
+ * @private
+ */
+function _addRoundSolvedSystemMessage(state, {drawerPeerId, solverPeerId, solverPeerName, localPeerId, phrase}) {
+    const text = (drawerPeerId === localPeerId)
+        ? 'Yay! ' + solverPeerName + ' guessed it correctly! Let\'s see another one!'
+        : ((solverPeerId === localPeerId)
+            ? 'Yay! You guessed it correctly, it was indeed “' + phrase + '”! Let\'s see another one!'
+            : solverPeerName + ' guessed it correctly! The solution was “' + phrase + '”!');
+    state.messages.push({senderPeerId: null, text, isIncoming: true, isSystemMessage: true, dateTimeString: new Date().toISOString()});
+}
+
+/**
+ * @param {ChatState} state
+ * @param {boolean} isLocalPlayerDrawing
+ * @private
+ */
+function _addCanvasClearedSystemMessage(state, isLocalPlayerDrawing) {
+    const text = 'Let\'s try this again.';
+    state.messages.push({senderPeerId: null, text, isIncoming: !isLocalPlayerDrawing, isSystemMessage: true, dateTimeString: new Date().toISOString()});
 }

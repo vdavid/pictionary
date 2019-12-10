@@ -1,5 +1,6 @@
+import {trialResult} from '../trial-result.mjs';
+
 const React = window.React;
-import {actionCreators as gameActionCreators} from '../store.mjs';
 
 const {connect} = window.ReactRedux;
 
@@ -12,16 +13,25 @@ class Timer extends React.Component {
 
     // noinspection JSUnusedGlobalSymbols
     componentDidMount() {
-        this._startDateTime = new Date();
-        this._endDateTime = new Date(this._startDateTime.getTime() + this.props.durationInMilliseconds);
-        this._intervalTimer = setInterval(this._updateSecondsRemaining, 1000);
-        this._finishTimer = setTimeout(this._timeIsUp, this.props.durationInMilliseconds);
+        if (!this._intervalTimer && this.props.isRoundStarted) {
+            this._intervalTimer = setInterval(this._updateSecondsRemaining, 1000);
+        }
+    }
+
+    // noinspection JSUnusedGlobalSymbols
+    componentDidUpdate() {
+        if (!this._intervalTimer && this.props.isRoundStarted) {
+            this._intervalTimer = setInterval(this._updateSecondsRemaining, 1000);
+        } else if (this._intervalTimer && !this.props.isRoundStarted) {
+            clearInterval(this._intervalTimer);
+        }
     }
 
     // noinspection JSUnusedGlobalSymbols
     componentWillUnmount() {
-        clearInterval(this._intervalTimer);
-        clearInterval(this._finishTimer);
+        if (this._intervalTimer) {
+            clearInterval(this._intervalTimer);
+        }
     }
 
     /**
@@ -29,7 +39,7 @@ class Timer extends React.Component {
      * @private
      */
     _formatRemainingTime(totalSeconds) {
-        if(totalSeconds !== undefined) {
+        if (totalSeconds !== undefined) {
             const roundedSeconds = Math.round(totalSeconds);
             const minutes = Math.floor(roundedSeconds / 60);
             const seconds = Math.floor(roundedSeconds % 60);
@@ -41,22 +51,19 @@ class Timer extends React.Component {
     }
 
     render() {
-        return React.createElement('div', {className: this.props.secondsRemaining > 5 ? '' : 'overSoon'}, this._formatRemainingTime(this.props.secondsRemaining));
-    }
-
-    /**
-     * @private
-     */
-    _updateSecondsRemaining() {
-        this.props.updateSecondsRemaining((this._endDateTime.getTime() - (new Date()).getTime()) / 1000);
-    }
-
-    /**
-     * @private
-     */
-    _timeIsUp() {
-        this.props.timeIsUp();
-        clearInterval(this._intervalTimer);
+        if (this.props.endDateTime) {
+            const secondsRemaining = (this.props.endDateTime.getTime() - (new Date()).getTime()) / 1000;
+            const formattedTime = this._formatRemainingTime(secondsRemaining);
+            if (secondsRemaining > 5) {
+                return React.createElement('div', {}, formattedTime);
+            } else if (secondsRemaining >= 0) {
+                return React.createElement('div', {className: 'overSoon'}, formattedTime);
+            } else {
+                return React.createElement('div', {className: 'over'}, formattedTime);
+            }
+        } else {
+            return React.createElement('div', {}, '');
+        }
     }
 }
 
@@ -65,20 +72,13 @@ class Timer extends React.Component {
  * @returns {Object}
  */
 function mapStateToProps(state) {
+    const latestRound = (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []};
+    const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
+    const startDateTime = latestTrial.startedDateTimeString ? new Date(latestTrial.startedDateTimeString) : undefined;
     return {
-        secondsRemaining: state.game.secondsRemaining,
+        isRoundStarted: latestTrial.trialResult === trialResult.ongoing,
+        endDateTime: startDateTime ? new Date(startDateTime.getTime() + this.props.durationInMilliseconds) : undefined,
     };
 }
 
-function mapDispatchToProps(dispatch) {
-    return {
-        updateSecondsRemaining: seconds => {
-            dispatch(gameActionCreators.createUpdateRemainingRoundTimeRequest(seconds));
-        },
-        timeIsUp: () => {
-            dispatch(gameActionCreators.createSetRemainingRoundTimeToZeroRequest());
-        },
-    };
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(Timer);
+export default connect(mapStateToProps)(Timer);

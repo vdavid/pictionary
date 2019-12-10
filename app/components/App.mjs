@@ -1,7 +1,7 @@
-
 const {connect} = window.ReactRedux;
-import GamePage from './GamePage.mjs';
-import ConnectionStatus from '../../connection/components/ConnectionStatus.mjs';
+import GamePage from '../../game/components/GamePage.mjs';
+import PeerConnector from '../../connection/PeerConnector.mjs';
+import ConnectionStatus from '../../connection/components/ConnectionStatusIndicator.mjs';
 import {loadPlayerName} from '../localStoragePersistence.mjs';
 import RandomNameGenerator from '../../player/RandomNameGenerator.mjs';
 import {actionCreators as gameActionCreators} from '../../game/store.mjs';
@@ -36,6 +36,7 @@ class App extends React.Component {
                 ),
             ),
             React.createElement('footer', null, React.createElement('span', {className: 'copyright'}, 'Made with ❤️ by David')),
+            React.createElement(PeerConnector),
         );
     }
 }

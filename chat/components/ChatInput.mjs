@@ -8,20 +8,9 @@ export default class ChatInput extends React.Component {
     // noinspection JSUnusedGlobalSymbols
     componentDidUpdate() {
         const input = this.refs['chatInput'];
-        if (this.props.isRoundStarted && (document.activeElement !== input) && (!this.props.isLocalPlayerDrawing)) {
+        if (this.props.isGameStarted && (document.activeElement !== input) && (!this.props.isLocalPlayerDrawing)) {
             input.focus();
             input.setSelectionRange(input.value.length, input.value.length);
-        }
-    }
-
-    _onTyping(event) {
-        this.props.saveTypedMessage(event.target.value);
-    }
-
-    _onKeyUp(event) {
-        if (event.keyCode === 13) {
-            this.props.addMessage(event.target.value);
-            event.target.value = '';
         }
     }
 
@@ -36,5 +25,16 @@ export default class ChatInput extends React.Component {
             onChange: this._onTyping,
             onKeyUp: this._onKeyUp,
         });
+    }
+
+    _onTyping(event) {
+        this.props.saveTypedMessage(event.target.value);
+    }
+
+    _onKeyUp(event) {
+        if (event.keyCode === 13) {
+            this.props.addMessage(event.target.value);
+            event.target.value = '';
+        }
     }
 }

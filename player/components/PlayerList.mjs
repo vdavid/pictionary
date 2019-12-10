@@ -32,7 +32,7 @@ function mapStateToProps(state) {
     return {
         localPlayer: state.game.localPlayer,
         remotePlayers: state.game.remotePlayers,
-        hostPeerId: state.game.hostPeerId,
+        hostPeerId: state.connection.hostPeerId,
     };
 }
 

@@ -1,12 +1,23 @@
+const {connect} = window.ReactRedux;
 import ConnectionPool from './ConnectionPool.mjs';
-import DataGateway from './DataGateway.mjs';
 import PeerServerConnector from './PeerServerConnector.mjs';
-import {connectionChanges} from './connection-changes.mjs';
 import {actionCreators as connectionActionCreators} from './store.mjs';
 import {actionCreators as gameActionCreators} from '../game/store.mjs';
+import {connectionListenerStatus} from './connection-listener-status.mjs';
+import {actionCreators as chatActionCreators} from '../chat/store.mjs';
+import {messageTypes} from './message-types.mjs';
+import ConnectionDebugLogger from './ConnectionDebugLogger.mjs';
+import {trialResult} from '../game/trial-result.mjs';
 
 /**
  * Documentation: https://docs.peerjs.com/
+ */
+
+/**
+ * @typedef {Object} GameStateToSendToNewPeer
+ * @property {boolean} isGameStarted
+ * @property {string[]} peerIds
+ * @property {RoundLog[]} rounds
  */
 
 /**
@@ -18,244 +29,303 @@ import {actionCreators as gameActionCreators} from '../game/store.mjs';
  *        Default is 0.
  */
 
-export default class PeerConnector {
-    /**
-     * @param {{dispatch: function, getState: function(): State}} store
-     * @param {PeerConnectorOptions} options
-     */
-    constructor(store, options) {
-        this._store = store;
-        this._errorCallback = options.onError || (() => {});
-        this._debugLevel = options.debugLevel;
+class PeerConnector extends React.Component {
+    constructor(props) {
+        super(props);
 
-        this._handleAcceptingConnections = this._handleAcceptingConnections.bind(this);
-        this._handlePeerIncomingConnection = this._handlePeerIncomingConnection.bind(this);
-        this._handleConnectionOpen = this._handleConnectionOpen.bind(this);
-        this._handleConnectionClose = this._handleConnectionClose.bind(this);
-        this._handleConnectionError = this._handleConnectionError.bind(this);
-        this._updateKnownPeerIds = this._updateKnownPeerIds.bind(this);
-        this._handleGameStateReceivedFromHost = this._handleGameStateReceivedFromHost.bind(this);
-
-        this._knownPeers = [];
-        this._peerServerConnector = new PeerServerConnector({
-            acceptingConnectionsCallback: this._handleAcceptingConnections,
-            stoppedAcceptingConnectionsCallback: () => this._store.dispatch(connectionActionCreators.createStopAcceptingConnectionsSuccess()),
-            incomingConnectionCallback: this._handlePeerIncomingConnection,
-            errorCallback: options.onError,
-            debugLevel: options.debugLevel,
-        });
         this._connectionPool = new ConnectionPool();
-        this._dataGateway = new DataGateway(this._store, this._connectionPool, {
-            onPeerListReceived: this._updateKnownPeerIds,
-            onGameStateReceived: this._handleGameStateReceivedFromHost,
-        }, options.debugLevel);
+        this._debugLogger = new ConnectionDebugLogger();
     }
 
-    _onConnectionsChanged(connectionChange, relatedPeerId, localPeerId, allPeerIds, hostPeerId) {
-        this._store.dispatch(gameActionCreators.createUpdateConnectionsSuccess(hostPeerId));
-        this._store.dispatch(connectionActionCreators.createUpdateConnectionsSuccess(localPeerId, allPeerIds, hostPeerId));
-        if (connectionChange === connectionChanges.hostBecomingTheHost || connectionChange === connectionChanges.clientConnectingToHost) {
-            this._store.dispatch(gameActionCreators.createStartGameRequest());
-        }
-        if (localPeerId === hostPeerId) {
-            // noinspection JSUnresolvedVariable
-            this.sendGameStateToClient(relatedPeerId);
-        }
+    render() {
+        return React.createElement(PeerServerConnector, {
+            setListenerStatus: this.props.setListenerStatus,
+            peerCreatedCallback: peer => {
+                /* Handle incoming connections */
+                peer.on('connection', connection => {
+                    if (this.props.connections.length === 0
+                        || connection.metadata.hostPeerId === (this.props.hostPeerId || this.props.localPeerId)) {
+                        this._setUpConnectionEventHandlers(connection);
+                        this.props.addConnection(connection.peer, true, false);
+                    } else {
+                        connection.on('open', connection => connection.close(), null);
+                    }
+                }, null);
+                this._connectToPeer = peer.connect;
+            }
+        });
     }
 
-    /**
-     * @param {DataConnection} connection
-     * @param {string} connectionChange One of the connectionChanges constants
-     * @private
-     */
-    _setUpConnectionEventHandlers(connection, connectionChange) {
-        // noinspection JSUnresolvedFunction
-        connection.on('open', () => this._handleConnectionOpen(connection, connectionChange), null);
-        // noinspection JSUnresolvedFunction
-        connection.on('data', (data) => this._dataGateway.handleConnectionDataReceived(connection, data), null);
-        // noinspection JSUnresolvedFunction
-        connection.on('close', () => this._handleConnectionClose(connection), null);
-        // noinspection JSUnresolvedFunction
-        connection.on('error', (error) => this._handleConnectionError(connection, error), null);
-    }
-
-    /**
-     * @param {string} hostPeerId
-     */
-    connectToHost(hostPeerId) {
-        if (!this._connectionPool.getAllConnections().length) {
-            const newConnection = this._peerServerConnector.connectToRemotePeer(hostPeerId);
-            this._setUpConnectionEventHandlers(newConnection, connectionChanges.clientConnectingToHost);
-        }
-    }
-
-    /**
-     * @param {string} peerId
-     */
-    connectToOtherClient(peerId) {
-        const newConnection = this._peerServerConnector.connectToRemotePeer(peerId);
-        this._setUpConnectionEventHandlers(newConnection, connectionChanges.clientConnectingToAnotherClient);
-    }
-
-    /**
-     * @param {GameStateToSendToNewPeer} gameState
-     * @private
-     */
-    _handleGameStateReceivedFromHost(gameState) {
-        // TODO: Dispatch action to update app state
-        this._connectToOtherClientsAsClient(gameState.peerIds);
-    }
-
-    /**
-     * @param {string[]} peerIds
-     * @private
-     */
-    _connectToOtherClientsAsClient(peerIds) {
-        peerIds.map(peerId => this.connectToOtherClient(peerId));
-    }
-
-    _handleAcceptingConnections(localPeerId) {
-        this._store.dispatch(gameActionCreators.createUpdateLocalPlayerPeerIdRequest(localPeerId));
-        this._store.dispatch(connectionActionCreators.createStartAcceptingConnectionsSuccess(localPeerId));
-    }
-
-    /**
-     * @param {DataConnection} connection
-     * @private
-     */
-    _handlePeerIncomingConnection(connection) {
-        if (this._connectionPool.getAllConnections().length === 0) {
-            this._setUpConnectionEventHandlers(connection, connectionChanges.hostBecomingTheHost);
-        } else if (this._isHost()) {
-            this._setUpConnectionEventHandlers(connection, connectionChanges.hostReceivingConnectionFromANewClient);
-        } else {
-            // noinspection JSUnresolvedVariable
-            if (this._knownPeers.includes(connection.peer)) {
-                this._setUpConnectionEventHandlers(connection, connectionChanges.clientReceivingConnectionFromAnotherClient);
+    // noinspection JSUnusedGlobalSymbols
+    componentDidUpdate(previousProps) {
+        /* Connect to host if requested so */
+        if (this.props.connectionListenerStatus === connectionListenerStatus.shouldConnectToHost) {
+            if (this.props.hostPeerId !== this.props.localPeerId) {
+                const newConnection = this._connectToPeer(this.props.hostPeerId, {metadata: {hostId: this.props.hostPeerId/*, label: undefined, serialization: 'json', reliable: true*/}});
+                this._setUpConnectionEventHandlers(newConnection);
+                this.props.setListenerStatus(connectionListenerStatus.connectingToHost, this.props.localPeerId);
+                this.props.addConnection(newConnection.peer, false, true);
             } else {
-                // noinspection JSUnresolvedFunction
-                connection.on('open', connection => connection.close(), null);
+                this.props.setListenerStatus(connectionListenerStatus.listeningForConnections, this.props.localPeerId);
+                console.log('Can\'t connect to self.');
+            }
+        }
+
+        /* Send "round solved" message */
+        if (!previousProps.latestTrial.finishedDateTimeString && this.props.latestTrial.finishedDateTimeString
+            && ([trialResult.solved, trialResult.failed].includes(this.props.latestTrial.trialResult))) {
+            this._sendToAllPeers(messageTypes.roundSolved, {phrase: this.props.latestRound.phrase, solverPeerId: this.props.latestRound.solver.peerId});
+        }
+
+        /* Send out new chat messages */
+        if (this.props.chatMessages.count > previousProps.chatMessages.count) {
+            /** @type {ChatMessage[]} messagesToParse */
+            const messagesToParse = this.props.chatMessages.slice(previousProps.chatMessages.count);
+            messagesToParse.forEach(message => {
+                if (message.senderPeerId === this.props.localPeerId) {
+                    /* Don't allow the drawer to send the solution */
+                    if ((this.props.localPeerId === this.props.drawerPeerId) && !this._isMessageACorrectGuess(message)) {
+                        this._sendToAllPeers(messageTypes.message, message);
+                    }
+                }
+            });
+            this.props.setMessageSent();
+        }
+
+        /* Send new lines and "clear canvas" commands if this is the drawer */
+        if (this.props.drawerPeerId === this.props.localPeerId) {
+            if (this.props.drawnLines.length > previousProps.drawnLines.length) {
+                this._sendToAllPeers(messageTypes.newLines, this.props.drawnLines.slice(previousProps.drawnLines.length));
+            } else if (this.props.drawnLines.length > previousProps.drawnLines.length) {
+                this._sendToAllPeers(messageTypes.clearCanvasCommand, null);
+            }
+        }
+
+        /* Send "start round" signal to everyone if this is the host */
+        if ((this.props.localPeerId === this.props.hostPeerId) && (this.props.rounds.length > previousProps.rounds.length)) {
+            this._sendToAllPeers(messageTypes.startRoundSignal, this.props.latestRound.drawer.peerId);
+        }
+    }
+
+    /**
+     * @param {DataConnection} connection
+     */
+    _setUpConnectionEventHandlers(connection) {
+        // noinspection JSUnresolvedFunction
+        connection.on('open', newConnection => {
+            this.props.setConnectionAsConfirmed(newConnection.peer);
+            this._connectionPool.add(newConnection, this.props.hostPeerId === newConnection.peer);
+            this._sendLocalPlayerDataToClient(newConnection.peer);
+            this.props.setConnectionIntroSent(newConnection.peer);
+            /* Send game state if this is the host */
+            if (this.props.localPeerId === this.props.hostPeerId) {
+                this._sendGameStateToClient(newConnection.peer);
+            }
+        }, null);
+        // noinspection JSUnresolvedFunction
+        connection.on('data', (data) => this._handleConnectionDataReceived(connection.peer, data), null);
+        // noinspection JSUnresolvedFunction
+        connection.on('close', () => {
+            this._connectionPool.remove(connection);
+            this.props.removeConnection(connection.peer);
+        }, null);
+        // noinspection JSUnresolvedFunction
+        connection.on('error', (error) => {
+            if (this._debugLevel >= 2) {
+                console.log(error);
+            }
+        }, null);
+    }
+
+    /**
+     * @param {string} recipientPeerId
+     */
+    _sendGameStateToClient(recipientPeerId) {
+        const peerIds = this._connectionPool.getAllConnectedPeerIds();
+        peerIds.splice(peerIds.indexOf(recipientPeerId), 1);
+
+        /** @type {GameStateToSendToNewPeer} */
+        const gameState = {
+            isGameStarted: this.props.isGameStarted,
+            peerIds,
+            rounds: this.props.rounds,
+        };
+
+        this._debugLogger.logOutgoingMessage(recipientPeerId, gameState);
+
+        this._connectionPool.getByPeerId(recipientPeerId).send({type: messageTypes.gameState, payload: gameState});
+    }
+
+    _sendLocalPlayerDataToClient(recipientPeerId) {
+        this._debugLogger.logOutgoingMessage(recipientPeerId, messageTypes.localPlayerData, this.props.localPlayer);
+        this._connectionPool.getByPeerId(recipientPeerId).send({type: messageTypes.localPlayerData, payload: this.props.localPlayer});
+    }
+
+    /**
+     * @param {string} remotePeerId
+     * @param {{type: string, payload: *}} data
+     * @private
+     */
+    _handleConnectionDataReceived(remotePeerId, {type, payload}) {
+        this._debugLogger.logIncomingMessage(remotePeerId, type, payload);
+
+        if (type === messageTypes.startRoundSignal) {
+            this.props.handleStartRoundSignalReceived(payload, null);
+
+        } else {
+            if (type === messageTypes.roundSolved) {
+                const {phrase, solverPeerId} = payload;
+                const solverPlayer = [this.props.localPlayer, this.props.remotePlayers].find(player => player.peerId === solverPeerId);
+                if (!solverPlayer) {
+                    console.log('Problem.');
+                }
+                this.props.handleRoundSolvedSignalReceived(remotePeerId, solverPeerId, solverPlayer.name, this.props.localPeerId, phrase);
+
+            } else if (type === messageTypes.clearCanvasCommand) {
+                if (this.props.latestTrial.lines.length > 0) {
+                    this.props.handleClearCanvasCommandReceived();
+                }
+
+            } else if (type === messageTypes.newLines) {
+                this.props.handleNewDrawnLinesReceived(payload);
+
+            } else if (type === messageTypes.message) {
+                this.props.handleChatMessageReceived(remotePeerId, payload, (this.props.drawerPeerId === this.props.localPeerId) && this._isMessageACorrectGuess(payload, this.props.latestRound.phrase));
+
+            } else if (type === messageTypes.gameState) {
+                /** @type {GameStateToSendToNewPeer} */
+                const gameState = payload;
+                this.props.handleGameStateReceived(gameState);
+                /* Connect to other clients as client (_connectToOtherClientsAsClient) */
+                gameState.peerIds.map(peerId => {
+                    const newConnection = this._connectToPeer(this.props.hostPeerId, {metadata: {hostId: this.props.hostPeerId/*, label: undefined, serialization: 'json', reliable: true*/}});
+                    this.props.addConnection(peerId, false, false);
+                    this._setUpConnectionEventHandlers(newConnection);
+                });
+
+            } else if (type === messageTypes.localPlayerData) {
+                this.props.handlePlayerDataReceived(payload);
+
+            } else if (this._debugLevel >= 2) {
+                console.warn('Invalid data received from peer. Type: ' + type);
+                console.warn(payload);
             }
         }
     }
 
-    /**
-     * @param {string} message
-     */
-    sendMessage(message) {
-        this._dataGateway.broadcastChatMessage(message);
+    _isMessageACorrectGuess(message) {
+        return (message.trim().toLowerCase().indexOf(this.props.phrase.toLowerCase()) > -1);
     }
 
     /**
-     * @param {DrawnLine[]} newLines
+     * @param {string} type
+     * @param {*} payload
+     * @private
      */
-    sendNewLines(newLines) {
-        this._dataGateway.broadcastNewLines(newLines);
-    }
+    _sendToAllPeers(type, payload) {
+        this._debugLogger.logOutgoingMessage('all', type, payload);
 
-    /**
-     * @param {string} nextDrawerPeerId
-     */
-    sendStartRoundSignal(nextDrawerPeerId) {
-        this._dataGateway.broadcastStartRoundSignal(nextDrawerPeerId);
-    }
-
-    /**
-     * @param {string} phrase
-     * @param {string} solverPeerId
-     */
-    sendPhraseFiguredOut(phrase, solverPeerId) {
-        this._dataGateway.broadcastPhraseFiguredOut(phrase, solverPeerId);
-    }
-
-    /**
-     */
-    sendClearCanvasCommand() {
-        this._dataGateway.broadcastClearCanvasCommand();
-    }
-
-    /**
-     * @param {string} clientPeerId
-     */
-    sendGameStateToClient(clientPeerId) {
-        this._dataGateway.sendGameStateToClient(clientPeerId);
-    }
-
-    // noinspection JSUnusedGlobalSymbols
-    disconnectFromAllPeers() {
         // noinspection JSUnresolvedFunction
-        this._connectionPool.getAllConnections().forEach(connection => connection.close());
-    }
-
-    tryReconnectingToPeerServer() {
-        this._peerServerConnector.tryToReconnectToPeerServer();
-    }
-
-    /**
-     * @param {DataConnection} newConnection
-     * @param {string} connectionChange One of the connectionChanges constants
-     * @private
-     */
-    _handleConnectionOpen(newConnection, connectionChange) {
-        // noinspection JSUnresolvedVariable
-        const newPeerId = newConnection.peer;
-        if (connectionChange === connectionChanges.hostReceivingConnectionFromANewClient) {
-            this._dataGateway.broadcastKnownPeerList([...this._connectionPool.getAllConnectedPeerIds(), newPeerId]);
-        }
-        this._connectionPool.add(newConnection, connectionChange === connectionChanges.clientConnectingToHost);
-
-        const hostPeerId = this._connectionPool.getConnectionToHost() ? this._connectionPool.getConnectionToHost().peer : (this._isHost() ? this._peerServerConnector.getLocalPeerId() : undefined);
-
-        /* If the other side is unknown, send them your name */
-        if (!this._store.getState().game.remotePlayers.find(player => player.peerId === newPeerId)) {
-            this._dataGateway.sendLocalPlayerDataToClient(newPeerId);
-        }
-
-        this._onConnectionsChanged(connectionChange, newPeerId, this._peerServerConnector.getLocalPeerId(), this._connectionPool.getAllConnectedPeerIds(), hostPeerId);
-    }
-
-    /**
-     * @param {DataConnection} connection
-     * @private
-     */
-    _handleConnectionClose(connection) {
-        // noinspection JSUnresolvedVariable
-        const remotePeerId = connection.peer;
-        const connectionChange = this._isHost()
-            ? connectionChanges.hostDisconnectedFromAClient
-            : (this._connectionPool.getConnectionToHost() && (this._connectionPool.getConnectionToHost().peer === remotePeerId)
-                ? connectionChanges.clientDisconnectedFromHost
-                : connectionChanges.clientDisconnectedFromAnotherClient);
-        this._connectionPool.remove(connection);
-        const hostPeerId = this._connectionPool.getConnectionToHost() ? this._connectionPool.getConnectionToHost().peer : (this._isHost() ? this._peerServerConnector.getLocalPeerId() : undefined);
-
-        /* Remove player from the list of players */
-        this._store.dispatch(gameActionCreators.createRemoveRemotePlayerRequest(remotePeerId));
-
-        this._onConnectionsChanged(connectionChange, remotePeerId, this._peerServerConnector.getLocalPeerId(), this._connectionPool.getAllConnectedPeerIds(), hostPeerId);
-    }
-
-    /**
-     * @param {DataConnection} connection
-     * @param {{message: string, stack: string}} error
-     * @private
-     */
-    _handleConnectionError(connection, error) {
-        if (this._debugLevel >= 2) {
-            console.log(error);
-        }
-        this._errorCallback(error, 2);
-    }
-
-    _updateKnownPeerIds(peerIds) {
-        if (!this._isHost()) {
-            this._knownPeers = peerIds;
-        } else {
-            /* Hack attempt? */
-        }
-    }
-
-    _isHost() {
-        return this._connectionPool.getAllConnections().length > 0 && !this._connectionPool.getConnectionToHost();
+        this._connectionPool.getAllConnections().forEach(connection => connection.send({type, payload}));
     }
 }
+
+/**
+ * @param {State} state
+ * @returns {Object}
+ */
+function mapStateToProps(state) {
+    const latestRound = (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []};
+    const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
+
+    return {
+        localPeerId: state.connection.localPeerId,
+        hostPeerId: state.connection.hostPeerId,
+        drawerPeerId: latestRound.drawer ? latestRound.drawer.peerId : undefined,
+        connectionListenerStatus: state.connection.connectionListenerStatus,
+        connections: state.connection.connections,
+        localPlayer: state.game.localPlayer,
+        remotePlayers: state.game.remotePlayers,
+        chatMessages: state.chat.messages,
+        isGameStarted: state.game.isGameStarted,
+        rounds: state.game.rounds,
+        drawnLines: latestTrial.lines,
+        latestRound,
+        latestTrial,
+    };
+}
+
+function mapDispatchToProps(dispatch) {
+    return {
+        /**
+         * @param {string} remotePeerId
+         * @param {boolean} isIncoming
+         * @param {boolean} isThisTheConnectionToTheHost
+         */
+        addConnection(remotePeerId, isIncoming, isThisTheConnectionToTheHost) {
+            dispatch(connectionActionCreators.createAddNewConnectionRequest({remotePeerId, isIncoming, isThisTheConnectionToTheHost}));
+        },
+        setConnectionAsConfirmed(remotePeerId) {
+            dispatch(connectionActionCreators.createSetConnectionAsConfirmedRequest(remotePeerId));
+        },
+        setConnectionIntroSent(remotePeerId) {
+            dispatch(connectionActionCreators.createSetConnectionIntroSentRequest(remotePeerId));
+        },
+        setMessageSent() {
+            dispatch(chatActionCreators.createSendMessageSuccess());
+        },
+        removeConnection(remotePeerId) {
+            dispatch(connectionActionCreators.createRemoveConnectionRequest(remotePeerId));
+            dispatch(gameActionCreators.createRemoveRemotePlayerRequest(remotePeerId));
+        },
+        handleStartRoundSignalReceived(nextDrawerPeerId) {
+            dispatch(gameActionCreators.createStartRoundRequest(nextDrawerPeerId, null));
+        },
+        handleRoundSolvedSignalReceived(drawerPeerId, solverPeerId, solverPeerName, localPeerId, phrase) {
+            dispatch(gameActionCreators.createMarkRoundEndedRequest(phrase, solverPeerId));
+            dispatch(chatActionCreators.createSendRoundSolvedRequest(drawerPeerId, solverPeerId, solverPeerName, localPeerId, phrase));
+        },
+        handleClearCanvasCommandReceived() {
+            dispatch(gameActionCreators.createStartNewTrialAfterClearingRequest());
+            dispatch(chatActionCreators.createNoteCanvasWasClearedRequest(false));
+        },
+        handleNewDrawnLinesReceived(newLines) {
+            dispatch(gameActionCreators.createSaveNewLinesRequest(newLines));
+        },
+        handleChatMessageReceived(remotePeerId, messageText, isACorrectGuess) {
+            dispatch(chatActionCreators.createAddReceivedMessageRequest(remotePeerId, messageText));
+            dispatch(gameActionCreators.createAddNewGuessRequest({guesserPeerId: remotePeerId, messageText, isCorrect: isACorrectGuess}));
+        },
+        handleGameStateReceived(gameState) {
+            dispatch(gameActionCreators.createSetGameStateRequest(gameState));
+        },
+        handlePlayerDataReceived(remotePlayer) {
+            dispatch(connectionActionCreators.createSetConnectionIntroReceivedRequest(remotePlayer.peerId));
+            dispatch(gameActionCreators.createAddOrUpdateRemotePlayerRequest(remotePlayer));
+        },
+        /**
+         * @param {string} status
+         * @param {string} localPeerId
+         */
+        setListenerStatus(status, localPeerId) {
+            if (status === connectionListenerStatus.notConnectedToPeerServer) {
+                dispatch(connectionActionCreators.createDisconnectFromPeerServerSuccess());
+
+            } else if (status === connectionListenerStatus.connectingToPeerServer) {
+                dispatch(connectionActionCreators.createUpdateStatusRequest(status));
+
+            } else if (status === connectionListenerStatus.listeningForConnections) {
+                dispatch(gameActionCreators.createUpdateLocalPlayerPeerIdRequest(localPeerId));
+                dispatch(connectionActionCreators.createStartAcceptingConnectionsSuccess(localPeerId));
+
+            } else if (status === connectionListenerStatus.connectingToHost) {
+                dispatch(connectionActionCreators.createUpdateStatusRequest(status));
+
+            } else if (status === connectionListenerStatus.disconnectingFromPeerServer) {
+                dispatch(connectionActionCreators.createUpdateStatusRequest(status));
+            }
+        },
+    };
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(PeerConnector);

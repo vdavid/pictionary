@@ -50,7 +50,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return {
         reconnectToPeerServer: () => {
-            dispatch(connectionActionCreators.createTryReconnectingToHostRequest());
+            dispatch(connectionActionCreators.createTryReconnectingToPeerServerRequest());
         },
     };
 }

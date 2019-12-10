@@ -1,12 +1,14 @@
 const {connect} = window.ReactRedux;
-import {actionCreators as guessingCanvasActionCreators} from '../guessing-canvas-store.mjs';
 import DrawingTools from '../DrawingTools.mjs';
 
 class GuessingCanvas extends React.Component {
     constructor(props) {
         super(props);
         this._clearAndRedraw = this._clearAndRedraw.bind(this);
+    }
 
+    render() {
+        return React.createElement('canvas', {id: 'guessingCanvas', ref: 'guessingCanvas'});
     }
 
     // noinspection JSUnusedGlobalSymbols
@@ -19,31 +21,25 @@ class GuessingCanvas extends React.Component {
         window.addEventListener('resize', this._clearAndRedraw);
     }
 
-    _clearAndRedraw() {
-        this._drawingTools.updateCanvasSiteToItsClientSize();
-        this._drawingTools.clearCanvas();
-        this._drawLines(this._allDrawnLines);
-    }
-
     // noinspection JSUnusedGlobalSymbols
     componentDidUpdate(previousProps) {
         const newLines = this.props.newLines;
         if (newLines.length) {
-            this.props.markNewLinesAsProcessed(newLines.length);
-
             this._allDrawnLines = [...this._allDrawnLines, ...newLines];
 
             this._drawLines(newLines);
         }
 
-        if (previousProps.lineCount > this.props.lineCount) {
+        if (previousProps.lines.length > this.props.lines.length) {
             this._drawingTools.clearCanvas();
             this._allDrawnLines = [];
         }
     }
 
-    render() {
-        return React.createElement('canvas', {id: 'guessingCanvas', ref: 'guessingCanvas'});
+    _clearAndRedraw() {
+        this._drawingTools.updateCanvasSiteToItsClientSize();
+        this._drawingTools.clearCanvas();
+        this._drawLines(this._allDrawnLines);
     }
 
     _drawLines(lines) {
@@ -56,18 +52,11 @@ class GuessingCanvas extends React.Component {
  * @returns {Object}
  */
 function mapStateToProps(state) {
+    const latestRound = (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []};
+    const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
     return {
-        lineCount: state.guessingCanvas.lineCount,
-        newLines: state.guessingCanvas.newLines,
+        lines: latestTrial.lines,
     };
 }
 
-function mapDispatchToProps(dispatch) {
-    return {
-        markNewLinesAsProcessed: lineCount => {
-            dispatch(guessingCanvasActionCreators.createUpdateCanvasSuccess(lineCount));
-        },
-    };
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(GuessingCanvas);
+export default connect(mapStateToProps)(GuessingCanvas);

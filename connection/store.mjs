@@ -1,20 +1,34 @@
+import {connectionListenerStatus} from './connection-listener-status.mjs';
+
+/**
+ * @typedef {Object} ConnectionStatus
+ * @property {string} remotePeerId
+ * @property {boolean} isIncoming
+ * @property {boolean} isConfirmed
+ * @property {boolean} isIntroSent
+ * @property {boolean} isIntroReceived
+ * @property {boolean} isThisTheConnectionToTheHost
+ */
 /**
  * @typedef {Object} ConnectionState
- * @property {boolean} isAcceptingConnections
- * @property {boolean} isConnectingToHost
- * @property {{peerId: string}[]} aliveConnections
- * @property {boolean} isConnectedToAnyPeers
  * @property {string|undefined} localPeerId Only if listening.
- * @property {string|undefined} hostPeerId Only if connected.
+ * @property {string} connectionListenerStatus One of the `connectionListenerStatus` constants.
+ * @property {ConnectionStatus[]} connections
+ * @property {string} hostPeerId Redundant data derived from `connections`.
  */
 
 export const actionTypes = {
     START_ACCEPTING_CONNECTIONS_SUCCESS: 'connection/START_ACCEPTING_CONNECTIONS_SUCCESS',
-    STOP_ACCEPTING_CONNECTIONS_SUCCESS: 'connection/STOP_ACCEPTING_CONNECTIONS_SUCCESS',
+    DISCONNECT_FROM_PEER_SERVER_SUCCESS: 'connection/DISCONNECT_FROM_PEER_SERVER_SUCCESS',
+    UPDATE_STATUS: 'connection/UPDATE_STATUS',
     CONNECT_TO_HOST_REQUEST: 'connection/CONNECT_TO_HOST_REQUEST',
-    CONNECT_TO_HOST_FAILURE: 'connection/CONNECT_TO_HOST_FAILURE',
-    UPDATE_CONNECTIONS_SUCCESS: 'connection/UPDATE_CONNECTIONS_SUCCESS',
-    TRY_RECONNECTING_TO_HOST_REQUEST: 'connection/TRY_RECONNECTING_TO_HOST_REQUEST',
+    MARK_ROUND_ENDED_REQUEST: 'connection/MARK_ROUND_ENDED_REQUEST',
+    ADD_NEW_CONNECTION: 'connection/ADD_NEW_CONNECTION',
+    SET_CONNECTION_AS_CONFIRMED: 'connection/SET_CONNECTION_AS_CONFIRMED',
+    SET_CONNECTION_INTRO_SENT: 'connection/SET_CONNECTION_INTRO_SENT',
+    SET_CONNECTION_INTRO_RECEIVED: 'connection/SET_CONNECTION_INTRO_RECEIVED',
+    REMOVE_CONNECTION: 'connection/REMOVE_CONNECTION',
+    TRY_RECONNECTING_TO_PEER_SERVER_REQUEST: 'connection/TRY_RECONNECTING_TO_PEER_SERVER_REQUEST',
 };
 
 /**
@@ -23,80 +37,37 @@ export const actionTypes = {
  */
 function _getStateCopy(state) {
     return state ? {
-        isAcceptingConnections: state.isAcceptingConnections,
-        isConnectingToHost: state.isConnectingToHost,
-        aliveConnections: state.aliveConnections,
-        isConnectedToAnyPeers: state.isConnectedToAnyPeers,
         localPeerId: state.localPeerId,
+        connectionListenerStatus: state.connectionListenerStatus,
+        connections: state.connections.map(connection => ({
+            remotePeerId: connection.remotePeerId,
+            isIncoming: connection.isIncoming,
+            isConfirmed: connection.isConfirmed,
+            isIntroSent: connection.isIntroSent,
+            isIntroReceived: connection.isIntroReceived,
+            isThisTheConnectionToTheHost: connection.isThisTheConnectionToTheHost,
+        })),
         hostPeerId: state.hostPeerId,
     } : {
-        isAcceptingConnections: false,
-        isConnectingToHost: false,
-        aliveConnections: [],
-        isConnectedToAnyPeers: false,
-        localPeerId: undefined,
-        hostPeerId: undefined,
+        localPeerId: null,
+        connectionListenerStatus: connectionListenerStatus.shouldConnectToPeerServer,
+        connections: [],
+        hostPeerId: null,
     };
 }
 
 export const actionCreators = {
     createStartAcceptingConnectionsSuccess: (localPeerId) => ({type: actionTypes.START_ACCEPTING_CONNECTIONS_SUCCESS, payload: localPeerId}),
-    createStopAcceptingConnectionsSuccess: () => ({type: actionTypes.STOP_ACCEPTING_CONNECTIONS_SUCCESS}),
-    createConnectToHostRequest: (hostId) => ({type: actionTypes.CONNECT_TO_HOST_REQUEST, payload: hostId}),
-    createConnectToHostFailure: () => ({type: actionTypes.CONNECT_TO_HOST_FAILURE}),
-    createUpdateConnectionsSuccess: (localPeerId, allPeerIds, hostPeerId) =>  ({type: actionTypes.UPDATE_CONNECTIONS_SUCCESS, payload: {localPeerId, allPeerIds, hostPeerId}}),
-    createTryReconnectingToHostRequest: () => ({type: actionTypes.TRY_RECONNECTING_TO_HOST_REQUEST}),
+    createDisconnectFromPeerServerSuccess: () => ({type: actionTypes.DISCONNECT_FROM_PEER_SERVER_SUCCESS}),
+    createUpdateStatusRequest: (status) => ({type: actionTypes.UPDATE_STATUS, payload: status}),
+    createConnectToHostRequest: (hostPeerId) => ({type: actionTypes.CONNECT_TO_HOST_REQUEST, payload: hostPeerId}),
+    createAddNewConnectionRequest: (remotePeerId, isIncoming, isThisTheConnectionToTheHost) => ({type: actionTypes.ADD_NEW_CONNECTION, payload: {remotePeerId, isIncoming, isThisTheConnectionToTheHost}}),
+    createRemoveConnectionRequest: (remotePeerId) => ({type: actionTypes.REMOVE_CONNECTION, payload: remotePeerId}),
+    createSetConnectionAsConfirmedRequest: (remotePeerId) => ({type: actionTypes.SET_CONNECTION_AS_CONFIRMED, payload: remotePeerId}),
+    createSetConnectionIntroSentRequest: (remotePeerId) => ({type: actionTypes.SET_CONNECTION_INTRO_SENT, payload: remotePeerId}),
+    createSetConnectionIntroReceivedRequest: (remotePeerId) => ({type: actionTypes.SET_CONNECTION_INTRO_RECEIVED, payload: remotePeerId}),
+    createTryReconnectingToPeerServerRequest: () => ({type: actionTypes.TRY_RECONNECTING_TO_PEER_SERVER_REQUEST}),
 };
-
-/**
- * @param {ConnectionState} state
- * @param {string|undefined} localPeerId The local peer ID, or undefined if not accepting connections.
- * @private
- */
-function _startedAcceptingConnections(state, localPeerId) {
-    state.isAcceptingConnections = true;
-    state.localPeerId = localPeerId;
-}
-
-/**
- * @param {ConnectionState} state
- * @param {string|undefined} localPeerId The local peer ID, or undefined if not accepting connections.
- * @private
- */
-function _stoppedAcceptingConnections(state, localPeerId) {
-    state.isAcceptingConnections = false;
-    state.localPeerId = undefined;
-}
-
-/**
- * @param {ConnectionState} state
- * @param {string} payload The remote peer ID.
- * @private
- */
-function _connectToHost(state, payload) {
-    state.isConnectingToHost = true;
-}
-/**
- * @param {ConnectionState} state
- * @param {string} payload The remote peer ID.
- * @private
- */
-function _connectToHostFailed(state, payload) {
-    state.isConnectingToHost = false;
-}
-
-/**
- * @param {ConnectionState} state
- * @param {{localPeerId: string, allPeerIds: string[], hostPeerId: string}} payload
- * @private
- */
-function _updateConnections(state, payload) {
-    state.isConnectingToHost = false;
-    state.aliveConnections = payload.allPeerIds.map(peerId => ({peerId}));
-    state.isConnectedToAnyPeers = payload.allPeerIds.length > 0;
-    state.localPeerId = payload.localPeerId || undefined;
-    state.hostPeerId = payload.hostPeerId || undefined;
-}
 
 /**
  * @param {ConnectionState} state
@@ -106,10 +77,15 @@ function _updateConnections(state, payload) {
 export function reducer(state, action) {
     const actionTypeToFunctionMap = {
         [actionTypes.START_ACCEPTING_CONNECTIONS_SUCCESS]: _startedAcceptingConnections,
-        [actionTypes.STOP_ACCEPTING_CONNECTIONS_SUCCESS]: _stoppedAcceptingConnections,
+        [actionTypes.DISCONNECT_FROM_PEER_SERVER_SUCCESS]: _stoppedAcceptingConnections,
+        [actionTypes.UPDATE_STATUS]: _updateStatus,
         [actionTypes.CONNECT_TO_HOST_REQUEST]: _connectToHost,
-        [actionTypes.CONNECT_TO_HOST_FAILURE]: _connectToHostFailed,
-        [actionTypes.UPDATE_CONNECTIONS_SUCCESS]: _updateConnections,
+        [actionTypes.ADD_NEW_CONNECTION]: _addNewConnection,
+        [actionTypes.REMOVE_CONNECTION]: _removeConnection,
+        [actionTypes.SET_CONNECTION_AS_CONFIRMED]: _setConnectionAsConfirmed,
+        [actionTypes.SET_CONNECTION_INTRO_SENT]: _setConnectionIntroSent,
+        [actionTypes.SET_CONNECTION_INTRO_RECEIVED]: _setConnectionIntroReceived,
+        [actionTypes.TRY_RECONNECTING_TO_PEER_SERVER_REQUEST]: _tryReconnectingToPeerServer,
     };
     const newState = _getStateCopy(state);
 
@@ -118,4 +94,106 @@ export function reducer(state, action) {
     }
 
     return newState;
+}
+
+/**
+ * @param {ConnectionState} state
+ * @param {string|undefined} localPeerId The local peer ID, or undefined if not accepting connections.
+ * @private
+ */
+function _startedAcceptingConnections(state, localPeerId) {
+    state.connectionListenerStatus = connectionListenerStatus.listeningForConnections;
+    state.localPeerId = localPeerId;
+}
+
+/**
+ * @param {ConnectionState} state
+ * @private
+ */
+function _stoppedAcceptingConnections(state) {
+    state.connectionListenerStatus = connectionListenerStatus.notConnectedToPeerServer;
+    state.localPeerId = undefined;
+}
+
+/**
+ * @param {ConnectionState} state
+ * @param {string} status
+ * @private
+ */
+function _updateStatus(state, status) {
+    state.connectionListenerStatus = status;
+}
+
+/**
+ * @param {ConnectionState} state
+ * @param {string} hostPeerId The remote peer ID.
+ * @private
+ */
+function _connectToHost(state, hostPeerId) {
+    state.hostPeerId = hostPeerId;
+    state.connectionListenerStatus = connectionListenerStatus.shouldConnectToHost;
+}
+
+/**
+ * @param {ConnectionState} state
+ * @param {{remotePeerId: string, isIncoming: boolean, isThisTheConnectionToTheHost: boolean}} argument
+ */
+function _addNewConnection(state, {remotePeerId, isIncoming, isThisTheConnectionToTheHost}) {
+    state.connections.push({remotePeerId, isIncoming, isConfirmed: false, isIntroSent: false, isIntroReceived: false, isThisTheConnectionToTheHost});
+    if (isThisTheConnectionToTheHost) {
+        state.hostPeerId = remotePeerId;
+    }
+}
+
+/**
+ * @param {ConnectionState} state
+ * @param {string} remotePeerId
+ */
+function _setConnectionAsConfirmed(state, remotePeerId) {
+    state.connections.find(connectionStatus => connectionStatus.remotePeerId === remotePeerId).isConfirmed = true;
+}
+
+/**
+ * @param {ConnectionState} state
+ * @param {string} remotePeerId
+ */
+function _setConnectionIntroSent(state, remotePeerId) {
+    state.connections.find(connectionStatus => connectionStatus.remotePeerId === remotePeerId).isIntroSent = true;
+}
+
+/**
+ * @param {ConnectionState} state
+ * @param {string} remotePeerId
+ */
+function _setConnectionIntroReceived(state, remotePeerId) {
+    state.connections.find(connectionStatus => connectionStatus.remotePeerId === remotePeerId).isIntroReceived = true;
+}
+
+/**
+ * @param {ConnectionState} state
+ * @param {string} remotePeerId
+ */
+function _removeConnection(state, remotePeerId) {
+    const connectionIndex = state.connections.findIndex(connectionStatus => connectionStatus.remotePeerId);
+    if (connectionIndex > -1) {
+        const deletedConnections = state.connections.splice(connectionIndex, 1);
+        if (deletedConnections[0].isThisTheConnectionToTheHost) {
+            state.connectionListenerStatus = connectionListenerStatus.listeningForConnections;
+        }
+        if (state.connections.length === 0) {
+            state.connectionListenerStatus = connectionListenerStatus.listeningForConnections;
+        }
+    } else {
+        console.error('Very weird, but can\'t find this connection: ' + remotePeerId);
+    }
+}
+
+/**
+ * @param {ConnectionState} state
+ * @private
+ */
+function _tryReconnectingToPeerServer(state) {
+    if (state.connectionListenerStatus === connectionListenerStatus.notConnectedToPeerServer) {
+        state.connectionListenerStatus = connectionListenerStatus.shouldConnectToPeerServer;
+    }
 }

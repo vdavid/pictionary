@@ -1,8 +1,17 @@
-import {actionCreators as gameActionCreators} from '../../game/store.mjs';
+import {trialResult} from '../../game/trial-result.mjs';
 
 const {connect} = window.ReactRedux;
-import {actionCreators as drawingCanvasActionCreators} from '../drawing-canvas-store.mjs';
+import {actionCreators as gameActionCreators} from '../../game/store.mjs';
 import DrawingTools from '../DrawingTools.mjs';
+
+/**
+ * @typedef {Object} DrawnLine
+ * @property {int} x1
+ * @property {int} y1
+ * @property {int} x2
+ * @property {int} y2
+ * @property {string} color
+ */
 
 class DrawingCanvas extends React.Component {
     constructor(props) {
@@ -14,8 +23,6 @@ class DrawingCanvas extends React.Component {
         this._clearAndRedraw = this._clearAndRedraw.bind(this);
 
         /** @type {DrawnLine[]} */
-        this._allDrawnLines = [];
-        /** @type {DrawnLine[]} */
         this._newlyDrawnLines = [];
         /** @type {boolean} */
         this._isPenDown = false;
@@ -25,39 +32,6 @@ class DrawingCanvas extends React.Component {
         this._lastY = undefined;
 
         window.addEventListener('resize', this._clearAndRedraw);
-    }
-
-    // noinspection JSUnusedGlobalSymbols
-    componentDidMount() {
-        const canvas = this.refs.drawingCanvas;
-        this._drawingTools = new DrawingTools(canvas);
-
-        this._drawingTools.updateCanvasSiteToItsClientSize();
-        this._drawingTools.clearCanvas();
-        this._allDrawnLines.map(line => this._drawingTools.drawLine(line));
-
-        this._timer = setInterval(this._sendNewlyDrawnLines, this.props.updateEventDispatchIntervalInMilliseconds);
-    }
-
-    _clearAndRedraw() {
-        if (this._drawingTools) {
-            this._drawingTools.updateCanvasSiteToItsClientSize();
-            this._drawingTools.clearCanvas();
-            this._allDrawnLines.map(line => this._drawingTools.drawLine(line));
-        }
-    }
-
-    // noinspection JSUnusedGlobalSymbols
-    componentDidUpdate(previousProps) {
-        if (previousProps.lineCount > this.props.lineCount) {
-            this._drawingTools.clearCanvas();
-            this._allDrawnLines = [];
-        }
-    }
-
-    // noinspection JSUnusedGlobalSymbols
-    componentWillUnmount() {
-        clearInterval(this._timer);
     }
 
     render() {
@@ -75,6 +49,48 @@ class DrawingCanvas extends React.Component {
             // onTouchEnd: this._liftPen,
             // onTouchCancel: this._liftPen,
         });
+    }
+
+    // noinspection JSUnusedGlobalSymbols
+    componentDidMount() {
+        const canvas = this.refs.drawingCanvas;
+        this._drawingTools = new DrawingTools(canvas);
+
+        this._drawingTools.updateCanvasSiteToItsClientSize();
+        this._drawingTools.clearCanvas();
+        this.props.lines.map(line => this._drawingTools.drawLine(line));
+
+        this._timer = setInterval(this._sendNewlyDrawnLines, this.props.updateEventDispatchIntervalInMilliseconds);
+    }
+
+    // noinspection JSUnusedGlobalSymbols
+    componentDidUpdate(previousProps) {
+        if (previousProps.lines.length > this.props.lines.length) {
+            this._drawingTools.clearCanvas();
+        } else if (previousProps.lines.length > this.props.lines.length) {
+            const newLines = this.props.lines.slice(previousProps.lines.length);
+            newLines.map(line => this._drawingTools.drawLine(line));
+        }
+    }
+
+    // noinspection JSUnusedGlobalSymbols
+    componentWillUnmount() {
+        clearInterval(this._timer);
+    }
+
+    _sendNewlyDrawnLines() {
+        if (this._newlyDrawnLines.length) {
+            this.props.sendNewlyDrawnLines(this._newlyDrawnLines);
+            this._newlyDrawnLines = [];
+        }
+    }
+
+    _clearAndRedraw() {
+        if (this._drawingTools) {
+            this._drawingTools.updateCanvasSiteToItsClientSize();
+            this._drawingTools.clearCanvas();
+            this.props.lines.map(line => this._drawingTools.drawLine(line));
+        }
     }
 
     _handleMouseDown(event) {
@@ -104,19 +120,11 @@ class DrawingCanvas extends React.Component {
             this._drawingTools.drawLine(newLine);
 
             this._newlyDrawnLines.push(newLine);
-            this._allDrawnLines.push(newLine);
         }
     }
 
     _liftPen() {
         this._isPenDown = false;
-    }
-
-    _sendNewlyDrawnLines() {
-        if (this._newlyDrawnLines.length) {
-            this.props.sendNewlyDrawnLines(this._newlyDrawnLines);
-            this._newlyDrawnLines = [];
-        }
     }
 }
 
@@ -125,9 +133,11 @@ class DrawingCanvas extends React.Component {
  * @returns {Object}
  */
 function mapStateToProps(state) {
+    const latestRound = (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []};
+    const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
     return {
-        lineCount: state.drawingCanvas.lineCount,
-        isRoundStarted: state.game.isRoundStarted,
+        lines: latestTrial.lines,
+        isRoundStarted: latestTrial.trialResult === trialResult.ongoing,
     };
 }
 
@@ -135,7 +145,6 @@ function mapDispatchToProps(dispatch) {
     return {
         sendNewlyDrawnLines: newLines => {
             dispatch(gameActionCreators.createSaveNewLinesRequest(newLines));
-            dispatch(drawingCanvasActionCreators.createSendNewLinesToGuessersRequest(newLines));
         },
     };
 }

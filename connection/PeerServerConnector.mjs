@@ -1,66 +1,45 @@
-/**
- * @typedef {Object} PeerServerConnectorOptions
- * @property {function(id: string): void} [acceptingConnectionsCallback] Called when the connection to the PeerServer is established.
- * @property {function(): void} [stoppedAcceptingConnectionsCallback] Called when the connection to the PeerServer is closed.
- * @property {function(): void} [destroyedCallback] Called when the connection to the Peer object is completely destroyed.
- * @property {function(connection: DataConnection): void} [incomingConnectionCallback] Called when a client tries to connect to this peer.
- * @property {function(error: {type: string}): void} [errorCallback] Called when an error occurs in the underlying socket
- *           or PeerConnections. (Note: Errors on the peer are almost always fatal and will destroy the peer.)
- *           More info: https://docs.peerjs.com/#peeron-error
- * @property {int} [debugLevel] 0 Prints no logs. 1 Prints only errors. 2 Prints errors and warnings. 3 Prints infos. 4 Verbose logging.
- *        Default is 0.
- */
+const {connect} = window.ReactRedux;
+import {connectionListenerStatus} from './connection-listener-status.mjs';
 
-export default class PeerServerConnector {
-    /**
-     * @param {PeerServerConnectorOptions} options
-     */
-    constructor(options) {
-        this._acceptingConnectionsCallback = options.acceptingConnectionsCallback || (() => {});
-        this._stoppedAcceptingConnectionsCallback = options.stoppedAcceptingConnectionsCallback || (() => {});
-        this._destroyedCallback = options.destroyedCallback || (() => {});
-        this._incomingConnectionCallback = options.incomingConnectionCallback || (() => {});
-        this._errorCallback = options.errorCallback || (() => {});
-        this._debugLevel = options.debugLevel || 0;
+class PeerServerConnector extends React.Component {
+    constructor(props) {
+        super(props);
 
         this._defaultIdLength = 2;
-        this._lastActivePeerId = null;
         this._idLength = this._defaultIdLength;
+        this._lastActivePeerId = null;
+    }
 
-        /** @type {Peer} */
-        this._peer = this._createPeer();
+    render() {
+        return null;
+    }
+
+    componentDidMount() {
+        this.componentDidUpdate();
     }
 
     // noinspection JSUnusedGlobalSymbols
-    disconnectFromPeerServer() {
-        this._peer.disconnect();
-    }
-
-    tryToReconnectToPeerServer() {
-        if (this._peer.disconnected) {
-            if (this._peer.destroyed) {
+    componentDidUpdate() {
+        if (this.props.connectionListenerStatus === connectionListenerStatus.shouldConnectToPeerServer && (!this._peer || this._peer.disconnected)) {
+            if (!this._peer || this._peer.destroyed) {
                 this._idLength = this._defaultIdLength;
                 this._peer = this._createPeer(this._lastActivePeerId);
             } else {
                 this._peer.reconnect();
             }
+            this.props.setListenerStatus(connectionListenerStatus.connectingToPeerServer, this._peer.id);
+
+        } else if (this.props.connectionListenerStatus === connectionListenerStatus.shouldDisconnectFromPeerServer && !this._peer.disconnected) {
+            this._peer.disconnect();
+            this.props.setListenerStatus(connectionListenerStatus.disconnectingFromPeerServer, this._peer.id);
         }
     }
 
     /**
-     * @param {string} peerId
-     * @return {DataConnection}
+     * @private
      */
-    connectToRemotePeer(peerId) {
-        if (peerId !== this._peer.id) {
-            return this._peer.connect(peerId/*, {label: undefined, metadata: {}, serialization: 'json', reliable: true}*/);
-        } else {
-            throw new Error('Can\'t connect to self.');
-        }
-    }
-
-    getLocalPeerId() {
-        return this._peer.id;
+    _generateRandomId() {
+        return Math.random().toString(36).substr(2, this._idLength);
     }
 
     /**
@@ -69,20 +48,15 @@ export default class PeerServerConnector {
      * @private
      */
     _createPeer(peerId = null) {
-        const peer = new peerjs.Peer(peerId || this._generateRandomId(), {debug: this._debugLevel - 1});
-        peer.on('open', this._acceptingConnectionsCallback, null);
-        peer.on('connection', this._incomingConnectionCallback, null);
-        peer.on('disconnected', this._stoppedAcceptingConnectionsCallback, null);
-        peer.on('close', this._destroyedCallback, null);
+        this.props.setListenerStatus(connectionListenerStatus.connectingToPeerServer, peerId);
+        peerId = peerId || this._generateRandomId();
+        const peer = new peerjs.Peer(peerId, {debug: this._debugLevel - 1});
+        peer.on('open', () => {this.props.setListenerStatus(connectionListenerStatus.listeningForConnections, peerId);}, null);
+        peer.on('disconnected', () => {this.props.setListenerStatus(connectionListenerStatus.notConnectedToPeerServer, peerId);}, null);
+        //peer.on('close', this.props.setListenerStatus(connectionListenerStatus.notConnectedToPeerServer, peerId), null);
         peer.on('error', this._handlePeerError, null);
+        this.props.peerCreatedCallback(peer);
         return peer;
-    }
-
-    /**
-     * @private
-     */
-    _generateRandomId() {
-        return Math.random().toString(36).substr(2, this._idLength);
     }
 
     /**
@@ -98,8 +72,21 @@ export default class PeerServerConnector {
                 console.log('Peer error.');
                 console.log(error);
             }
-            this._errorCallback(error);
         }
     }
-
 }
+
+/**
+ * @param {State} state
+ * @returns {Object}
+ */
+function mapStateToProps(state) {
+    return {
+        localPeerId: state.connection.localPeerId,
+        connectionListenerStatus: state.connection.connectionListenerStatus,
+        connections: state.connection.connections,
+        hostPeerId: state.connection.hostPeerId,
+    };
+}
+
+export default connect(mapStateToProps)(PeerServerConnector);

@@ -6,7 +6,7 @@ import DrawingCanvas from './DrawingCanvas.mjs';
 import GuessingCanvas from './GuessingCanvas.mjs';
 import ClearButton from './ClearButton.mjs';
 import FullscreenButton from './FullscreenButton.mjs';
-import {actionCreators as drawingCanvasActionCreators} from '../drawing-canvas-store.mjs';
+import {actionCreators as appActionCreators} from '../../app/store.mjs';
 import {actionCreators as gameActionCreators} from '../../game/store.mjs';
 
 class Canvases extends React.Component {
@@ -25,19 +25,20 @@ class Canvases extends React.Component {
  * @returns {Object}
  */
 function mapStateToProps(state) {
+    const latestRound = (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []};
     return {
-        isLocalPlayerDrawing: state.game.drawerPeerId === state.game.localPlayer.peerId,
-        isFullscreen: state.game.isFullscreen,
+        isLocalPlayerDrawing: latestRound.drawer ? (latestRound.drawer.peerId === state.game.localPlayer.peerId) : false,
+        isFullscreen: state.app.isFullscreen,
     };
 }
 
 function mapDispatchToProps(dispatch) {
     return {
         changeFullscreen: (isFullscreen) => {
-            dispatch(gameActionCreators.createSetFullscreenStateRequest(isFullscreen));
+            dispatch(appActionCreators.createSetFullscreenStateRequest(isFullscreen));
         },
         clearDrawingCanvas: () => {
-            dispatch(drawingCanvasActionCreators.createClearRequest());
+            dispatch(gameActionCreators.createClearRequest());
             dispatch(gameActionCreators.createStartNewTrialAfterClearingRequest());
             dispatch(chatActionCreators.createNoteCanvasWasClearedRequest(true));
         },

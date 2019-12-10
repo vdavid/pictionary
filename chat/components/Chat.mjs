@@ -1,7 +1,7 @@
-import {actionCreators as chatActionCreators} from '../store.mjs';
 import SendButton from './SendButton.mjs';
 import ChatInput from './ChatInput.mjs';
 import ChatMessages from './ChatMessages.mjs';
+import {actionCreators as chatActionCreators} from '../store.mjs';
 
 const {connect} = window.ReactRedux;
 
@@ -20,7 +20,7 @@ class Chat extends React.Component {
                     typedMessage: this.props.typedMessage,
                     saveTypedMessage: this.props.saveTypedMessage,
                     addMessage: this.props.addMessage,
-                    isRoundStarted: this.props.isRoundStarted,
+                    isGameStarted: this.props.isGameStarted,
                     isLocalPlayerDrawing: this.props.isLocalPlayerDrawing,
                 }),
                 React.createElement(SendButton, {
@@ -29,7 +29,8 @@ class Chat extends React.Component {
                 }),
             ),
             React.createElement(ChatMessages, {
-                messages: this.props.messages
+                messages: this.props.messages,
+                players: this.props.players,
             }),
         );
     }
@@ -40,11 +41,13 @@ class Chat extends React.Component {
  * @returns {Object}
  */
 function mapStateToProps(state) {
+    const latestRound = (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []};
     return {
         typedMessage: state.chat.typedMessage,
         messages: state.chat.messages,
-        isRoundStarted: state.game.isRoundStarted,
-        isLocalPlayerDrawing: state.game.drawerPeerId === state.game.localPlayer.peerId,
+        isGameStarted: state.game.isGameStarted,
+        isLocalPlayerDrawing: latestRound.drawer ? (latestRound.drawer.peerId === state.game.localPlayer.peerId) : false,
+        players: [state.game.localPlayer, ...state.game.remotePlayers],
     };
 }
 

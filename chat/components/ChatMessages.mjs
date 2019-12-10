@@ -10,6 +10,6 @@ export default class ChatMessages extends React.Component {
 
     render() {
         return React.createElement('ul', {ref: 'chatMessages'},
-            this.props.messages.map((message, index) => React.createElement(ChatMessage, {key: index, message})));
+            this.props.messages.map((message, index) => React.createElement(ChatMessage, {key: index, message, players: this.props.players})));
     }
 }

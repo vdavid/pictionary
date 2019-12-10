@@ -6,11 +6,16 @@ export default class ChatMessage extends React.Component {
         return h + ':' + m + ':' + s;
     };
 
+    _getPlayerNameByPeerId(peerId) {
+        const player = this.props.players.find(player => player.peerId === peerId);
+        return player ? player.name : 'Unknown player';
+    }
+
     render() {
         return React.createElement('li', {className: [this.props.message.isIncoming ? 'in' : 'out', this.props.message.isSystemMessage ? 'system' : ''].join(' ').trim()},
             React.createElement('div', {className: 'message'},
-                React.createElement('span', {className: 'text'}, (this.props.message.senderName ? this.props.message.senderName + ': ' : '') + this.props.message.text),
-                React.createElement('span', {className: 'dateTime'}, this._formatDate(this.props.message.dateTime)),
+                React.createElement('span', {className: 'text'}, (this.props.message.senderPeerId ? this._getPlayerNameByPeerId(this.props.message.senderPeerId) + ': ' : '') + this.props.message.text),
+                React.createElement('span', {className: 'dateTime'}, this._formatDate(new Date(this.props.message.dateTimeString))),
             ),
         );
     }

@@ -1,3 +1,5 @@
+import {trialResult} from '../trial-result.mjs';
+
 const React = window.React;
 const {connect} = window.ReactRedux;
 
@@ -29,11 +31,12 @@ class WordDisplay extends React.Component {
  * @returns {Object}
  */
 function mapStateToProps(state) {
+    const latestRound = (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []};
+    const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
     return {
-        isRoundStarted: state.game.isRoundStarted,
-        isLocalPlayerDrawing: state.game.drawerPeerId === state.game.localPlayer.peerId,
-        activePhrase: state.game.activePhrase,
-        isRoundSolved: state.game.isRoundSolved,
+        isRoundStarted: latestTrial.trialResult === trialResult.ongoing,
+        isLocalPlayerDrawing: latestRound.drawer ? (latestRound.drawer.peerId === state.game.localPlayer.peerId) : false,
+        activePhrase: latestRound.phrase,
     };
 }
 
