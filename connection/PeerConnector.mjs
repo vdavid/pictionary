@@ -1,13 +1,17 @@
 const {connect} = window.ReactRedux;
-import ConnectionPool from './ConnectionPool.mjs';
-import PeerServerConnector from './PeerServerConnector.mjs';
+
 import {actionCreators as connectionActionCreators} from './store.mjs';
 import {actionCreators as gameActionCreators} from '../game/store.mjs';
-import {connectionListenerStatus} from './connection-listener-status.mjs';
 import {actionCreators as chatActionCreators} from '../chat/store.mjs';
-import {messageTypes} from './message-types.mjs';
+
+import ConnectionPool from './ConnectionPool.mjs';
+import PeerServerConnector from './PeerServerConnector.mjs';
 import ConnectionDebugLogger from './ConnectionDebugLogger.mjs';
+
+import {connectionListenerStatus} from './connection-listener-status.mjs';
+import {messageTypes} from './message-types.mjs';
 import {trialResult} from '../game/trial-result.mjs';
+import {getRandomPhrase} from '../data/phrases.mjs';
 
 /**
  * Documentation: https://docs.peerjs.com/
@@ -34,7 +38,7 @@ class PeerConnector extends React.Component {
         super(props);
 
         this._connectionPool = new ConnectionPool();
-        this._debugLogger = new ConnectionDebugLogger();
+        this._debugLogger = new ConnectionDebugLogger(this.props.debugLevel);
     }
 
     render() {
@@ -43,15 +47,20 @@ class PeerConnector extends React.Component {
             peerCreatedCallback: peer => {
                 /* Handle incoming connections */
                 peer.on('connection', connection => {
-                    if (this.props.connections.length === 0
-                        || connection.metadata.hostPeerId === (this.props.hostPeerId || this.props.localPeerId)) {
+                    console.log('Connection received from ' + connection.peer);
+                    if ((this.props.connections.length === 0 && (connection.metadata.hostPeerId === this.props.localPeerId))) {
+                        /* Receiving connection as a host --> become the host */
+                        this.props.addConnection(connection.peer, true, true);
                         this._setUpConnectionEventHandlers(connection);
+                    } else if (connection.metadata.hostPeerId === this.props.hostPeerId) {
+                        /* Receiving connection from another client */
                         this.props.addConnection(connection.peer, true, false);
+                        this._setUpConnectionEventHandlers(connection);
                     } else {
-                        connection.on('open', connection => connection.close(), null);
+                        connection.on('open', () => connection.close(), null);
                     }
                 }, null);
-                this._connectToPeer = peer.connect;
+                this._connectToPeer = peer.connect.bind(peer);
             }
         });
     }
@@ -61,10 +70,11 @@ class PeerConnector extends React.Component {
         /* Connect to host if requested so */
         if (this.props.connectionListenerStatus === connectionListenerStatus.shouldConnectToHost) {
             if (this.props.hostPeerId !== this.props.localPeerId) {
-                const newConnection = this._connectToPeer(this.props.hostPeerId, {metadata: {hostId: this.props.hostPeerId/*, label: undefined, serialization: 'json', reliable: true*/}});
+                console.log('Connecting to ' + this.props.hostPeerId);
+                this.props.addConnection(this.props.hostPeerId, false, true);
+                const newConnection = this._connectToPeer(this.props.hostPeerId, {metadata: {hostPeerId: this.props.hostPeerId/*, label: undefined, serialization: 'json', reliable: true*/}});
                 this._setUpConnectionEventHandlers(newConnection);
                 this.props.setListenerStatus(connectionListenerStatus.connectingToHost, this.props.localPeerId);
-                this.props.addConnection(newConnection.peer, false, true);
             } else {
                 this.props.setListenerStatus(connectionListenerStatus.listeningForConnections, this.props.localPeerId);
                 console.log('Can\'t connect to self.');
@@ -72,20 +82,25 @@ class PeerConnector extends React.Component {
         }
 
         /* Send "round solved" message */
-        if (!previousProps.latestTrial.finishedDateTimeString && this.props.latestTrial.finishedDateTimeString
+        if ((this.props.drawerPeerId === this.props.localPeerId)
+            && (!previousProps.latestTrial.finishedDateTimeString && this.props.latestTrial.finishedDateTimeString)
             && ([trialResult.solved, trialResult.failed].includes(this.props.latestTrial.trialResult))) {
-            this._sendToAllPeers(messageTypes.roundSolved, {phrase: this.props.latestRound.phrase, solverPeerId: this.props.latestRound.solver.peerId});
+            this._sendToAllPeers(messageTypes.roundSolved, {
+                phrase: this.props.latestRound.phrase,
+                solverPeerId: this.props.latestRound.solver.peerId,
+                solutionDateTimeString: this.props.latestTrial.finishedDateTimeString
+            });
         }
 
         /* Send out new chat messages */
-        if (this.props.chatMessages.count > previousProps.chatMessages.count) {
+        if (this.props.chatMessages.length > previousProps.chatMessages.length) {
             /** @type {ChatMessage[]} messagesToParse */
-            const messagesToParse = this.props.chatMessages.slice(previousProps.chatMessages.count);
+            const messagesToParse = this.props.chatMessages.slice(previousProps.chatMessages.length);
             messagesToParse.forEach(message => {
                 if (message.senderPeerId === this.props.localPeerId) {
                     /* Don't allow the drawer to send the solution */
-                    if ((this.props.localPeerId === this.props.drawerPeerId) && !this._isMessageACorrectGuess(message)) {
-                        this._sendToAllPeers(messageTypes.message, message);
+                    if ((this.props.localPeerId !== this.props.drawerPeerId) || !this._isMessageACorrectGuess(message.text)) {
+                        this._sendToAllPeers(messageTypes.message, message.text);
                     }
                 }
             });
@@ -96,7 +111,7 @@ class PeerConnector extends React.Component {
         if (this.props.drawerPeerId === this.props.localPeerId) {
             if (this.props.drawnLines.length > previousProps.drawnLines.length) {
                 this._sendToAllPeers(messageTypes.newLines, this.props.drawnLines.slice(previousProps.drawnLines.length));
-            } else if (this.props.drawnLines.length > previousProps.drawnLines.length) {
+            } else if (this.props.drawnLines.length < previousProps.drawnLines.length) {
                 this._sendToAllPeers(messageTypes.clearCanvasCommand, null);
             }
         }
@@ -112,14 +127,14 @@ class PeerConnector extends React.Component {
      */
     _setUpConnectionEventHandlers(connection) {
         // noinspection JSUnresolvedFunction
-        connection.on('open', newConnection => {
-            this.props.setConnectionAsConfirmed(newConnection.peer);
-            this._connectionPool.add(newConnection, this.props.hostPeerId === newConnection.peer);
-            this._sendLocalPlayerDataToClient(newConnection.peer);
-            this.props.setConnectionIntroSent(newConnection.peer);
+        connection.on('open', () => {
+            this.props.setConnectionAsConfirmed(connection.peer);
+            this._connectionPool.add(connection, this.props.hostPeerId === connection.peer);
+            this._sendLocalPlayerDataToClient(connection.peer);
+            this.props.setConnectionIntroSent(connection.peer);
             /* Send game state if this is the host */
             if (this.props.localPeerId === this.props.hostPeerId) {
-                this._sendGameStateToClient(newConnection.peer);
+                this._sendGameStateToClient(connection.peer);
             }
         }, null);
         // noinspection JSUnresolvedFunction
@@ -170,16 +185,17 @@ class PeerConnector extends React.Component {
         this._debugLogger.logIncomingMessage(remotePeerId, type, payload);
 
         if (type === messageTypes.startRoundSignal) {
-            this.props.handleStartRoundSignalReceived(payload, null);
+            const phrase = (payload === this.props.localPeerId) ? getRandomPhrase().trim() : null;
+            this.props.handleStartRoundSignalReceived(payload, phrase);
 
         } else {
             if (type === messageTypes.roundSolved) {
-                const {phrase, solverPeerId} = payload;
-                const solverPlayer = [this.props.localPlayer, this.props.remotePlayers].find(player => player.peerId === solverPeerId);
+                const {phrase, solverPeerId, solutionDateTimeString} = payload;
+                const solverPlayer = [this.props.localPlayer, ...this.props.remotePlayers].find(player => player.peerId === solverPeerId);
                 if (!solverPlayer) {
-                    console.log('Problem.');
+                    console.log('Problem. Not found solver "' + solverPeerId + '".');
                 }
-                this.props.handleRoundSolvedSignalReceived(remotePeerId, solverPeerId, solverPlayer.name, this.props.localPeerId, phrase);
+                this.props.handleRoundSolvedSignalReceived(remotePeerId, solverPeerId, solverPlayer.name, this.props.localPeerId, solutionDateTimeString, phrase);
 
             } else if (type === messageTypes.clearCanvasCommand) {
                 if (this.props.latestTrial.lines.length > 0) {
@@ -197,9 +213,10 @@ class PeerConnector extends React.Component {
                 const gameState = payload;
                 this.props.handleGameStateReceived(gameState);
                 /* Connect to other clients as client (_connectToOtherClientsAsClient) */
+                console.log('Connecting to other clients: ' + gameState.peerIds.join(', '));
                 gameState.peerIds.map(peerId => {
-                    const newConnection = this._connectToPeer(this.props.hostPeerId, {metadata: {hostId: this.props.hostPeerId/*, label: undefined, serialization: 'json', reliable: true*/}});
                     this.props.addConnection(peerId, false, false);
+                    const newConnection = this._connectToPeer(peerId, {metadata: {hostPeerId: this.props.hostPeerId/*, label: undefined, serialization: 'json', reliable: true*/}});
                     this._setUpConnectionEventHandlers(newConnection);
                 });
 
@@ -214,7 +231,7 @@ class PeerConnector extends React.Component {
     }
 
     _isMessageACorrectGuess(message) {
-        return (message.trim().toLowerCase().indexOf(this.props.phrase.toLowerCase()) > -1);
+        return (message.trim().toLowerCase().indexOf(this.props.latestRound.phrase.toLowerCase()) > -1);
     }
 
     /**
@@ -249,9 +266,10 @@ function mapStateToProps(state) {
         chatMessages: state.chat.messages,
         isGameStarted: state.game.isGameStarted,
         rounds: state.game.rounds,
-        drawnLines: latestTrial.lines,
+        drawnLines: latestTrial.lines || [],
         latestRound,
         latestTrial,
+        debugLevel: state.app.debugLevel,
     };
 }
 
@@ -263,7 +281,7 @@ function mapDispatchToProps(dispatch) {
          * @param {boolean} isThisTheConnectionToTheHost
          */
         addConnection(remotePeerId, isIncoming, isThisTheConnectionToTheHost) {
-            dispatch(connectionActionCreators.createAddNewConnectionRequest({remotePeerId, isIncoming, isThisTheConnectionToTheHost}));
+            dispatch(connectionActionCreators.createAddNewConnectionRequest(remotePeerId, isIncoming, isThisTheConnectionToTheHost));
         },
         setConnectionAsConfirmed(remotePeerId) {
             dispatch(connectionActionCreators.createSetConnectionAsConfirmedRequest(remotePeerId));
@@ -278,15 +296,15 @@ function mapDispatchToProps(dispatch) {
             dispatch(connectionActionCreators.createRemoveConnectionRequest(remotePeerId));
             dispatch(gameActionCreators.createRemoveRemotePlayerRequest(remotePeerId));
         },
-        handleStartRoundSignalReceived(nextDrawerPeerId) {
-            dispatch(gameActionCreators.createStartRoundRequest(nextDrawerPeerId, null));
+        handleStartRoundSignalReceived(nextDrawerPeerId, phrase) {
+            dispatch(gameActionCreators.createStartRoundRequest(nextDrawerPeerId, phrase));
         },
-        handleRoundSolvedSignalReceived(drawerPeerId, solverPeerId, solverPeerName, localPeerId, phrase) {
-            dispatch(gameActionCreators.createMarkRoundEndedRequest(phrase, solverPeerId));
+        handleRoundSolvedSignalReceived(drawerPeerId, solverPeerId, solverPeerName, localPeerId, solutionDateTimeString, phrase) {
+            dispatch(gameActionCreators.createMarkRoundEndedRequest(phrase, solverPeerId, solutionDateTimeString));
             dispatch(chatActionCreators.createSendRoundSolvedRequest(drawerPeerId, solverPeerId, solverPeerName, localPeerId, phrase));
         },
         handleClearCanvasCommandReceived() {
-            dispatch(gameActionCreators.createStartNewTrialAfterClearingRequest());
+            dispatch(gameActionCreators.createClearRequest([]));
             dispatch(chatActionCreators.createNoteCanvasWasClearedRequest(false));
         },
         handleNewDrawnLinesReceived(newLines) {

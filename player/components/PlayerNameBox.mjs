@@ -8,7 +8,7 @@ export default class PlayerNameBox extends React.Component {
             React.createElement('input', {
                 value: this.props.playerName,
                 maxLength: 25,
-                autoCompleteType: 'nickname',
+                autocompletetype: 'nickname',
                 onChange: event => this.props.setPlayerName(event.target.value),
             }, this.props.localPeerId),
             React.createElement('p', {}, 'Then wait until they connect.'),

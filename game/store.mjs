@@ -46,7 +46,6 @@ export const actionTypes = {
     SAVE_NEW_LINES_REQUEST: 'game/SAVE_NEW_LINES_REQUEST',
     CLEAR_REQUEST: 'game/CLEAR_REQUEST',
     ADD_NEW_GUESS_REQUEST: 'game/ADD_NEW_GUESS_REQUEST',
-    START_NEW_TRIAL_AFTER_CLEARING_REQUEST: 'game/START_NEW_TRIAL_AFTER_CLEARING_REQUEST',
 };
 
 /**
@@ -67,6 +66,7 @@ function _getStateCopy(state) {
             score: player.score,
         })),
         rounds: state.rounds.map(round => ({
+            phrase: round.phrase,
             drawer: round.drawer,
             guessers: [...round.guessers],
             solver: round.solver,
@@ -103,11 +103,10 @@ export const actionCreators = {
 
     createStartRoundRequest: (nextDrawerPeerId, phrase) => ({type: actionTypes.START_ROUND_REQUEST, payload: {nextDrawerPeerId, phrase}}),
     createStartRoundSuccess: () => ({type: actionTypes.START_ROUND_SUCCESS}),
-    createMarkRoundEndedRequest: (phrase, solverPeerId) => ({type: actionTypes.MARK_ROUND_ENDED_REQUEST, payload: {phrase, solverPeerId}}),
+    createMarkRoundEndedRequest: (phrase, solverPeerId, solutionDateTimeString) => ({type: actionTypes.MARK_ROUND_ENDED_REQUEST, payload: {phrase, solverPeerId, solutionDateTimeString}}),
     createSaveNewLinesRequest: (newLines) => ({type: actionTypes.SAVE_NEW_LINES_REQUEST, payload: newLines}),
     createClearRequest: (newLines) => ({type: actionTypes.CLEAR_REQUEST, payload: newLines}),
     createAddNewGuessRequest: (guess) => ({type: actionTypes.ADD_NEW_GUESS_REQUEST, payload: guess}),
-    createStartNewTrialAfterClearingRequest: () => ({type: actionTypes.START_NEW_TRIAL_AFTER_CLEARING_REQUEST}),
 };
 
 /**
@@ -125,7 +124,7 @@ export function reducer(state, action) {
         [actionTypes.SET_GAME_STATE_REQUEST]: _setGameState,
         [actionTypes.START_GAME_REQUEST]: _markGameAsStarted,
 
-        [actionTypes.START_ROUND_REQUEST]: _markRoundAsStarting,
+        [actionTypes.START_ROUND_REQUEST]: _createNewRound,
         [actionTypes.START_ROUND_SUCCESS]: _markRoundAsStarted,
         [actionTypes.MARK_ROUND_ENDED_REQUEST]: _markRoundEnded,
         [actionTypes.SAVE_NEW_LINES_REQUEST]: _saveNewLines,
@@ -163,7 +162,7 @@ function _markGameAsStarted(state) {
  * @param {GameState} state
  * @param {{nextDrawerPeerId: string, phrase: string|null}} argument
  */
-function _markRoundAsStarting(state, {nextDrawerPeerId, phrase}) {
+function _createNewRound(state, {nextDrawerPeerId, phrase}) {
     state.rounds.push({
         phrase,
         drawer: phrase ? state.localPlayer : state.remotePlayers.find(player => player.peerId === nextDrawerPeerId),
@@ -194,27 +193,32 @@ function _markRoundAsStarted(state) {
 
 /**
  * @param {GameState} state
- * @param {{phrase: string, solverPeerId: string}} phraseAndSolverPeerId
+ * @param {{phrase: string, solverPeerId: string, solutionDateTimeString: string}} phraseAndSolverPeerId
  */
-function _markRoundEnded(state, {phrase, solverPeerId}) {
+function _markRoundEnded(state, {phrase, solverPeerId, solutionDateTimeString}) {
     const currentRound = state.rounds[state.rounds.length - 1];
     const currentTrial = currentRound.trials[currentRound.trials.length - 1];
-    const solverPlayer = [state.localPlayer, ...state.remotePlayers].find(player => player.peerId === solverPeerId);
+    const allPlayers = [state.localPlayer, ...state.remotePlayers];
+    const drawerPlayer = allPlayers.find(player => player.peerId === currentRound.drawer.peerId);
+    const solverPlayer = allPlayers.find(player => player.peerId === solverPeerId);
+    if (!drawerPlayer) {
+        console.error('Drawer player with ID ' + currentRound.drawer.peerId + ' not found.');
+    }
     if (!solverPlayer) {
         console.error('Solver player with ID ' + solverPeerId + ' not found.');
     }
     currentRound.phrase = phrase;
     currentRound.solver = solverPlayer || {peerId: solverPeerId};
     currentTrial.trialResult = solverPeerId ? trialResult.solved : trialResult.failed;
-    currentTrial.finishedDateTimeString = new Date().toISOString();
+    currentTrial.finishedDateTimeString = solutionDateTimeString;
 
     /* Update score */
     if (currentTrial.trialResult === trialResult.solved) {
         const roundLengthInSeconds = (new Date(currentTrial.finishedDateTimeString).getTime() - new Date(currentRound.trials[0].startedDateTimeString).getTime()) / 1000;
-        const score = Math.max(60 - roundLengthInSeconds, 0);
+        const score = Math.ceil(Math.max(60 - roundLengthInSeconds, 5));
 
-        currentRound.drawer.score += score;
-        currentRound.solver.score += score;
+        drawerPlayer.score += score;
+        solverPlayer.score += score;
     }
 }
 

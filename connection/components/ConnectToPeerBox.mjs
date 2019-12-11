@@ -11,7 +11,7 @@ export default class ConnectToPeerBox extends React.Component {
 
     // noinspection JSUnusedGlobalSymbols
     componentDidMount() {
-        this.refs['hostId'].focus();
+        this.refs['hostPeerId'].focus();
     }
 
     _onKeyUp(event) {
@@ -28,14 +28,14 @@ export default class ConnectToPeerBox extends React.Component {
         return React.createElement('div', {className: 'connectToPeerBox'},
             React.createElement('p', {}, 'Enter your friend\'s ID here:'),
             React.createElement('input', {
-                className: 'hostId',
-                ref: 'hostId',
+                className: 'hostPeerId',
+                ref: 'hostPeerId',
                 title: 'Input the ID.',
                 value: this.state.remotePeerId,
                 disabled: this.props.isConnectingToHost || this.props.isConnectedToAnyPeers,
                 maxLength: 6,
                 autoCapitalize: 'none',
-                autoCompleteType: 'off',
+                autocompletetype: 'off',
                 onChange: event => this.setState({remotePeerId: event.target.value.toLowerCase()}),
                 onKeyUp: this._onKeyUp,
             }),

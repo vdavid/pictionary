@@ -24,7 +24,7 @@ export default class ConnectionDebugLogger {
     logOutgoingMessage(peerId, type, payload) {
         if (this._debugLevel >= 3) {
             if (type === messageTypes.newLines) {
-                console.log('Sent to ' + peerId + ': ' + length + ' new lines.');
+                console.log('Sent to ' + peerId + ': ' + payload.length + ' new lines.');
             } else if (type === messageTypes.message) {
                 console.log('Sent to ' + peerId + ': message: ' + payload);
             } else if (type === messageTypes.gameState) {

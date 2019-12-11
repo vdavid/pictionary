@@ -136,7 +136,7 @@ function mapStateToProps(state) {
     const latestRound = (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []};
     const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
     return {
-        lines: latestTrial.lines,
+        lines: latestTrial.lines || [],
         isRoundStarted: latestTrial.trialResult === trialResult.ongoing,
     };
 }

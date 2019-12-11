@@ -1,22 +1,20 @@
-import {getRandomPhrase} from '../../data/phrases.mjs';
-
 const {connect} = window.ReactRedux;
+
 import {actionCreators as gameActionCreators} from '../store.mjs';
 
 import ConnectBox from '../../connection/components/ConnectBox.mjs';
 import NoConnectionBox from '../../connection/components/NoConnectionBox.mjs';
 import RoundStartingBox from './RoundStartingBox.mjs';
-
 import Canvases from '../../canvases/components/Canvases.mjs';
 import WordDisplayComponent from './WordDisplay.mjs';
 import GuessWatcher from './GuessWatcher.mjs';
-
 import PlayerList from '../../player/components/PlayerList.mjs';
 import Chat from '../../chat/components/Chat.mjs';
 import Timer from './Timer.mjs';
 
 import {connectionListenerStatus} from '../../connection/connection-listener-status.mjs';
 import {trialResult} from '../trial-result.mjs';
+import {getRandomPhrase} from '../../data/phrases.mjs';
 
 class GamePage extends React.Component {
     render() {
@@ -46,7 +44,7 @@ class GamePage extends React.Component {
         const potentialNextDrawers = [this.props.localPlayer, ...this.props.remotePlayers];
         if (this.props.previousDrawerPeerId && (this.props.previousDrawerPeerId === this.props.currentDrawerPeerId)) {
             potentialNextDrawers.splice(potentialNextDrawers.findIndex(
-                player => player.peerId === this.props.currentDrawerPeerId));
+                player => player.peerId === this.props.currentDrawerPeerId), 1);
         }
         return potentialNextDrawers[Math.floor(Math.random() * potentialNextDrawers.length)];
     }
@@ -58,8 +56,10 @@ class GamePage extends React.Component {
             if (!this.props.isGameStarted) {
                 this.props.startGame();
             }
-            if (this.props.roundStatus === trialResult.unstarted) {
-                this.props.startRound(this._getRandomStartingPlayer().peerId);
+            if ([trialResult.unstarted, trialResult.failed, trialResult.solved].includes(this.props.roundStatus)) {
+                const randomStarterPlayer = this._getRandomStartingPlayer();
+                const phrase = (randomStarterPlayer.peerId === this.props.localPlayer.peerId) ? getRandomPhrase().trim() : null;
+                this.props.startRound(randomStarterPlayer.peerId, phrase);
             }
         }
     }
@@ -74,7 +74,7 @@ function mapStateToProps(state) {
     const previousRound = (state.game.rounds.length > 1) ? state.game.rounds[state.game.rounds.length - 2] : {trials: []};
     const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
     return {
-        shouldDisplayNoConnectionBox: ![connectionListenerStatus.notConnectedToPeerServer, connectionListenerStatus.shouldConnectToPeerServer, connectionListenerStatus.connectingToPeerServer, connectionListenerStatus.shouldDisconnectFromPeerServer, connectionListenerStatus.disconnectingFromPeerServer].includes(state.connection.connectionListenerStatus),
+        shouldDisplayNoConnectionBox: [connectionListenerStatus.notConnectedToPeerServer, connectionListenerStatus.shouldConnectToPeerServer, connectionListenerStatus.connectingToPeerServer, connectionListenerStatus.shouldDisconnectFromPeerServer, connectionListenerStatus.disconnectingFromPeerServer].includes(state.connection.connectionListenerStatus),
         shouldDisplayConnectBox: [connectionListenerStatus.listeningForConnections, connectionListenerStatus.shouldConnectToHost, connectionListenerStatus.connectingToHost].includes(state.connection.connectionListenerStatus),
         isHost: state.connection.hostPeerId === state.connection.localPeerId,
         isGameStarted: state.game.isGameStarted,
@@ -91,8 +91,8 @@ function mapDispatchToProps(dispatch) {
         startGame: () => {
             dispatch(gameActionCreators.createStartGameRequest());
         },
-        startRound: (nextDrawerPeerId) => {
-            dispatch(gameActionCreators.createStartRoundRequest(nextDrawerPeerId, getRandomPhrase().trim()));
+        startRound: (nextDrawerPeerId, phrase) => {
+            dispatch(gameActionCreators.createStartRoundRequest(nextDrawerPeerId, phrase));
         },
     };
 }

@@ -17,6 +17,7 @@ class Chat extends React.Component {
         return React.createElement('section', {id: 'chatSection'},
             React.createElement('div', {className: 'chatInputAndButton'},
                 React.createElement(ChatInput, {
+                    localPeerId: this.props.localPeerId,
                     typedMessage: this.props.typedMessage,
                     saveTypedMessage: this.props.saveTypedMessage,
                     addMessage: this.props.addMessage,
@@ -24,6 +25,7 @@ class Chat extends React.Component {
                     isLocalPlayerDrawing: this.props.isLocalPlayerDrawing,
                 }),
                 React.createElement(SendButton, {
+                    localPeerId: this.props.localPeerId,
                     typedMessage: this.props.typedMessage,
                     addMessage: this.props.addMessage,
                 }),
@@ -46,6 +48,7 @@ function mapStateToProps(state) {
         typedMessage: state.chat.typedMessage,
         messages: state.chat.messages,
         isGameStarted: state.game.isGameStarted,
+        localPeerId: state.game.localPlayer.peerId,
         isLocalPlayerDrawing: latestRound.drawer ? (latestRound.drawer.peerId === state.game.localPlayer.peerId) : false,
         players: [state.game.localPlayer, ...state.game.remotePlayers],
     };
@@ -53,11 +56,11 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
     return {
-        saveTypedMessage: message => {
-            dispatch(chatActionCreators.createSaveTypedMessageRequest(message));
+        saveTypedMessage: messageText => {
+            dispatch(chatActionCreators.createSaveTypedMessageRequest(messageText));
         },
-        addMessage: message => {
-            dispatch(chatActionCreators.createSendMessageRequest(message));
+        addMessage: (localPeerId, message) => {
+            dispatch(chatActionCreators.createSendMessageRequest(localPeerId, message));
         },
     };
 }

@@ -40,8 +40,8 @@ function mapDispatchToProps(dispatch) {
         setPlayerName: name => {
             dispatch(gameActionCreators.createUpdateLocalPlayerNameRequest(name))
         },
-        connectToHost: hostId => {
-            dispatch(connectionActionCreators.createConnectToHostRequest(hostId));
+        connectToHost: hostPeerId => {
+            dispatch(connectionActionCreators.createConnectToHostRequest(hostPeerId));
         },
     };
 }

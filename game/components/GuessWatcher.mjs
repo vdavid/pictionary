@@ -8,20 +8,16 @@ class GuessWatcher extends React.Component {
     }
 
     // noinspection JSUnusedGlobalSymbols
-    componentDidMount() {
-        this._parsedMessageCount = 0;
-    }
-
-    // noinspection JSUnusedGlobalSymbols
-    componentDidUpdate() {
-        if ((this.props.drawerPeerId === this.props.localPeerId) && (this._parsedMessageCount < this.props.messages.length)) {
+    componentDidUpdate(previousProps) {
+        /* If this is the drawer, check if any new messages are a correct guess */
+        if ((this.props.drawerPeerId === this.props.localPeerId) && (previousProps.messages.length < this.props.messages.length)) {
             /** @type {ChatMessage[]} messagesToParse */
-            const messagesToParse = this.props.messages.slice(this._parsedMessageCount);
+            const messagesToParse = this.props.messages.slice(previousProps.messages.length);
             for (const message of messagesToParse) {
                 if ((message.dateTimeString >= this.props.roundStartedDateTimeString)
                     && message.isIncoming
                     && !message.isSystemMessage
-                    && this._isMessageACorrectGuess(message)) {
+                    && this._isMessageACorrectGuess(message.text)) {
                     this.props.markRoundAsSolved(this.props.phrase, message.senderPeerId, this._getPlayerNameByPeerId(message.senderPeerId), this.props.localPeerId);
                     break;
                 }
@@ -34,8 +30,8 @@ class GuessWatcher extends React.Component {
         return player ? player.name : 'Unknown player';
     }
 
-    _isMessageACorrectGuess(message) {
-        return (message.trim().toLowerCase().indexOf(this.props.phrase.toLowerCase()) > -1);
+    _isMessageACorrectGuess(messageText) {
+        return (messageText.trim().toLowerCase().indexOf(this.props.phrase.toLowerCase()) > -1);
     }
 }
 
@@ -58,7 +54,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return {
         markRoundAsSolved: (phrase, solverPeerId, solverPlayerName, localPeerId) => {
-            dispatch(gameActionCreators.createMarkRoundEndedRequest(phrase, solverPeerId));
+            dispatch(gameActionCreators.createMarkRoundEndedRequest(phrase, solverPeerId, new Date().toISOString()));
             dispatch(chatActionCreators.createSendRoundSolvedRequest(localPeerId, solverPeerId, solverPlayerName, localPeerId, phrase));
         },
     };

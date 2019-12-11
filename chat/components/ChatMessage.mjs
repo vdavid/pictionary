@@ -12,9 +12,11 @@ export default class ChatMessage extends React.Component {
     }
 
     render() {
+        const senderAndMessageText = ((this.props.message.isIncoming && this.props.message.senderPeerId)
+            ? this._getPlayerNameByPeerId(this.props.message.senderPeerId) + ': ' : '') + this.props.message.text;
         return React.createElement('li', {className: [this.props.message.isIncoming ? 'in' : 'out', this.props.message.isSystemMessage ? 'system' : ''].join(' ').trim()},
             React.createElement('div', {className: 'message'},
-                React.createElement('span', {className: 'text'}, (this.props.message.senderPeerId ? this._getPlayerNameByPeerId(this.props.message.senderPeerId) + ': ' : '') + this.props.message.text),
+                React.createElement('span', {className: 'text'}, senderAndMessageText),
                 React.createElement('span', {className: 'dateTime'}, this._formatDate(new Date(this.props.message.dateTimeString))),
             ),
         );

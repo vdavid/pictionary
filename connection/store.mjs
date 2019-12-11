@@ -140,8 +140,8 @@ function _connectToHost(state, hostPeerId) {
  */
 function _addNewConnection(state, {remotePeerId, isIncoming, isThisTheConnectionToTheHost}) {
     state.connections.push({remotePeerId, isIncoming, isConfirmed: false, isIntroSent: false, isIntroReceived: false, isThisTheConnectionToTheHost});
-    if (isThisTheConnectionToTheHost) {
-        state.hostPeerId = remotePeerId;
+    if(isIncoming && isThisTheConnectionToTheHost) {
+        state.hostPeerId = state.localPeerId;
     }
 }
 
@@ -158,7 +158,11 @@ function _setConnectionAsConfirmed(state, remotePeerId) {
  * @param {string} remotePeerId
  */
 function _setConnectionIntroSent(state, remotePeerId) {
-    state.connections.find(connectionStatus => connectionStatus.remotePeerId === remotePeerId).isIntroSent = true;
+    const connection = state.connections.find(connectionStatus => connectionStatus.remotePeerId === remotePeerId);
+    connection.isIntroSent = true;
+    if (connection.isThisTheConnectionToTheHost && connection.isConfirmed && connection.isIntroSent && connection.isIntroReceived) {
+        state.connectionListenerStatus = connectionListenerStatus.connectedToHost;
+    }
 }
 
 /**
@@ -166,7 +170,11 @@ function _setConnectionIntroSent(state, remotePeerId) {
  * @param {string} remotePeerId
  */
 function _setConnectionIntroReceived(state, remotePeerId) {
-    state.connections.find(connectionStatus => connectionStatus.remotePeerId === remotePeerId).isIntroReceived = true;
+    const connection = state.connections.find(connectionStatus => connectionStatus.remotePeerId === remotePeerId);
+    connection.isIntroReceived = true;
+    if (connection.isThisTheConnectionToTheHost && connection.isConfirmed && connection.isIntroSent && connection.isIntroReceived) {
+        state.connectionListenerStatus = connectionListenerStatus.connectedToHost;
+    }
 }
 
 /**

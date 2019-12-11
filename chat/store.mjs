@@ -40,9 +40,9 @@ function _getStateCopy(state) {
 }
 
 export const actionCreators = {
-    createSaveTypedMessageRequest: (message) => ({type: actionTypes.SAVE_TYPED_MESSAGE_REQUEST, payload: message}),
+    createSaveTypedMessageRequest: (messageText) => ({type: actionTypes.SAVE_TYPED_MESSAGE_REQUEST, payload: messageText}),
     createAddReceivedMessageRequest: (senderPeerId, messageText) => ({type: actionTypes.ADD_RECEIVED_MESSAGE_REQUEST, payload: {senderPeerId, messageText}}),
-    createSendMessageRequest: (senderPeerId, message) => ({type: actionTypes.SEND_MESSAGE_REQUEST, payload: {senderPeerId, message}}),
+    createSendMessageRequest: (senderPeerId, messageText) => ({type: actionTypes.SEND_MESSAGE_REQUEST, payload: {senderPeerId, messageText}}),
     createSendMessageSuccess: () => ({type: actionTypes.SEND_MESSAGE_SUCCESS}),
     createSendMessageFailure: () => ({type: actionTypes.SEND_MESSAGE_FAILURE}),
     createSendRoundSolvedRequest: (drawerPeerId, solverPeerId, solverPeerName, localPeerId, phrase) => ({type: actionTypes.SEND_ROUND_SOLVED_REQUEST, payload: {drawerPeerId, solverPeerId, solverPeerName, localPeerId, phrase}}),

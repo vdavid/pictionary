@@ -19,7 +19,7 @@ export default class ChatInput extends React.Component {
             type: 'text',
             ref: 'chatInput',
             placeholder: 'Enter message or guess...',
-            maxlength: 160,
+            maxLength: 160,
             autoFocus: true,
             value: this.props.typedMessage,
             onChange: this._onTyping,
@@ -33,7 +33,7 @@ export default class ChatInput extends React.Component {
 
     _onKeyUp(event) {
         if (event.keyCode === 13) {
-            this.props.addMessage(event.target.value);
+            this.props.addMessage(this.props.localPeerId, event.target.value);
             event.target.value = '';
         }
     }

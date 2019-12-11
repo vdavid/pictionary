@@ -13,7 +13,6 @@ class GuessingCanvas extends React.Component {
 
     // noinspection JSUnusedGlobalSymbols
     componentDidMount() {
-        this._allDrawnLines = [];
         this._drawingTools = new DrawingTools(this.refs.guessingCanvas);
         this._drawingTools.updateCanvasSiteToItsClientSize();
         this._drawingTools.clearCanvas();
@@ -23,23 +22,17 @@ class GuessingCanvas extends React.Component {
 
     // noinspection JSUnusedGlobalSymbols
     componentDidUpdate(previousProps) {
-        const newLines = this.props.newLines;
-        if (newLines.length) {
-            this._allDrawnLines = [...this._allDrawnLines, ...newLines];
-
-            this._drawLines(newLines);
-        }
-
-        if (previousProps.lines.length > this.props.lines.length) {
+        if (previousProps.lines.length < this.props.lines.length) {
+            this._drawLines(this.props.lines.slice(previousProps.lines.length));
+        } else if (previousProps.lines.length > this.props.lines.length) {
             this._drawingTools.clearCanvas();
-            this._allDrawnLines = [];
         }
     }
 
     _clearAndRedraw() {
         this._drawingTools.updateCanvasSiteToItsClientSize();
         this._drawingTools.clearCanvas();
-        this._drawLines(this._allDrawnLines);
+        this._drawLines(this.props.lines);
     }
 
     _drawLines(lines) {
@@ -55,7 +48,7 @@ function mapStateToProps(state) {
     const latestRound = (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []};
     const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
     return {
-        lines: latestTrial.lines,
+        lines: latestTrial.lines || [],
     };
 }
 

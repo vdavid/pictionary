@@ -38,8 +38,7 @@ function mapDispatchToProps(dispatch) {
             dispatch(appActionCreators.createSetFullscreenStateRequest(isFullscreen));
         },
         clearDrawingCanvas: () => {
-            dispatch(gameActionCreators.createClearRequest());
-            dispatch(gameActionCreators.createStartNewTrialAfterClearingRequest());
+            dispatch(gameActionCreators.createClearRequest([]));
             dispatch(chatActionCreators.createNoteCanvasWasClearedRequest(true));
         },
     };
