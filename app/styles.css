@@ -16,7 +16,7 @@
 
 
 /* Generic styles */
-body { margin: 0; padding: 0; height: 100vh; user-select:none; font-family: 'Open Sans', 'Arial', sans-serif; font-size: 3vw; color: var(--primary-text-color); }
+body { margin: 0; padding: 0; height: 100vh; user-select: none; font-family: 'Open Sans', 'Arial', sans-serif; font-size: 3vw; color: var(--primary-text-color); }
 @media (min-width: 650px) {
     body { font-size: 1.8vw; }
 }
@@ -51,7 +51,7 @@ button { border: none; border-radius: 2px; }
 
 /* Game page layout */
 #gamePage { height: 100%; }
-#gamePageLayout { display: grid; height: 100%; grid-template-columns: auto 30%; grid-template-rows: 4em calc(70% - 8em) 2em 2em 30%; grid-template-areas: 'players players' 'canvas canvas' 'word word' 'timer timer' 'chat chat'; }
+#gamePageLayout { display: grid; height: 100%; grid-template-columns: auto 30%; grid-template-rows: 4em calc(80% - 6em) 2em 20%; grid-template-areas: 'players timer' 'canvas canvas' 'word word' 'chat chat'; }
 @media (min-width: 650px) {
     #gamePageLayout { grid-template-rows: 5em calc(100% - 8em) 3em; grid-template-areas: 'canvas players' 'canvas chat' 'word timer'; }
 }
@@ -77,7 +77,10 @@ button { border: none; border-radius: 2px; }
 #connectBox .instructions { grid-area: instructions; font-size: 0.7em; }
 #connectBox > * { text-align: center; }
 #connectBox .playerNameBox { grid-area: player; }
-#connectBox .playerNameBox input { width: 100%; text-align: center; font-size: 0.9em; }
+#connectBox .playerNameBox input { width: 100%; text-align: center; font-size: 0.6em; }
+@media (min-width: 650px) {
+    #connectBox .playerNameBox input { font-size: 0.9em; }
+}
 #connectBox .then { grid-area: then; position: relative; }
 #connectBox .then span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
 #connectBox .hostConnectionBox { grid-area: host; }
@@ -86,7 +89,10 @@ button { border: none; border-radius: 2px; }
 #connectBox .or span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
 #connectBox .connectToPeerBox { grid-area: connect; }
 #connectBox .connectToPeerBox input { display: inline-block; text-align: center; font-size: 2.5em; width: 80%; }
-#connectBox .connectToPeerBox button { margin-top: 0.5em; font-size: 1.5em; width: 80%; background-color: var(--accent-color); }
+#connectBox .connectToPeerBox button { margin-top: 0.5em; font-size: 0.7em; width: 80%; background-color: var(--accent-color); }
+@media (min-width: 650px) {
+    #connectBox .connectToPeerBox button { font-size: 1.3em; }
+}
 
 /* “Game is starting” box */
 #gameStartingBox { z-index: 3; width: 40%; padding: 1.4em 0.8em; text-align: center; }
@@ -129,6 +135,13 @@ button { border: none; border-radius: 2px; }
 }
 
 /* Timer */
-#timerSection { position: relative; padding: 0.5em 1em; }
-#timerSection div { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2em; }
-#timerSection div.overSoon { color: red; }
+#timerSection > div { height:100%; display: flex; }
+#timerSection .section { flex: 50%; height:100%; text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
+#timerSection .round { order: 1; flex: 50%; }
+#timerSection .game { order: 2; flex: 50%; }
+#timerSection .title { font-size: 0.7em; }
+#timerSection .extensionIndicator { font-size: 0.5em; }
+#timerSection .timer { font-size: 1.2em; transition: color 500ms; }
+#timerSection .timer.extension { color: #444; }
+#timerSection .timer.overSoon { color: red; }
+#timerSection .timer.over { color: red; }

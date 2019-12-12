@@ -4,6 +4,10 @@ export const messageTypes = {
     command: 'command',
     gameState: 'gameState',
     localPlayerData: 'localPlayerData',
+
+    startGameSignal: 'startGameSignal',
+    endGameSignal: 'endGameSignal',
+
     startRoundSignal: 'startRoundSignal',
     roundSolved: 'roundSolved',
     clearCanvasCommand: 'clearCanvasCommand',

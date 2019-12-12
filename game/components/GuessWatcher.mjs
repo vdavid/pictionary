@@ -55,7 +55,7 @@ function mapDispatchToProps(dispatch) {
     return {
         markRoundAsSolved: (phrase, solverPeerId, solverPlayerName, localPeerId) => {
             dispatch(gameActionCreators.createMarkRoundEndedRequest(phrase, solverPeerId, new Date().toISOString()));
-            dispatch(chatActionCreators.createSendRoundSolvedRequest(localPeerId, solverPeerId, solverPlayerName, localPeerId, phrase));
+            dispatch(chatActionCreators.createSendRoundEndedRequest(localPeerId, solverPeerId, solverPlayerName, localPeerId, phrase));
         },
     };
 }

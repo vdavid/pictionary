@@ -19,7 +19,7 @@ export const actionTypes = {
     SEND_MESSAGE_REQUEST: 'chat/SEND_MESSAGE_REQUEST',
     SEND_MESSAGE_SUCCESS: 'chat/SEND_MESSAGE_SUCCESS',
     SEND_MESSAGE_FAILURE: 'chat/SEND_MESSAGE_FAILURE',
-    SEND_ROUND_SOLVED_REQUEST: 'chat/SEND_ROUND_SOLVED_REQUEST',
+    SEND_ROUND_ENDED_REQUEST: 'chat/SEND_ROUND_ENDED_REQUEST',
     NOTE_CANVAS_WAS_CLEARED_REQUEST: 'chat/NOTE_CANVAS_WAS_CLEARED_REQUEST',
 };
 
@@ -45,7 +45,7 @@ export const actionCreators = {
     createSendMessageRequest: (senderPeerId, messageText) => ({type: actionTypes.SEND_MESSAGE_REQUEST, payload: {senderPeerId, messageText}}),
     createSendMessageSuccess: () => ({type: actionTypes.SEND_MESSAGE_SUCCESS}),
     createSendMessageFailure: () => ({type: actionTypes.SEND_MESSAGE_FAILURE}),
-    createSendRoundSolvedRequest: (drawerPeerId, solverPeerId, solverPeerName, localPeerId, phrase) => ({type: actionTypes.SEND_ROUND_SOLVED_REQUEST, payload: {drawerPeerId, solverPeerId, solverPeerName, localPeerId, phrase}}),
+    createSendRoundEndedRequest: (drawerPeerId, solverPeerId, solverPeerName, localPeerId, phrase) => ({type: actionTypes.SEND_ROUND_ENDED_REQUEST, payload: {drawerPeerId, solverPeerId, solverPeerName, localPeerId, phrase}}),
     createNoteCanvasWasClearedRequest: (isLocalPlayerDrawing) => ({type: actionTypes.NOTE_CANVAS_WAS_CLEARED_REQUEST, payload: isLocalPlayerDrawing}),
 };
 
@@ -61,7 +61,7 @@ export function reducer(state, action) {
         [actionTypes.SEND_MESSAGE_REQUEST]: _addMessageAsSending,
         [actionTypes.SEND_MESSAGE_SUCCESS]: _indicateSendingSucceeded,
         [actionTypes.SEND_MESSAGE_FAILURE]: _addSendingFailedSystemMessage,
-        [actionTypes.SEND_ROUND_SOLVED_REQUEST]: _addRoundSolvedSystemMessage,
+        [actionTypes.SEND_ROUND_ENDED_REQUEST]: _addRoundEndedSystemMessage,
         [actionTypes.NOTE_CANVAS_WAS_CLEARED_REQUEST]: _addCanvasClearedSystemMessage,
     };
     const newState = _getStateCopy(state);
@@ -119,12 +119,14 @@ function _addSendingFailedSystemMessage(state) {
  * @param {{drawerPeerId: string, solverPeerId: string, solverPeerName: string, localPeerId: string, phrase: string}} drawerPeerIdAndPhrase
  * @private
  */
-function _addRoundSolvedSystemMessage(state, {drawerPeerId, solverPeerId, solverPeerName, localPeerId, phrase}) {
-    const text = (drawerPeerId === localPeerId)
-        ? 'Yay! ' + solverPeerName + ' guessed it correctly! Let\'s see another one!'
-        : ((solverPeerId === localPeerId)
-            ? 'Yay! You guessed it correctly, it was indeed “' + phrase + '”! Let\'s see another one!'
-            : solverPeerName + ' guessed it correctly! The solution was “' + phrase + '”!');
+function _addRoundEndedSystemMessage(state, {drawerPeerId, solverPeerId, solverPeerName, localPeerId, phrase}) {
+    const text = !solverPeerId
+        ? 'No one got this one: “' + phrase + '”.'
+        : ((drawerPeerId === localPeerId)
+            ? 'Yay! ' + solverPeerName + ' guessed it correctly! Let\'s see another one!'
+            : ((solverPeerId === localPeerId)
+                ? 'Yay! You guessed it correctly, it was indeed “' + phrase + '”! Let\'s see another one!'
+                : solverPeerName + ' guessed it correctly! The solution was “' + phrase + '”!'));
     state.messages.push({senderPeerId: null, text, isIncoming: true, isSystemMessage: true, dateTimeString: new Date().toISOString()});
 }
 

@@ -20,6 +20,8 @@ import {getRandomPhrase} from '../data/phrases.mjs';
 /**
  * @typedef {Object} GameStateToSendToNewPeer
  * @property {boolean} isGameStarted
+ * @property {string|null} gameStartedDateTimeString E.g. '2019-12-08T21:49:10.161Z'
+ * @property {string|null} gameEndedDateTimeString E.g. '2019-12-08T21:49:10.161Z'
  * @property {string[]} peerIds
  * @property {RoundLog[]} rounds
  */
@@ -83,12 +85,12 @@ class PeerConnector extends React.Component {
 
         /* Send "round solved" message */
         if ((this.props.drawerPeerId === this.props.localPeerId)
-            && (!previousProps.latestTrial.finishedDateTimeString && this.props.latestTrial.finishedDateTimeString)
+            && (!previousProps.latestTrial.endedDateTimeString && this.props.latestTrial.endedDateTimeString)
             && ([trialResult.solved, trialResult.failed].includes(this.props.latestTrial.trialResult))) {
             this._sendToAllPeers(messageTypes.roundSolved, {
                 phrase: this.props.latestRound.phrase,
                 solverPeerId: this.props.latestRound.solver.peerId,
-                solutionDateTimeString: this.props.latestTrial.finishedDateTimeString
+                solutionDateTimeString: this.props.latestTrial.endedDateTimeString
             });
         }
 
@@ -116,9 +118,19 @@ class PeerConnector extends React.Component {
             }
         }
 
+        /* Send "start game" signal to everyone if this is the host */
+        if ((this.props.localPeerId === this.props.hostPeerId) && (!previousProps.isGameStarted && this.props.isGameStarted)) {
+            this._sendToAllPeers(messageTypes.startGameSignal, this.props.gameStartedDateTimeString);
+        }
+
         /* Send "start round" signal to everyone if this is the host */
         if ((this.props.localPeerId === this.props.hostPeerId) && (this.props.rounds.length > previousProps.rounds.length)) {
-            this._sendToAllPeers(messageTypes.startRoundSignal, this.props.latestRound.drawer.peerId);
+            this._sendToAllPeers(messageTypes.startRoundSignal, {roundStartingDateTimeString: this.props.latestRound.trials[0].startingDateTimeString, drawerPeerId: this.props.latestRound.drawer.peerId});
+        }
+
+        /* Send "end game" signal to everyone if this is the host */
+        if ((this.props.localPeerId === this.props.hostPeerId) && (previousProps.isGameStarted && !this.props.isGameStarted)) {
+            this._sendToAllPeers(messageTypes.endGameSignal, this.props.gameEndedDateTimeString);
         }
     }
 
@@ -162,6 +174,8 @@ class PeerConnector extends React.Component {
         /** @type {GameStateToSendToNewPeer} */
         const gameState = {
             isGameStarted: this.props.isGameStarted,
+            gameStartedDateTimeString: this.props.gameStartedDateTimeString,
+            gameEndedDateTimeString: this.props.gameEndedDateTimeString,
             peerIds,
             rounds: this.props.rounds,
         };
@@ -184,18 +198,24 @@ class PeerConnector extends React.Component {
     _handleConnectionDataReceived(remotePeerId, {type, payload}) {
         this._debugLogger.logIncomingMessage(remotePeerId, type, payload);
 
-        if (type === messageTypes.startRoundSignal) {
+        if (type === messageTypes.startGameSignal) {
+            this.props.handleStartGameSignalReceived(payload);
+
+        } else if (type === messageTypes.startRoundSignal) {
             const phrase = (payload === this.props.localPeerId) ? getRandomPhrase().trim() : null;
-            this.props.handleStartRoundSignalReceived(payload, phrase);
+            this.props.handleStartRoundSignalReceived(payload.roundStartingDateTimeString, payload.drawerPeerId, phrase);
+
+        } else if (type === messageTypes.endGameSignal) {
+            this.props.handleEndGameSignalReceived(payload);
 
         } else {
             if (type === messageTypes.roundSolved) {
                 const {phrase, solverPeerId, solutionDateTimeString} = payload;
-                const solverPlayer = [this.props.localPlayer, ...this.props.remotePlayers].find(player => player.peerId === solverPeerId);
-                if (!solverPlayer) {
+                const solverPlayer = solverPeerId && [this.props.localPlayer, ...this.props.remotePlayers].find(player => player.peerId === solverPeerId);
+                if (solverPeerId && !solverPlayer) {
                     console.log('Problem. Not found solver "' + solverPeerId + '".');
                 }
-                this.props.handleRoundSolvedSignalReceived(remotePeerId, solverPeerId, solverPlayer.name, this.props.localPeerId, solutionDateTimeString, phrase);
+                this.props.handleRoundSolvedSignalReceived(remotePeerId, solverPeerId, solverPeerId && solverPlayer.name, this.props.localPeerId, solutionDateTimeString, phrase);
 
             } else if (type === messageTypes.clearCanvasCommand) {
                 if (this.props.latestTrial.lines.length > 0) {
@@ -256,6 +276,9 @@ function mapStateToProps(state) {
     const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
 
     return {
+        isGameStarted: state.game.isGameStarted,
+        gameStartedDateTimeString: state.game.gameStartedDateTimeString,
+        gameEndedDateTimeString: state.game.gameEndedDateTimeString,
         localPeerId: state.connection.localPeerId,
         hostPeerId: state.connection.hostPeerId,
         drawerPeerId: latestRound.drawer ? latestRound.drawer.peerId : undefined,
@@ -264,7 +287,6 @@ function mapStateToProps(state) {
         localPlayer: state.game.localPlayer,
         remotePlayers: state.game.remotePlayers,
         chatMessages: state.chat.messages,
-        isGameStarted: state.game.isGameStarted,
         rounds: state.game.rounds,
         drawnLines: latestTrial.lines || [],
         latestRound,
@@ -296,12 +318,18 @@ function mapDispatchToProps(dispatch) {
             dispatch(connectionActionCreators.createRemoveConnectionRequest(remotePeerId));
             dispatch(gameActionCreators.createRemoveRemotePlayerRequest(remotePeerId));
         },
-        handleStartRoundSignalReceived(nextDrawerPeerId, phrase) {
-            dispatch(gameActionCreators.createStartRoundRequest(nextDrawerPeerId, phrase));
+        handleStartGameSignalReceived(gameStartedDateTimeString) {
+            dispatch(gameActionCreators.createStartGameRequest(gameStartedDateTimeString));
+        },
+        handleStartRoundSignalReceived(roundStartingDateTimeString, nextDrawerPeerId, phrase) {
+            dispatch(gameActionCreators.createStartRoundRequest(roundStartingDateTimeString, nextDrawerPeerId, phrase));
+        },
+        handleEndGameSignalReceived(gameEndedDateTimeString) {
+            dispatch(gameActionCreators.createEndGameRequest(gameEndedDateTimeString));
         },
         handleRoundSolvedSignalReceived(drawerPeerId, solverPeerId, solverPeerName, localPeerId, solutionDateTimeString, phrase) {
             dispatch(gameActionCreators.createMarkRoundEndedRequest(phrase, solverPeerId, solutionDateTimeString));
-            dispatch(chatActionCreators.createSendRoundSolvedRequest(drawerPeerId, solverPeerId, solverPeerName, localPeerId, phrase));
+            dispatch(chatActionCreators.createSendRoundEndedRequest(drawerPeerId, solverPeerId, solverPeerName, localPeerId, phrase));
         },
         handleClearCanvasCommandReceived() {
             dispatch(gameActionCreators.createClearRequest([]));

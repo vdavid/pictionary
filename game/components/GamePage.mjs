@@ -26,12 +26,12 @@ class GamePage extends React.Component {
                 React.createElement(PlayerList),
                 React.createElement(Chat, {state: this.props.chat}),
                 React.createElement('section', {id: 'timerSection'},
-                    (this.props.roundStatus === trialResult.ongoing) ? React.createElement(Timer, {durationInMilliseconds: 60 * 1000}) : null,
+                    (this.props.roundStatus === trialResult.ongoing) ? React.createElement(Timer, {}) : null,
                 ),
             ),
             this.props.shouldDisplayNoConnectionBox ? React.createElement(NoConnectionBox) : null,
             this.props.shouldDisplayConnectBox ? React.createElement(ConnectBox) : null,
-            (this.props.roundStatus === trialResult.starting) ? React.createElement(RoundStartingBox, {durationInMilliseconds: 3 * 1000}) : null,
+            (this.props.roundStatus === trialResult.starting) ? React.createElement(RoundStartingBox, {}) : null,
         );
     }
 
@@ -89,10 +89,10 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return {
         startGame: () => {
-            dispatch(gameActionCreators.createStartGameRequest());
+            dispatch(gameActionCreators.createStartGameRequest(new Date().toISOString()));
         },
         startRound: (nextDrawerPeerId, phrase) => {
-            dispatch(gameActionCreators.createStartRoundRequest(nextDrawerPeerId, phrase));
+            dispatch(gameActionCreators.createStartRoundRequest(new Date().toISOString(), nextDrawerPeerId, phrase));
         },
     };
 }

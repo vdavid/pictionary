@@ -22,7 +22,7 @@ class RoundStartingBox extends React.Component {
     componentDidUpdate() {
         if (this.props.isRoundStarting && !this._intervalTimer) {
             this._intervalTimer = this.props.isRoundStarting ? setInterval(this._updateSecondsRemaining, 1000) : null;
-            this._startRoundTimeout = this.props.isRoundStarting ? setTimeout(this._timeIsUp, this.props.durationInMilliseconds) : null;
+            this._startRoundTimeout = this.props.isRoundStarting ? setTimeout(this._timeIsUp, this.props.roundCountdownLengthInSeconds * 1000) : null;
         } else if (!this.props.isRoundStarting && this._intervalTimer) {
             clearInterval(this._intervalTimer);
         }
@@ -41,7 +41,7 @@ class RoundStartingBox extends React.Component {
      */
     _updateSecondsRemaining() {
         const secondsRemaining = this.props.startingDateTime
-            ? (this.props.startingDateTime.getTime() + this.props.durationInMilliseconds - (new Date()).getTime()) / 1000
+            ? (this.props.startingDateTime.getTime() + (this.props.roundCountdownLengthInSeconds * 1000) - (new Date()).getTime()) / 1000
             : undefined;
         this.setState({secondsRemaining});
     }
@@ -73,7 +73,8 @@ function mapStateToProps(state) {
     return {
         isRoundStarting: latestTrial.trialResult === trialResult.starting,
         startingDateTime: latestTrial.startingDateTimeString ? new Date(latestTrial.startingDateTimeString) : undefined,
-        isLocalPlayerDrawing: latestRound.drawer.peerId === state.game.localPlayer.peerId
+        isLocalPlayerDrawing: latestRound.drawer.peerId === state.game.localPlayer.peerId,
+        roundCountdownLengthInSeconds: state.app.config.roundCountdownLengthInSeconds,
     };
 }
 

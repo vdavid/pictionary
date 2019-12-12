@@ -5,6 +5,8 @@ import {trialResult} from './trial-result.mjs';
  * @property {Player} localPlayer
  * @property {Player[]} remotePlayers
  * @property {RoundLog[]} rounds
+ * @property {string|null} gameStartedDateTimeString E.g. '2019-12-08T21:49:10.161Z'
+ * @property {string|null} gameEndedDateTimeString E.g. '2019-12-08T21:49:10.161Z'
  */
 /**
  * @typedef {Object} Player
@@ -25,7 +27,7 @@ import {trialResult} from './trial-result.mjs';
  * @typedef {Object} RoundTrialLog
  * @property {string|null} startingDateTimeString E.g. '2019-12-08T21:49:10.161Z'
  * @property {string|null} startedDateTimeString E.g. '2019-12-08T21:49:10.161Z'
- * @property {string|null} finishedDateTimeString E.g. '2019-12-08T21:49:10.161Z'
+ * @property {string|null} endedDateTimeString E.g. '2019-12-08T21:49:10.161Z'
  * @property {{guessDateTimeString: string, guesserName: string, message: string, isCorrect: boolean}[]} guesses
  * @property {DrawnLine[]} lines
  * @property {string} trialResult One of the trialResult constants.
@@ -39,6 +41,7 @@ export const actionTypes = {
 
     SET_GAME_STATE_REQUEST: 'game/SET_GAME_STATE_REQUEST',
     START_GAME_REQUEST: 'game/START_GAME_REQUEST',
+    END_GAME_REQUEST: 'game/END_GAME_REQUEST',
 
     START_ROUND_REQUEST: 'game/START_ROUND_REQUEST',
     START_ROUND_SUCCESS: 'game/START_ROUND_SUCCESS',
@@ -55,6 +58,7 @@ export const actionTypes = {
 function _getStateCopy(state) {
     return state ? {
         isGameStarted: state.isGameStarted,
+        gameStartedDateTimeString: state.gameStartedDateTimeString,
         localPlayer: {
             name: state.localPlayer.name,
             score: state.localPlayer.score,
@@ -73,7 +77,7 @@ function _getStateCopy(state) {
             trials: round.trials.map(trial => ({
                 startingDateTimeString: trial.startingDateTimeString,
                 startedDateTimeString: trial.startedDateTimeString,
-                finishedDateTimeString: trial.finishedDateTimeString,
+                endedDateTimeString: trial.endedDateTimeString,
                 guesses: trial.guesses.map(guess => ({
                     guessDateTimeString: guess.guessDateTimeString,
                     guesserName: guess.guesserName,
@@ -86,6 +90,7 @@ function _getStateCopy(state) {
         })),
     } : {
         isGameStarted: false,
+        gameStartedDateTimeString: undefined,
         localPlayer: {name: '', score: 0, peerId: undefined},
         remotePlayers: [],
         rounds: [],
@@ -99,9 +104,10 @@ export const actionCreators = {
     createRemoveRemotePlayerRequest: (peerId) => ({type: actionTypes.REMOVE_REMOTE_PLAYER_REQUEST, payload: peerId}),
 
     createSetGameStateRequest: (gameState) => ({type: actionTypes.SET_GAME_STATE_REQUEST, payload: gameState}),
-    createStartGameRequest: () => ({type: actionTypes.START_GAME_REQUEST}),
+    createStartGameRequest: (dateTimeString) => ({type: actionTypes.START_GAME_REQUEST, payload: dateTimeString}),
+    createEndGameRequest: (dateTimeString) => ({type: actionTypes.END_GAME_REQUEST, payload: dateTimeString}),
 
-    createStartRoundRequest: (nextDrawerPeerId, phrase) => ({type: actionTypes.START_ROUND_REQUEST, payload: {nextDrawerPeerId, phrase}}),
+    createStartRoundRequest: (dateTimeString, nextDrawerPeerId, phrase) => ({type: actionTypes.START_ROUND_REQUEST, payload: {dateTimeString, nextDrawerPeerId, phrase}}),
     createStartRoundSuccess: () => ({type: actionTypes.START_ROUND_SUCCESS}),
     createMarkRoundEndedRequest: (phrase, solverPeerId, solutionDateTimeString) => ({type: actionTypes.MARK_ROUND_ENDED_REQUEST, payload: {phrase, solverPeerId, solutionDateTimeString}}),
     createSaveNewLinesRequest: (newLines) => ({type: actionTypes.SAVE_NEW_LINES_REQUEST, payload: newLines}),
@@ -123,6 +129,7 @@ export function reducer(state, action) {
 
         [actionTypes.SET_GAME_STATE_REQUEST]: _setGameState,
         [actionTypes.START_GAME_REQUEST]: _markGameAsStarted,
+        [actionTypes.END_GAME_REQUEST]: _markGameAsEnded,
 
         [actionTypes.START_ROUND_REQUEST]: _createNewRound,
         [actionTypes.START_ROUND_SUCCESS]: _markRoundAsStarted,
@@ -147,22 +154,35 @@ export function reducer(state, action) {
  */
 function _setGameState(state, receivedGameState) {
     state.isGameStarted = receivedGameState.isGameStarted;
+    state.gameStartedDateTimeString = receivedGameState.gameStartedDateTimeString;
+    state.gameEndedDateTimeString = receivedGameState.gameEndedDateTimeString;
     state.rounds = receivedGameState.rounds;
 }
 
 /**
  * @param {GameState} state
+ * @param {string} dateTimeString
  */
-function _markGameAsStarted(state) {
+function _markGameAsStarted(state, dateTimeString) {
     state.isGameStarted = true;
+    state.gameStartedDateTimeString = dateTimeString;
     state.rounds = [];
 }
 
 /**
  * @param {GameState} state
- * @param {{nextDrawerPeerId: string, phrase: string|null}} argument
+ * @param {string} dateTimeString
  */
-function _createNewRound(state, {nextDrawerPeerId, phrase}) {
+function _markGameAsEnded(state, dateTimeString) {
+    state.isGameStarted = false;
+    state.gameEndedDateTimeString = dateTimeString;
+}
+
+/**
+ * @param {GameState} state
+ * @param {{dateTimeString: string, nextDrawerPeerId: string, phrase: string|null}} argument
+ */
+function _createNewRound(state, {dateTimeString, nextDrawerPeerId, phrase}) {
     state.rounds.push({
         phrase,
         drawer: phrase ? state.localPlayer : state.remotePlayers.find(player => player.peerId === nextDrawerPeerId),
@@ -171,9 +191,9 @@ function _createNewRound(state, {nextDrawerPeerId, phrase}) {
             : [...state.remotePlayers.filter(player => player.peerId !== nextDrawerPeerId), state.localPlayer],
         solver: null,
         trials: [{
-            startingDateTimeString: new Date().toISOString(),
+            startingDateTimeString: dateTimeString,
             startedDateTimeString: null,
-            finishedDateTimeString: null,
+            endedDateTimeString: null,
             guesses: [],
             lines: [],
             trialResult: trialResult.starting
@@ -200,21 +220,21 @@ function _markRoundEnded(state, {phrase, solverPeerId, solutionDateTimeString}) 
     const currentTrial = currentRound.trials[currentRound.trials.length - 1];
     const allPlayers = [state.localPlayer, ...state.remotePlayers];
     const drawerPlayer = allPlayers.find(player => player.peerId === currentRound.drawer.peerId);
-    const solverPlayer = allPlayers.find(player => player.peerId === solverPeerId);
+    const solverPlayer = solverPeerId && allPlayers.find(player => player.peerId === solverPeerId);
     if (!drawerPlayer) {
         console.error('Drawer player with ID ' + currentRound.drawer.peerId + ' not found.');
     }
-    if (!solverPlayer) {
+    if (solverPeerId && !solverPlayer) {
         console.error('Solver player with ID ' + solverPeerId + ' not found.');
     }
     currentRound.phrase = phrase;
     currentRound.solver = solverPlayer || {peerId: solverPeerId};
     currentTrial.trialResult = solverPeerId ? trialResult.solved : trialResult.failed;
-    currentTrial.finishedDateTimeString = solutionDateTimeString;
+    currentTrial.endedDateTimeString = solutionDateTimeString;
 
     /* Update score */
     if (currentTrial.trialResult === trialResult.solved) {
-        const roundLengthInSeconds = (new Date(currentTrial.finishedDateTimeString).getTime() - new Date(currentRound.trials[0].startedDateTimeString).getTime()) / 1000;
+        const roundLengthInSeconds = (new Date(currentTrial.endedDateTimeString).getTime() - new Date(currentRound.trials[0].startedDateTimeString).getTime()) / 1000;
         const score = Math.ceil(Math.max(60 - roundLengthInSeconds, 5));
 
         drawerPlayer.score += score;
@@ -293,7 +313,7 @@ function _clear(state, newLines) {
         currentRound.trials.push({
             startingDateTimeString: new Date().toISOString(),
             startedDateTimeString: new Date().toISOString(),
-            finishedDateTimeString: null,
+            endedDateTimeString: null,
             lines: [],
             guesses: [],
             trialResult: trialResult.ongoing
