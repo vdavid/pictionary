@@ -32,6 +32,7 @@ function _getStateCopy(state) {
             roundLengthInSeconds: 60,
             timeExtensionInSeconds: 120,
             gameLengthInSeconds: 600,
+            checkForNewDrawnLinesIntervalInMilliseconds: 500,
         },
     };
 }

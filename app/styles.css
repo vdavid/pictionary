@@ -24,7 +24,7 @@ body { margin: 0; padding: 0; height: 100vh; user-select: none; font-family: 'Op
     body { font-size: 1.5vw; }
 }
 input { border: none; border-radius: 2px; color: var(--primary-text-color); }
-button { border: none; border-radius: 2px; }
+button { border: none; border-radius: 2px; background-color: var(--divider-color); }
 
 /* Common elements */
 .midScreenBox { position: absolute; z-index: 2; width: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: var(--dark-primary-color); color: var(--text-primary-color); border-radius: 2px; box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23); }
@@ -101,10 +101,14 @@ button { border: none; border-radius: 2px; }
 /* Canvases */
 #canvasSection { position: relative; }
 #canvasSection canvas { width: 100%; height: 100%; }
-#canvasSection button { position: absolute; font-size: 0.8em; }
-#canvasSection .clearButton { right: 0; bottom: 0; width: 6em; height: 2.5em; font-size: 0.8em; }
-#canvasSection .fullscreenButton { right: 0; top: 0; width: 1.2em; height: 1.2em; padding: 0; font-size: 0.8em; line-height: 1em; cursor: pointer; }
+#canvasSection .fullscreenButton { position: absolute; right: 0; top: 0; width: 1.2em; height: 1.2em; padding: 0; font-size: 0.8em; line-height: 1em; cursor: pointer; }
 #drawingCanvas { cursor: crosshair; touch-action: none; }
+
+/* Drawing buttons */
+#drawingButtonBar { position: absolute; right: 0; bottom: 0; }
+#drawingButtonBar button { height: 2.5em; font-size: 0.8em; }
+#drawingButtonBar .clearButton { width: 6em; }
+#drawingButtonBar .giveUpButton { width: 6em; }
 
 /* Word */
 #wordDisplaySection { position: relative; }
@@ -135,12 +139,9 @@ button { border: none; border-radius: 2px; }
 }
 
 /* Timer */
-#timerSection > div { height:100%; display: flex; }
-#timerSection .section { flex: 50%; height:100%; text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
-#timerSection .round { order: 1; flex: 50%; }
-#timerSection .game { order: 2; flex: 50%; }
+#timerSection > div { height: 100%; display: flex; }
+#timerSection .section { flex: 50%; height: 100%; text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
 #timerSection .title { font-size: 0.7em; }
-#timerSection .extensionIndicator { font-size: 0.5em; }
 #timerSection .timer { font-size: 1.2em; transition: color 500ms; }
 #timerSection .timer.extension { color: #444; }
 #timerSection .timer.overSoon { color: red; }

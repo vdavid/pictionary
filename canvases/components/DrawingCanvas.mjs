@@ -60,7 +60,7 @@ class DrawingCanvas extends React.Component {
         this._drawingTools.clearCanvas();
         this.props.lines.map(line => this._drawingTools.drawLine(line));
 
-        this._timer = setInterval(this._sendNewlyDrawnLines, this.props.updateEventDispatchIntervalInMilliseconds);
+        this._timer = setInterval(this._sendNewlyDrawnLines, this.props.updateIntervalInMilliseconds);
     }
 
     // noinspection JSUnusedGlobalSymbols
@@ -138,6 +138,7 @@ function mapStateToProps(state) {
     return {
         lines: latestTrial.lines || [],
         isRoundStarted: latestTrial.trialResult === trialResult.ongoing,
+        updateIntervalInMilliseconds: state.app.config.checkForNewDrawnLinesIntervalInMilliseconds,
     };
 }
 

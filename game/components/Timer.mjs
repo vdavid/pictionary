@@ -1,16 +1,13 @@
+const {connect} = window.ReactRedux;
 import {trialResult} from '../trial-result.mjs';
 import {actionCreators as gameActionCreators} from '../../game/store.mjs';
 import {actionCreators as chatActionCreators} from '../../chat/store.mjs';
-
-const React = window.React;
-
-const {connect} = window.ReactRedux;
 
 class Timer extends React.Component {
     constructor(props) {
         super(props);
         this._updateSecondsRemaining = this._updateSecondsRemaining.bind(this);
-        this.state = {gameSecondsRemaining: 0, roundSecondsRemaining: 0, isOnExtensionTime: false};
+        this.state = {gameSecondsRemaining: 0, roundSecondsRemaining: 0};
     }
 
     // noinspection JSUnusedGlobalSymbols
@@ -64,12 +61,14 @@ class Timer extends React.Component {
         const normalRoundSecondsRemaining = this.props.roundStartDateTime
             ? (this.props.roundStartDateTime.getTime() + (this.props.roundLengthInSeconds * 1000) - (new Date()).getTime()) / 1000
             : undefined;
-        const isOnExtensionTime = normalRoundSecondsRemaining <= 0;
-        const roundSecondsRemaining = normalRoundSecondsRemaining + (isOnExtensionTime ? this.props.timeExtensionInSeconds : 0);
-        this.setState({gameSecondsRemaining, roundSecondsRemaining, isOnExtensionTime});
+        const roundSecondsRemaining = normalRoundSecondsRemaining + (this.props.isRoundBaseTimeElapsed ? this.props.timeExtensionInSeconds : 0);
+        this.setState({gameSecondsRemaining, roundSecondsRemaining});
 
-        /* End round if needed */
-        if (this.props.isThisTheDrawer && (roundSecondsRemaining <= 0)) {
+        if (!this.props.isRoundBaseTimeElapsed && (normalRoundSecondsRemaining <= 0)) {
+            /* Mark base time elapsed if needed */
+            this.props.markRoundBaseTimeElapsed();
+        } else if (this.props.isThisTheDrawer && (roundSecondsRemaining <= 0)) {
+            /* End round if needed */
             this.props.markRoundAsFailed(this.props.phrase);
         }
 
@@ -81,25 +80,23 @@ class Timer extends React.Component {
 
     render() {
         const formattedGameTime = this._formatRemainingTime(this.state.gameSecondsRemaining);
-        const gameTimerClass = (this.state.gameSecondsRemaining > 30)
-            ? 'timer' : ((this.state.roundSecondsRemaining >= 0) ? 'timer overSoon' : 'timer over');
+        const isGameTimeOverSoon = this.state.gameSecondsRemaining < this.props.gameLengthInSeconds / 20;
+        const gameTimerClass = ['game', 'timer',
+            isGameTimeOverSoon ? ((this.state.roundSecondsRemaining >= 0) ? 'overSoon' : 'over') : ''].join(' ').trim();
 
         const formattedRoundTime = this._formatRemainingTime(this.state.roundSecondsRemaining);
-        const roundTimerClass = [
-            'timer',
-            this.state.isOnExtensionTime ? 'extension' : '',
-            (this.state.roundSecondsRemaining > (this.state.isOnExtensionTime ? 20 : 10))
-                ? '' : ((this.state.roundSecondsRemaining >= 0) ? 'overSoon' : 'over')
-        ].join(' ').trim();
+        const isRoundTimeOverSoon = this.state.roundSecondsRemaining
+            < (!this.props.isRoundBaseTimeElapsed ? this.props.roundLengthInSeconds : this.props.timeExtensionInSeconds) / 6;
+        const roundTimerClass = ['round', 'timer', this.props.isRoundBaseTimeElapsed ? 'extension' : '',
+            isRoundTimeOverSoon ? ((this.state.roundSecondsRemaining >= 0) ? 'overSoon' : 'over') : ''].join(' ').trim();
 
         return React.createElement('div', {},
             React.createElement('div', {className: 'section round'},
-                React.createElement('div', {className: 'title'}, 'Round:'),
-                React.createElement('div', {className: roundTimerClass}, formattedRoundTime),
-                (this.state.isOnExtensionTime ? React.createElement('div', {className: 'extensionIndicator'}, '(Extension)') : null),
+                React.createElement('div', {className: 'round title'}, 'Round:'),
+                React.createElement('div', {className: roundTimerClass}, (this.props.isRoundBaseTimeElapsed ? '+' : '') + formattedRoundTime),
             ),
             React.createElement('div', {className: 'section game'},
-                React.createElement('div', {className: 'title'}, 'Game:'),
+                React.createElement('div', {className: 'game title'}, 'Game:'),
                 React.createElement('div', {className: gameTimerClass}, formattedGameTime),
             ),
         );
@@ -121,6 +118,7 @@ function mapStateToProps(state) {
         roundLengthInSeconds: state.app.config.roundLengthInSeconds,
         timeExtensionInSeconds: state.app.config.timeExtensionInSeconds,
         gameLengthInSeconds: state.app.config.gameLengthInSeconds,
+        isRoundBaseTimeElapsed: latestRound.isRoundBaseTimeElapsed,
         isHost: state.connection.hostPeerId === state.connection.localPeerId,
         isThisTheDrawer: latestRound.drawer && (latestRound.drawer.peerId === state.game.localPlayer.peerId),
         phrase: latestRound.phrase,
@@ -129,6 +127,9 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
     return {
+        markRoundBaseTimeElapsed: () => {
+            dispatch(gameActionCreators.createMarkRoundBaseTimeElapsedRequest());
+        },
         endGame: () => {
             dispatch(gameActionCreators.createEndGameRequest(new Date().toISOString()));
         },

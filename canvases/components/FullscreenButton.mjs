@@ -1,4 +1,7 @@
-export default class FullscreenButton extends React.Component {
+const {connect} = window.ReactRedux;
+import {actionCreators as appActionCreators} from '../../app/store.mjs';
+
+class FullscreenButton extends React.Component {
     constructor(props) {
         super(props);
         this._enableFullscreen = this._enableFullscreen.bind(this);
@@ -42,3 +45,23 @@ export default class FullscreenButton extends React.Component {
             : React.createElement('button', {className: 'fullscreenButton', title: 'Exit full screen', onClick: this._disableFullscreen}, '↙');
     }
 }
+
+/**
+ * @param {State} state
+ * @returns {Object}
+ */
+function mapStateToProps(state) {
+    return {
+        isFullscreen: state.app.isFullscreen,
+    };
+}
+
+function mapDispatchToProps(dispatch) {
+    return {
+        changeFullscreen: (isFullscreen) => {
+            dispatch(appActionCreators.createSetFullscreenStateRequest(isFullscreen));
+        },
+    };
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(FullscreenButton);

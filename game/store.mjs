@@ -21,6 +21,7 @@ import {trialResult} from './trial-result.mjs';
  * @property {Player[]} guessers
  * @property {Player|null} solver
  * @property {RoundTrialLog[]} trials
+ * @property {boolean} isRoundBaseTimeElapsed
  */
 
 /**
@@ -45,6 +46,7 @@ export const actionTypes = {
 
     START_ROUND_REQUEST: 'game/START_ROUND_REQUEST',
     START_ROUND_SUCCESS: 'game/START_ROUND_SUCCESS',
+    MARK_ROUND_BASE_TIME_ELAPSED: 'game/MARK_ROUND_BASE_TIME_ELAPSED',
     MARK_ROUND_ENDED_REQUEST: 'game/MARK_ROUND_ENDED_REQUEST',
     SAVE_NEW_LINES_REQUEST: 'game/SAVE_NEW_LINES_REQUEST',
     CLEAR_REQUEST: 'game/CLEAR_REQUEST',
@@ -87,6 +89,7 @@ function _getStateCopy(state) {
                 lines: [...trial.lines],
                 trialResult: trial.trialResult,
             })),
+            isRoundBaseTimeElapsed: round.isRoundBaseTimeElapsed,
         })),
     } : {
         isGameStarted: false,
@@ -109,6 +112,7 @@ export const actionCreators = {
 
     createStartRoundRequest: (dateTimeString, nextDrawerPeerId, phrase) => ({type: actionTypes.START_ROUND_REQUEST, payload: {dateTimeString, nextDrawerPeerId, phrase}}),
     createStartRoundSuccess: () => ({type: actionTypes.START_ROUND_SUCCESS}),
+    createMarkRoundBaseTimeElapsedRequest: () => ({type: actionTypes.MARK_ROUND_BASE_TIME_ELAPSED}),
     createMarkRoundEndedRequest: (phrase, solverPeerId, solutionDateTimeString) => ({type: actionTypes.MARK_ROUND_ENDED_REQUEST, payload: {phrase, solverPeerId, solutionDateTimeString}}),
     createSaveNewLinesRequest: (newLines) => ({type: actionTypes.SAVE_NEW_LINES_REQUEST, payload: newLines}),
     createClearRequest: (newLines) => ({type: actionTypes.CLEAR_REQUEST, payload: newLines}),
@@ -133,6 +137,7 @@ export function reducer(state, action) {
 
         [actionTypes.START_ROUND_REQUEST]: _createNewRound,
         [actionTypes.START_ROUND_SUCCESS]: _markRoundAsStarted,
+        [actionTypes.MARK_ROUND_BASE_TIME_ELAPSED]: _markRoundBaseTimeElapsed,
         [actionTypes.MARK_ROUND_ENDED_REQUEST]: _markRoundEnded,
         [actionTypes.SAVE_NEW_LINES_REQUEST]: _saveNewLines,
         [actionTypes.ADD_NEW_GUESS_REQUEST]: _addNewGuess,
@@ -197,7 +202,8 @@ function _createNewRound(state, {dateTimeString, nextDrawerPeerId, phrase}) {
             guesses: [],
             lines: [],
             trialResult: trialResult.starting
-        }]
+        }],
+        isRoundBaseTimeElapsed: false,
     });
 }
 
@@ -209,6 +215,11 @@ function _markRoundAsStarted(state) {
     const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
     latestTrial.trialResult = trialResult.ongoing;
     latestTrial.startedDateTimeString = new Date().toISOString();
+}
+
+function _markRoundBaseTimeElapsed(state) {
+    const latestRound = (state.rounds.length > 0) ? state.rounds[state.rounds.length - 1] : {};
+    latestRound.isRoundBaseTimeElapsed = true;
 }
 
 /**
