@@ -202,7 +202,7 @@ class PeerConnector extends React.Component {
             this.props.handleStartGameSignalReceived(payload);
 
         } else if (type === messageTypes.startRoundSignal) {
-            const phrase = (payload === this.props.localPeerId) ? getRandomPhrase().trim() : null;
+            const phrase = (payload.drawerPeerId === this.props.localPeerId) ? getRandomPhrase().trim() : null;
             this.props.handleStartRoundSignalReceived(payload.roundStartingDateTimeString, payload.drawerPeerId, phrase);
 
         } else if (type === messageTypes.endGameSignal) {
