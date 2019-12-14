@@ -36,16 +36,30 @@ class GamePage extends React.Component {
     }
 
     /**
+     * Creates a list of potential next drawers.
+     * If some player(s) have drawn 1–2 or more times less than someone else, they get to draw.
+     * In case of 2–3 players, the difference can be 2, in case of more players, 1.
      * @returns {Player}
      * @private
      */
     _getRandomStartingPlayer() {
-        /* Create list of potential next drawers. If someone had the past 2 rounds, take them out of the potentials. */
-        const potentialNextDrawers = [this.props.localPlayer, ...this.props.remotePlayers];
-        if (this.props.previousDrawerPeerId && (this.props.previousDrawerPeerId === this.props.currentDrawerPeerId)) {
-            potentialNextDrawers.splice(potentialNextDrawers.findIndex(
-                player => player.peerId === this.props.currentDrawerPeerId), 1);
-        }
+        const allPlayers = [this.props.localPlayer, ...this.props.remotePlayers];
+        const maxDifference = allPlayers.length < 4 ? 2 : 1;
+        /* Calculate how many times each player wsa the drawer */
+        /** @type {Object<string, int>} */
+        const drawerCounts = allPlayers.reduce((counts, player) => {
+            counts[player.peerId] = 0;
+            return counts;
+        }, {});
+        this.props.rounds.forEach(round => drawerCounts[round.drawer.peerId]++);
+
+        const maxDrawerCount = Math.max(...Object.values(drawerCounts));
+        const idlePlayerPeerIds = Object.entries(drawerCounts).filter(([, drawerCount]) => drawerCount <= maxDrawerCount - maxDifference).map(([peerId]) => peerId);
+
+        /* Select players */
+        const potentialNextDrawers = idlePlayerPeerIds.length
+            ? allPlayers.filter(player => idlePlayerPeerIds.includes(player.peerId)) : allPlayers;
+
         return potentialNextDrawers[Math.floor(Math.random() * potentialNextDrawers.length)];
     }
 
@@ -78,6 +92,7 @@ function mapStateToProps(state) {
         shouldDisplayConnectBox: [connectionListenerStatus.listeningForConnections, connectionListenerStatus.shouldConnectToHost, connectionListenerStatus.connectingToHost].includes(state.connection.connectionListenerStatus),
         isHost: state.connection.hostPeerId === state.connection.localPeerId,
         isGameStarted: state.game.isGameStarted,
+        rounds: state.game.rounds,
         roundStatus: latestTrial.trialResult || trialResult.unstarted,
         previousDrawerPeerId: previousRound.drawer ? previousRound.drawer.peerId : undefined,
         currentDrawerPeerId: latestRound.drawer ? latestRound.drawer.peerId : undefined,
