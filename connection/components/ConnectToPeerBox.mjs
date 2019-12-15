@@ -1,49 +1,33 @@
+import {actionCreators as connectionActionCreators} from '../store.mjs';
+
 const React = window.React;
-export default class ConnectToPeerBox extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            remotePeerId: '',
-        };
-        this._onKeyUp = this._onKeyUp.bind(this);
-        this._connectToCurrentlyEnteredRemotePeer = this._connectToCurrentlyEnteredRemotePeer.bind(this);
-    }
+const {useState} = window.React;
+const {useSelector, useDispatch} = window.ReactRedux;
 
-    render() {
-        return React.createElement('div', {className: 'connectToPeerBox'},
-            React.createElement('p', {}, 'Enter your friend\'s ID here:'),
-            React.createElement('input', {
-                className: 'hostPeerId',
-                ref: 'hostPeerId',
-                title: 'Input the ID.',
-                value: this.state.remotePeerId,
-                disabled: this.props.isConnectingToHost || this.props.isConnectedToAnyPeers,
-                maxLength: 6,
-                autoCapitalize: 'none',
-                autocompletetype: 'off',
-                onChange: event => this.setState({remotePeerId: event.target.value.toLowerCase()}),
-                onKeyUp: this._onKeyUp,
-            }),
-            React.createElement('button', {
-                className: 'connectButton',
-                onClick: this._connectToCurrentlyEnteredRemotePeer,
-                disabled: this.props.isConnectingToHost || this.props.isConnectedToAnyPeers || !this.state.remotePeerId,
-            }, 'Connect'),
-        );
-    }
+export const ConnectToPeerBox = () => {
+    const dispatch = useDispatch();
+    const [remotePeerId, setRemotePeerId] = useState('');
+    const isConnectingToHost = useSelector(state => state.connection.isConnectingToHost);
+    const isConnectedToAnyPeers = useSelector(state => state.connection.isConnectedToAnyPeers);
+    const connectToHost = (hostPeerId) => dispatch(connectionActionCreators.createConnectToHostRequest(hostPeerId));
 
-    // noinspection JSUnusedGlobalSymbols
-    componentDidMount() {
-        this.refs['hostPeerId'].focus();
-    }
-
-    _onKeyUp(event) {
-        if (event.keyCode === 13) {
-            this._connectToCurrentlyEnteredRemotePeer();
-        }
-    }
-
-    _connectToCurrentlyEnteredRemotePeer() {
-        this.props.connect(this.state.remotePeerId);
-    }
-}
+    return React.createElement('div', {className: 'connectToPeerBox'},
+        React.createElement('p', {}, 'Enter your friend\'s ID here:'),
+        React.createElement('input', {
+            className: 'hostPeerId',
+            title: 'Input the ID.',
+            value: remotePeerId,
+            disabled: isConnectingToHost || isConnectedToAnyPeers,
+            maxLength: 6,
+            autoCapitalize: 'none',
+            autocompletetype: 'off',
+            onChange: event => setRemotePeerId(event.target.value.toLowerCase()),
+            onKeyUp: (event) => event.keyCode === 13 ? connectToHost(remotePeerId) : null,
+        }),
+        React.createElement('button', {
+            className: 'connectButton',
+            onClick: () => connectToHost(remotePeerId),
+            disabled: isConnectingToHost || isConnectedToAnyPeers || !remotePeerId,
+        }, 'Connect'),
+    );
+};

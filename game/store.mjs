@@ -94,7 +94,7 @@ function _getStateCopy(state) {
     } : {
         isGameStarted: false,
         gameStartedDateTimeString: undefined,
-        localPlayer: {name: '', score: 0, peerId: undefined},
+        localPlayer: {name: null, score: 0, peerId: undefined},
         remotePlayers: [],
         rounds: [],
     };

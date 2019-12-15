@@ -1,14 +1,17 @@
 /**
- * @param {State} state
+ * @param {string} name
  */
-export function saveState(state) {
+export function savePlayerName(name) {
     try {
-        localStorage.setItem('pictionary.playerName', state.game.localPlayer.name);
+        localStorage.setItem('pictionary.playerName', name);
     } catch {
         /* Ignore write errors */
     }
 }
 
+/**
+ * @returns {string|undefined}
+ */
 export function loadPlayerName() {
     try {
         return localStorage.getItem('pictionary.playerName');

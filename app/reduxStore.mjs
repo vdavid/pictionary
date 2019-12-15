@@ -1,10 +1,8 @@
 const {Redux, __REDUX_DEVTOOLS_EXTENSION_COMPOSE__: reduxDevToolsCompose} = window;
-import {throttle} from './utils.mjs';
 import {reducer as appReducer} from './store.mjs';
 import {reducer as connectionReducer} from '../connection/store.mjs';
 import {reducer as chatReducer} from '../chat/store.mjs';
 import {reducer as gameReducer} from '../game/store.mjs';
-import {saveState} from './localStoragePersistence.mjs';
 
 /**
  * @typedef {Object} State
@@ -25,8 +23,5 @@ const combinedReducer = Redux.combineReducers({
 const composeEnhancers = reduxDevToolsCompose || Redux.compose;
 
 const store = Redux.createStore(combinedReducer, composeEnhancers(Redux.applyMiddleware()));
-
-/* Save state to local storage every 5 minutes */
-store.subscribe(throttle(() => saveState(store.getState()), 5000));
 
 export default store;

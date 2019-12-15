@@ -1,44 +1,29 @@
+import {connectionListenerStatus as statuses} from '../connection-listener-status.mjs';
+
 const React = window.React;
-const {connect} = window.ReactRedux;
-import {connectionListenerStatus} from '../connection-listener-status.mjs';
-import IndicatorLight from './IndicatorLight.mjs';
+const {useSelector} = window.ReactRedux;
 
-class ConnectionStatusIndicator extends React.Component {
-    render() {
-        const {statusText, color} = this._getStatusTextAndColor();
-        return React.createElement('section', {id: 'connectionSection'},
-            React.createElement('div', {}, statusText),
-            React.createElement(IndicatorLight, {color}),
-        );
-    }
+export const ConnectionStatusIndicator = () => {
+    const hostPeerId = useSelector(state => state.connection.hostPeerId);
+    const currentStatus = useSelector(state => state.connection.connectionListenerStatus);
+    const {statusText, color} = _getStatusTextAndColor(hostPeerId, currentStatus);
+    return React.createElement('section', {id: 'connectionSection'},
+        React.createElement('div', {}, statusText),
+        React.createElement('div', {className: 'indicatorLight' + ' ' + color}),
+    );
 
-    _getStatusTextAndColor() {
+    function _getStatusTextAndColor(hostPeerId, currentStatus) {
         const connectionListenerStatusToStatusTextAndColorMap = {
-            [connectionListenerStatus.notConnectedToPeerServer]: {statusText: 'Not accepting connections.', color: 'red'},
-            [connectionListenerStatus.shouldConnectToPeerServer]: {statusText: 'Starting connecting to server...', color: 'yellow'},
-            [connectionListenerStatus.connectingToPeerServer]: {statusText: 'Connecting to server...', color: 'yellow'},
-            [connectionListenerStatus.listeningForConnections]: {statusText: 'Awaiting connection.', color: 'green'},
-            [connectionListenerStatus.shouldConnectToHost]: {statusText: 'Starting connecting to ' + this.props.hostPeerId + '...', color: 'yellow'},
-            [connectionListenerStatus.connectingToHost]: {statusText: 'Connecting to ' + this.props.hostPeerId + '...', color: 'yellow'},
-            [connectionListenerStatus.connectedToHost]: {statusText: 'Connected. Game ID: ' + this.props.hostPeerId + '.', color: 'green'},
-            [connectionListenerStatus.shouldDisconnectFromPeerServer]: {statusText: 'Starting disconnecting...', color: 'yellow'},
-            [connectionListenerStatus.disconnectingFromPeerServer]: {statusText: 'Disconnecting...', color: 'yellow'},
+            [statuses.notConnectedToPeerServer]: {statusText: 'Not accepting connections.', color: 'red'},
+            [statuses.shouldConnectToPeerServer]: {statusText: 'Starting connecting to server...', color: 'yellow'},
+            [statuses.connectingToPeerServer]: {statusText: 'Connecting to server...', color: 'yellow'},
+            [statuses.listeningForConnections]: {statusText: 'Awaiting connection.', color: 'green'},
+            [statuses.shouldConnectToHost]: {statusText: 'Starting connecting to ' + hostPeerId + '...', color: 'yellow'},
+            [statuses.connectingToHost]: {statusText: 'Connecting to ' + hostPeerId + '...', color: 'yellow'},
+            [statuses.connectedToHost]: {statusText: 'Connected. Game ID: ' + hostPeerId + '.', color: 'green'},
+            [statuses.shouldDisconnectFromPeerServer]: {statusText: 'Starting disconnecting...', color: 'yellow'},
+            [statuses.disconnectingFromPeerServer]: {statusText: 'Disconnecting...', color: 'yellow'},
         };
-        return connectionListenerStatusToStatusTextAndColorMap[this.props.connectionListenerStatus];
+        return connectionListenerStatusToStatusTextAndColorMap[currentStatus];
     }
-}
-
-/**
- * @param {State} state
- * @returns {Object}
- */
-function mapStateToProps(state) {
-    return {
-        connectionListenerStatus: state.connection.connectionListenerStatus,
-        isConnectingToHost: state.connection.isConnectingToHost,
-        isConnectedToAnyPeers: state.connection.isConnectedToAnyPeers,
-        hostPeerId: state.connection.hostPeerId
-    };
-}
-
-export default connect(mapStateToProps)(ConnectionStatusIndicator);
+};
