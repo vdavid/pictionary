@@ -37,15 +37,14 @@ class GamePage extends React.Component {
 
     /**
      * Creates a list of potential next drawers.
-     * If some player(s) have drawn 1–2 or more times less than someone else, they get to draw.
-     * In case of 2–3 players, the difference can be 2, in case of more players, 1.
+     * If some player(s) have drawn 1 or more times less than someone else, they get to draw.
      * @returns {Player}
      * @private
      */
     _getRandomStartingPlayer() {
         const allPlayers = [this.props.localPlayer, ...this.props.remotePlayers];
-        const maxDifference = allPlayers.length < 4 ? 2 : 1;
-        /* Calculate how many times each player wsa the drawer */
+        const maxDifference = 1;
+        /* Calculate how many times each player was the drawer */
         /** @type {Object<string, int>} */
         const drawerCounts = allPlayers.reduce((counts, player) => {
             counts[player.peerId] = 0;
