@@ -1,29 +1,19 @@
-const {connect} = window.ReactRedux;
 import DrawingCanvas from './DrawingCanvas.mjs';
-import GuessingCanvas from './GuessingCanvas.mjs';
+import {GuessingCanvas} from './GuessingCanvas.mjs';
 import FullscreenButton from './FullscreenButton.mjs';
 import DrawingButtonBar from './DrawingButtonBar.mjs';
 
-class Canvases extends React.Component {
-    render() {
-        return React.createElement('section', {id: 'canvasSection'},
-            this.props.isLocalPlayerDrawing ? React.createElement(DrawingCanvas) : null,
-            React.createElement(FullscreenButton),
-            this.props.isLocalPlayerDrawing ? React.createElement(DrawingButtonBar) : null,
-            !this.props.isLocalPlayerDrawing ? React.createElement(GuessingCanvas) : null,
-        );
-    }
-}
+const {useSelector} = window.ReactRedux;
 
-/**
- * @param {State} state
- * @returns {Object}
- */
-function mapStateToProps(state) {
-    const latestRound = (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []};
-    return {
-        isLocalPlayerDrawing: latestRound.drawer ? (latestRound.drawer.peerId === state.game.localPlayer.peerId) : false,
-    };
-}
+export const Canvases = () => {
+    const latestRound = useSelector(state => (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []});
+    const localPeerId = useSelector(state => state.game.localPlayer.peerId);
+    const isLocalPlayerDrawing = latestRound.drawer ? (latestRound.drawer.peerId === localPeerId) : false;
 
-export default connect(mapStateToProps)(Canvases);
+    return React.createElement('section', {id: 'canvasSection'},
+        isLocalPlayerDrawing ? React.createElement(DrawingCanvas) : null,
+        React.createElement(FullscreenButton),
+        isLocalPlayerDrawing ? React.createElement(DrawingButtonBar) : null,
+        !isLocalPlayerDrawing ? React.createElement(GuessingCanvas) : null,
+    );
+};

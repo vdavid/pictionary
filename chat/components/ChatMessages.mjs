@@ -1,15 +1,17 @@
-import ChatMessage from './ChatMessage.mjs';
+import {ChatMessage} from './ChatMessage.mjs';
 
-export default class ChatMessages extends React.Component {
-    // noinspection JSUnusedGlobalSymbols
-    componentDidUpdate(previousProps) {
-        if (this.props.messages.length !== previousProps.messages.length) {
-            this.refs['chatMessages'].scrollTop = this.refs['chatMessages'].scrollHeight;
-        }
-    }
+const {useEffect, useRef} = window.React;
+const {useSelector} = window.ReactRedux;
 
-    render() {
-        return React.createElement('ul', {ref: 'chatMessages'},
-            this.props.messages.map((message, index) => React.createElement(ChatMessage, {key: index, message, players: this.props.players})));
-    }
-}
+export const ChatMessages = () => {
+    const messages = useSelector(state => state.chat.messages);
+    const players = useSelector(state => [state.game.localPlayer, ...state.game.remotePlayers]);
+    const chatMessages = useRef(null);
+
+    useEffect(() => {
+        chatMessages.current.scrollTop = chatMessages.current.scrollHeight;
+    }, [messages.length]);
+
+    return React.createElement('ul', {ref: chatMessages},
+        messages.map((message, key) => React.createElement(ChatMessage, {key, message, players})));
+};

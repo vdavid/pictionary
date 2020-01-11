@@ -1,55 +1,49 @@
-const {connect} = window.ReactRedux;
 import DrawingTools from '../DrawingTools.mjs';
 
-class GuessingCanvas extends React.Component {
-    constructor(props) {
-        super(props);
-        this._clearAndRedraw = this._clearAndRedraw.bind(this);
-    }
+const {useState, useEffect, useRef} = window.React;
+const {useSelector} = window.ReactRedux;
 
-    render() {
-        return React.createElement('canvas', {id: 'guessingCanvas', ref: 'guessingCanvas'});
-    }
-
-    // noinspection JSUnusedGlobalSymbols
-    componentDidMount() {
-        this._drawingTools = new DrawingTools(this.refs.guessingCanvas);
-        this._drawingTools.updateCanvasSiteToItsClientSize();
-        this._drawingTools.clearCanvas();
-
-        window.addEventListener('resize', this._clearAndRedraw);
-    }
-
-    // noinspection JSUnusedGlobalSymbols
-    componentDidUpdate(previousProps) {
-        if (previousProps.lines.length < this.props.lines.length) {
-            this._drawLines(this.props.lines.slice(previousProps.lines.length));
-        } else if (previousProps.lines.length > this.props.lines.length) {
-            this._drawingTools.clearCanvas();
-        }
-    }
-
-    _clearAndRedraw() {
-        this._drawingTools.updateCanvasSiteToItsClientSize();
-        this._drawingTools.clearCanvas();
-        this._drawLines(this.props.lines);
-    }
-
-    _drawLines(lines) {
-        lines.map(line => this._drawingTools.drawLine(line));
-    }
-}
-
-/**
- * @param {State} state
- * @returns {Object}
- */
-function mapStateToProps(state) {
-    const latestRound = (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []};
+export const GuessingCanvas = () => {
+    const latestRound = useSelector(state => (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []});
     const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
-    return {
-        lines: latestTrial.lines || [],
-    };
-}
+    const lines = latestTrial.lines || [];
+    const [drawnLineCount, setDrawnLineCount] = useState(0);
+    const guessingCanvas = useRef(null);
+    const [drawingTools, setDrawingTools] = useState(null);
 
-export default connect(mapStateToProps)(GuessingCanvas);
+    useEffect(() => {
+        if (guessingCanvas.current) {
+            const newDrawingTools = new DrawingTools(guessingCanvas.current);
+            setDrawingTools(newDrawingTools);
+            newDrawingTools.updateCanvasSiteToItsClientSize();
+            newDrawingTools.clearCanvas();
+
+            window.addEventListener('resize', _clearAndRedraw);
+            return () => { window.removeEventListener('resize', _clearAndRedraw); };
+        }
+    }, [guessingCanvas.current]);
+
+    useEffect(() => {
+        if (drawingTools) {
+            if (drawnLineCount < lines.length) {
+                _drawLines(lines.slice(drawnLineCount));
+                setDrawnLineCount(lines.length);
+            } else if (drawnLineCount > lines.length) {
+                drawingTools.clearCanvas();
+                setDrawnLineCount(0);
+            }
+        }
+    }, [drawingTools, lines.length]);
+
+    return React.createElement('canvas', {id: 'guessingCanvas', ref: guessingCanvas});
+
+    function _clearAndRedraw() {
+        drawingTools.updateCanvasSiteToItsClientSize();
+        drawingTools.clearCanvas();
+        _drawLines(lines);
+    }
+
+    function _drawLines(lines) {
+        lines.map(line => drawingTools.drawLine(line));
+    }
+};

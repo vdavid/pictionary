@@ -1,40 +1,27 @@
-export default class ChatInput extends React.Component {
-    constructor(props) {
-        super(props);
-        this._onTyping = this._onTyping.bind(this);
-        this._onKeyUp = this._onKeyUp.bind(this);
-    }
+import {actionCreators as chatActionCreators} from '../store.mjs';
 
-    // noinspection JSUnusedGlobalSymbols
-    componentDidUpdate() {
-        const input = this.refs['chatInput'];
-        if (this.props.isGameStarted && (document.activeElement !== input) && (!this.props.isLocalPlayerDrawing)) {
-            input.focus();
-            input.setSelectionRange(input.value.length, input.value.length);
-        }
-    }
+const {useSelector, useDispatch} = window.ReactRedux;
 
-    render() {
-        return React.createElement('input', {
-            type: 'text',
-            ref: 'chatInput',
-            placeholder: 'Enter message or guess...',
-            maxLength: 160,
-            autoFocus: true,
-            value: this.props.typedMessage,
-            onChange: this._onTyping,
-            onKeyUp: this._onKeyUp,
-        });
-    }
+export const ChatInput = () => {
+    const dispatch = useDispatch();
+    const typedMessage = useSelector(state => state.chat.typedMessage);
+    const localPeerId = useSelector(state => state.game.localPlayer.peerId);
 
-    _onTyping(event) {
-        this.props.saveTypedMessage(event.target.value);
-    }
+    const addMessage = messageText => dispatch(chatActionCreators.createSendMessageRequest(localPeerId, messageText));
+    const saveTypedMessage = messageText => dispatch(chatActionCreators.createSaveTypedMessageRequest(messageText));
 
-    _onKeyUp(event) {
-        if (event.keyCode === 13) {
-            this.props.addMessage(this.props.localPeerId, event.target.value);
-            event.target.value = '';
-        }
-    }
-}
+    return React.createElement('input', {
+        type: 'text',
+        placeholder: 'Enter message or guess...',
+        maxLength: 160,
+        autoFocus: true,
+        value: typedMessage,
+        onChange: event => saveTypedMessage(event.target.value),
+        onKeyUp: event => {
+            if (event.keyCode === 13) {
+                addMessage(event.target.value);
+                event.target.value = '';
+            }
+        },
+    });
+};

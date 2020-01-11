@@ -2,16 +2,17 @@ import {actionCreators as gameActionCreators} from '../store.mjs';
 import {ConnectBox} from '../../connection/components/ConnectBox.mjs';
 import {NoConnectionBox} from '../../connection/components/NoConnectionBox.mjs';
 import RoundStartingBox from './RoundStartingBox.mjs';
-import Canvases from '../../canvases/components/Canvases.mjs';
+import {Canvases} from '../../canvases/components/Canvases.mjs';
 import WordDisplayComponent from './WordDisplay.mjs';
 import GuessWatcher from './GuessWatcher.mjs';
 import PlayerList from '../../player/components/PlayerList.mjs';
-import Chat from '../../chat/components/Chat.mjs';
+import {Chat} from '../../chat/components/Chat.mjs';
 import Timer from './Timer.mjs';
 import {connectionListenerStatus} from '../../connection/connection-listener-status.mjs';
 import {trialResult} from '../trial-result.mjs';
 import {getRandomPhrase} from '../../data/phrases.mjs';
 
+const {useEffect} = window.React;
 const {useSelector, useDispatch} = window.ReactRedux;
 
 export const GamePage = () => {
@@ -29,16 +30,18 @@ export const GamePage = () => {
     const remotePlayers = useSelector(state => state.game.remotePlayers);
 
     /* Take control of the game if this is the host and there are players */
-    if (isHost && (remotePlayers.length > 0)) {
-        if (!isGameStarted) {
-            dispatch(gameActionCreators.createStartGameRequest(new Date().toISOString()));
+    useEffect(() => {
+        if (isHost && (remotePlayers.length > 0)) {
+            if (!isGameStarted) {
+                dispatch(gameActionCreators.createStartGameRequest(new Date().toISOString()));
+            }
+            if ([trialResult.unstarted, trialResult.failed, trialResult.solved].includes(roundStatus)) {
+                const randomStarterPlayer = _getRandomStartingPlayer();
+                const phrase = (randomStarterPlayer.peerId === localPlayer.peerId) ? getRandomPhrase().trim() : null;
+                dispatch(gameActionCreators.createStartRoundRequest(new Date().toISOString(), randomStarterPlayer.peerId, phrase));
+            }
         }
-        if ([trialResult.unstarted, trialResult.failed, trialResult.solved].includes(roundStatus)) {
-            const randomStarterPlayer = _getRandomStartingPlayer();
-            const phrase = (randomStarterPlayer.peerId === localPlayer.peerId) ? getRandomPhrase().trim() : null;
-            dispatch(gameActionCreators.createStartRoundRequest(new Date().toISOString(), randomStarterPlayer.peerId, phrase));
-        }
-    }
+    }, [isHost, remotePlayers.length, isGameStarted, roundStatus]);
 
     return React.createElement('div', {id: 'gamePage'},
         React.createElement('div', {id: 'gamePageLayout'},
