@@ -7,7 +7,7 @@ import WordDisplayComponent from './WordDisplay.mjs';
 import GuessWatcher from './GuessWatcher.mjs';
 import PlayerList from '../../player/components/PlayerList.mjs';
 import {Chat} from '../../chat/components/Chat.mjs';
-import Timer from './Timer.mjs';
+import {Timer} from './Timer.mjs';
 import {connectionListenerStatus} from '../../connection/connection-listener-status.mjs';
 import {trialResult} from '../trial-result.mjs';
 import {getRandomPhrase} from '../../data/phrases.mjs';
