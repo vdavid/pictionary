@@ -2,8 +2,6 @@ import {PlayerNameBox} from '../../player/components/PlayerNameBox.mjs';
 import {HostConnectionBox} from './HostConnectionBox.mjs';
 import {ConnectToPeerBox} from './ConnectToPeerBox.mjs';
 
-const React = window.React;
-
 export const ConnectBox = () => {
     return React.createElement('div', {},
         React.createElement('div', {className: 'fullScreenSemiTransparentCover'}),

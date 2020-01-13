@@ -1,7 +1,7 @@
-import DrawingCanvas from './DrawingCanvas.mjs';
+import {DrawingCanvas} from './DrawingCanvas.mjs';
 import {GuessingCanvas} from './GuessingCanvas.mjs';
-import FullscreenButton from './FullscreenButton.mjs';
-import DrawingButtonBar from './DrawingButtonBar.mjs';
+import {FullscreenButton} from './FullscreenButton.mjs';
+import {DrawingButtonBar} from './DrawingButtonBar.mjs';
 
 const {useSelector} = window.ReactRedux;
 

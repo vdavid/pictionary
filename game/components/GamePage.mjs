@@ -1,11 +1,11 @@
 import {actionCreators as gameActionCreators} from '../store.mjs';
 import {ConnectBox} from '../../connection/components/ConnectBox.mjs';
 import {NoConnectionBox} from '../../connection/components/NoConnectionBox.mjs';
-import RoundStartingBox from './RoundStartingBox.mjs';
+import {RoundStartingBox} from './RoundStartingBox.mjs';
 import {Canvases} from '../../canvases/components/Canvases.mjs';
-import WordDisplayComponent from './WordDisplay.mjs';
-import GuessWatcher from './GuessWatcher.mjs';
-import PlayerList from '../../player/components/PlayerList.mjs';
+import {WordDisplay} from './WordDisplay.mjs';
+import {GuessWatcher} from './GuessWatcher.mjs';
+import {PlayerList} from '../../player/components/PlayerList.mjs';
 import {Chat} from '../../chat/components/Chat.mjs';
 import {Timer} from './Timer.mjs';
 import {connectionListenerStatus} from '../../connection/connection-listener-status.mjs';
@@ -17,6 +17,7 @@ const {useSelector, useDispatch} = window.ReactRedux;
 
 export const GamePage = () => {
     const dispatch = useDispatch();
+
     const latestRound = useSelector(state => (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []});
     const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
     const currentConnectionListenerStatus = useSelector(state => state.connection.connectionListenerStatus);
@@ -46,7 +47,7 @@ export const GamePage = () => {
     return React.createElement('div', {id: 'gamePage'},
         React.createElement('div', {id: 'gamePageLayout'},
             React.createElement(Canvases),
-            React.createElement(WordDisplayComponent),
+            React.createElement(WordDisplay),
             React.createElement(GuessWatcher),
             React.createElement(PlayerList),
             React.createElement(Chat),

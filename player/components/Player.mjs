@@ -1,11 +1,9 @@
-import Avatar from './Avatar.mjs';
+import {Avatar} from './Avatar.mjs';
 
-export default class Player extends React.Component {
-    render() {
-        return React.createElement('li', {className: [this.props.isHost ? 'host' : '', this.props.isLocal ? 'local' : ''].join(' ').trim()},
-            React.createElement(Avatar, {name: this.props.name, size: 40}),
-            React.createElement('span', {className: 'name'}, this.props.name),
-            React.createElement('span', {className: 'score'}, this.props.score),
-        );
-    }
-}
+export const Player = ({isHost, isLocal, name, score}) => {
+    return React.createElement('li', {className: [isHost ? 'host' : '', isLocal ? 'local' : ''].join(' ').trim()},
+        React.createElement(Avatar, {name, size: 40}),
+        React.createElement('span', {className: 'name'}, name),
+        React.createElement('span', {className: 'score'}, score),
+    );
+};

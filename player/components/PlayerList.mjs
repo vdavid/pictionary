@@ -1,39 +1,28 @@
-const {connect} = window.ReactRedux;
-import Player from './Player.mjs';
+import {Player} from './Player.mjs';
 
-class PlayerList extends React.Component {
-    render() {
-        return React.createElement('div', {className: 'playerList'},
-            React.createElement('ul', {},
-                React.createElement(Player, {
-                    name: this.props.localPlayer.name,
-                    score: this.props.localPlayer.score,
-                    peerId: this.props.localPlayer.peerId,
-                    isHost: (this.props.hostPeerId === this.props.localPlayer.peerId),
-                    isLocal: true,
-                }),
-                this.props.remotePlayers.map((player, index) => React.createElement(Player, {
-                    key: index,
-                    name: player.name,
-                    score: player.score,
-                    peerId: player.peerId,
-                    isHost: (this.props.hostPeerId === player.peerId),
-                })),
-            ),
-        );
-    }
-}
+const {useSelector} = window.ReactRedux;
 
-/**
- * @param {State} state
- * @returns {Object}
- */
-function mapStateToProps(state) {
-    return {
-        localPlayer: state.game.localPlayer,
-        remotePlayers: state.game.remotePlayers,
-        hostPeerId: state.connection.hostPeerId,
-    };
-}
-
-export default connect(mapStateToProps)(PlayerList);
+export const PlayerList = () => {
+    const localPlayer = useSelector(state => state.game.localPlayer);
+    const remotePlayers = useSelector(state => state.game.remotePlayers);
+    const hostPeerId = useSelector(state => state.connection.hostPeerId);
+    
+    return React.createElement('div', {className: 'playerList'},
+        React.createElement('ul', {},
+            React.createElement(Player, {
+                name: localPlayer.name,
+                score: localPlayer.score,
+                peerId: localPlayer.peerId,
+                isHost: (hostPeerId === localPlayer.peerId),
+                isLocal: true,
+            }),
+            remotePlayers.map((player, index) => React.createElement(Player, {
+                key: index,
+                name: player.name,
+                score: player.score,
+                peerId: player.peerId,
+                isHost: (hostPeerId === player.peerId),
+            })),
+        ),
+    );
+};

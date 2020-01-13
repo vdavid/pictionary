@@ -1,15 +1,17 @@
 import {actionCreators as connectionActionCreators} from '../store.mjs';
+import {connectionListenerStatus} from '../connection-listener-status.mjs';
 
-const React = window.React;
 const {useState} = window.React;
 const {useSelector, useDispatch} = window.ReactRedux;
 
 export const ConnectToPeerBox = () => {
-    const dispatch = useDispatch();
     const [remotePeerId, setRemotePeerId] = useState('');
-    const isConnectingToHost = useSelector(state => state.connection.isConnectingToHost);
-    const isConnectedToAnyPeers = useSelector(state => state.connection.isConnectedToAnyPeers);
-    const connectToHost = (hostPeerId) => dispatch(connectionActionCreators.createConnectToHostRequest(hostPeerId));
+    const dispatch = useDispatch();
+
+    const isConnectingToHost = useSelector(state => state.connection.connectionListenerStatus === connectionListenerStatus.connectingToHost);
+    const isConnectedToAnyPeers = useSelector(state => state.connection.connections.length > 0);
+
+    const connectToHost = hostPeerId => dispatch(connectionActionCreators.createConnectToHostRequest(hostPeerId));
 
     return React.createElement('div', {className: 'connectToPeerBox'},
         React.createElement('p', {}, 'Enter your friend\'s ID here:'),

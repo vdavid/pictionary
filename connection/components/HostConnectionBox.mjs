@@ -1,5 +1,5 @@
-const React = window.React;
 const {useSelector} = window.ReactRedux;
+
 export const HostConnectionBox = () => {
     const localPeerId = useSelector(state => state.connection.localPeerId);
 

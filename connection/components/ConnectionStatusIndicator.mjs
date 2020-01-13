@@ -1,6 +1,5 @@
 import {connectionListenerStatus as statuses} from '../connection-listener-status.mjs';
 
-const React = window.React;
 const {useSelector} = window.ReactRedux;
 
 export const ConnectionStatusIndicator = () => {

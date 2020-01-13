@@ -2,7 +2,6 @@ import {GamePage} from '../../game/components/GamePage.mjs';
 import PeerConnector from '../../connection/PeerConnector.mjs';
 import {ConnectionStatusIndicator} from '../../connection/components/ConnectionStatusIndicator.mjs';
 
-const React = window.React;
 const {BrowserRouter, Switch, Route, Redirect, Link} = window.ReactRouterDOM;
 
 export const App = () => {

@@ -1,67 +1,65 @@
-const {connect} = window.ReactRedux;
 import {actionCreators as appActionCreators} from '../../app/store.mjs';
 
-class FullscreenButton extends React.Component {
-    constructor(props) {
-        super(props);
-        this._enableFullscreen = this._enableFullscreen.bind(this);
-        this._disableFullscreen = this._disableFullscreen.bind(this);
-    }
-    _enableFullscreen() {
-        const rootHtmlElement = document.documentElement;
+const {useSelector, useDispatch} = window.ReactRedux;
 
-        // noinspection JSUnresolvedVariable
-        if (rootHtmlElement.requestFullscreen || rootHtmlElement.webkitRequestFullscreen || rootHtmlElement.mozRequestFullscreen || rootHtmlElement.msRequestFullscreen) {
-            // noinspection JSUnresolvedVariable,JSUnresolvedFunction
-            const result = rootHtmlElement.exitFullscreen ? rootHtmlElement.exitFullscreen()
-                : (rootHtmlElement.webkitRequestFullscreen ? rootHtmlElement.webkitRequestFullscreen()
-                    : (rootHtmlElement.mozRequestFullscreen ? rootHtmlElement.mozRequestFullscreen() : rootHtmlElement.msRequestFullscreen()));
+function isRequestFullscreenSupported() {
+    const root = document.documentElement;
+    // noinspection JSUnresolvedVariable
+    return (root.requestFullscreen || root.webkitRequestFullscreen || root.mozRequestFullscreen || root.msRequestFullscreen);
+}
+
+function requestFullscreen() {
+    const root = document.documentElement;
+    // noinspection JSUnresolvedVariable,JSUnresolvedFunction
+    return root.requestFullscreen ? root.requestFullscreen()
+        : (root.webkitRequestFullscreen ? root.webkitRequestFullscreen()
+            : (root.mozRequestFullscreen ? root.mozRequestFullscreen() : root.msRequestFullscreen()));
+}
+
+function isExitFullscreenSupported() {
+    // noinspection JSUnresolvedVariable
+    return (document.exitFullscreen || document.webkitExitFullscreen || document.mozExitFullscreen || document.msExitFullscreen);
+}
+
+function exitFullscreen() {
+    // noinspection JSUnresolvedVariable,JSUnresolvedFunction
+    return document.exitFullscreen ? document.exitFullscreen()
+        : (document.webkitExitFullscreen ? document.webkitExitFullscreen()
+            : (document.mozExitFullscreen ? document.mozExitFullscreen() : document.msExitFullscreen()));
+}
+
+export const FullscreenButton = () => {
+    const dispatch = useDispatch();
+
+    const isFullscreen = useSelector(state => state.app.isFullscreen);
+
+    function enableFullscreen() {
+        if (isRequestFullscreenSupported) {
+            const result = requestFullscreen();
             if (result && typeof result.then === 'function') {
-                result.then(() => this.props.changeFullscreen(true));
+                result.then(() => changeFullscreen(true));
             } else {
-                this.props.changeFullscreen(true);
+                changeFullscreen(true);
             }
         }
     }
 
-    _disableFullscreen() {
-        // noinspection JSUnresolvedVariable
-        if (document.exitFullscreen || document.webkitExitFullscreen || document.mozExitFullscreen || document.msExitFullscreen) {
-            // noinspection JSUnresolvedVariable,JSUnresolvedFunction
-            const result = document.exitFullscreen ? document.exitFullscreen()
-                : (document.webkitExitFullscreen ? document.webkitExitFullscreen()
-                    : (document.mozExitFullscreen ? document.mozExitFullscreen() : document.msExitFullscreen()));
+    function disableFullscreen() {
+        if (isExitFullscreenSupported) {
+            const result = exitFullscreen();
             if (result && typeof result.then === 'function') {
-                result.then(() => this.props.changeFullscreen(false));
+                result.then(() => changeFullscreen(false));
             } else {
-                this.props.changeFullscreen(false);
+                changeFullscreen(false);
             }
         }
     }
 
-    render() {
-        return !this.props.isFullscreen
-            ? React.createElement('button', {className: 'fullscreenButton', title: 'Full screen', onClick: this._enableFullscreen}, '↗')
-            : React.createElement('button', {className: 'fullscreenButton', title: 'Exit full screen', onClick: this._disableFullscreen}, '↙');
+    function changeFullscreen(isFullscreen) {
+        dispatch(appActionCreators.createSetFullscreenStateRequest(isFullscreen));
     }
-}
 
-/**
- * @param {State} state
- * @returns {Object}
- */
-function mapStateToProps(state) {
-    return {
-        isFullscreen: state.app.isFullscreen,
-    };
-}
-
-function mapDispatchToProps(dispatch) {
-    return {
-        changeFullscreen: (isFullscreen) => {
-            dispatch(appActionCreators.createSetFullscreenStateRequest(isFullscreen));
-        },
-    };
-}
-
-export default connect(mapStateToProps, mapDispatchToProps)(FullscreenButton);
+    return !isFullscreen
+        ? React.createElement('button', {className: 'fullscreenButton', title: 'Full screen', onClick: enableFullscreen}, '↗')
+        : React.createElement('button', {className: 'fullscreenButton', title: 'Exit full screen', onClick: disableFullscreen}, '↙');
+};

@@ -1,8 +1,9 @@
 import {trialResult} from '../../game/trial-result.mjs';
-
-const {connect} = window.ReactRedux;
 import {actionCreators as gameActionCreators} from '../../game/store.mjs';
 import DrawingTools from '../DrawingTools.mjs';
+
+const {useState, useEffect, useRef} = window.React;
+const {useSelector, useDispatch} = window.ReactRedux;
 
 /**
  * @typedef {Object} DrawnLine
@@ -13,141 +14,120 @@ import DrawingTools from '../DrawingTools.mjs';
  * @property {string} color
  */
 
-class DrawingCanvas extends React.Component {
-    constructor(props) {
-        super(props);
-        this._handleMouseMoved = this._handleMouseMoved.bind(this);
-        this._handleMouseDown = this._handleMouseDown.bind(this);
-        this._liftPen = this._liftPen.bind(this);
-        this._sendNewlyDrawnLines = this._sendNewlyDrawnLines.bind(this);
-        this._clearAndRedraw = this._clearAndRedraw.bind(this);
+export const DrawingCanvas = () => {
+    const [drawnLineCount, setDrawnLineCount] = useState(0);
+    /** @type {DrawnLine[]} */
+    const [newlyDrawnLines, setNewlyDrawnLines] = useState([]);
+    const newlyDrawnLinesRef = useRef(newlyDrawnLines);
+    const setNewlyDrawnLinesWithRef = (value) => { setNewlyDrawnLines(value); newlyDrawnLinesRef.current = value; };
+    /** @type {boolean} */
+    const [isPenDown, setIsPenDown] = useState(false);
+    /** @type {Number|undefined} */
+    const [lastX, setLastX] = useState(undefined);
+    /** @type {Number|undefined} */
+    const [lastY, setLastY] = useState(undefined);
+    const [timer, setTimer] = useState(null);
+    const drawingCanvas = useRef(null);
+    const [drawingTools, setDrawingTools] = useState(null);
+    const dispatch = useDispatch();
 
-        /** @type {DrawnLine[]} */
-        this._newlyDrawnLines = [];
-        /** @type {boolean} */
-        this._isPenDown = false;
-        /** @type {Number|undefined} */
-        this._lastX = undefined;
-        /** @type {Number|undefined} */
-        this._lastY = undefined;
-
-        window.addEventListener('resize', this._clearAndRedraw);
-    }
-
-    render() {
-        // noinspection JSUnusedGlobalSymbols
-        return React.createElement('canvas', {
-            id: 'drawingCanvas',
-            ref: 'drawingCanvas',
-            onContextMenu: event => event.preventDefault(),
-            onPointerDown: this._handleMouseDown,
-            onPointerMove: this._handleMouseMoved,
-            onPointerUp: this._liftPen,
-            onPointerCancel: this._liftPen,
-            // onTouchStart: this._handleMouseDown,
-            // onTouchMove: this._handleMouseMoved,
-            // onTouchEnd: this._liftPen,
-            // onTouchCancel: this._liftPen,
-        });
-    }
-
-    // noinspection JSUnusedGlobalSymbols
-    componentDidMount() {
-        const canvas = this.refs.drawingCanvas;
-        this._drawingTools = new DrawingTools(canvas);
-
-        this._drawingTools.updateCanvasSiteToItsClientSize();
-        this._drawingTools.clearCanvas();
-        this.props.lines.map(line => this._drawingTools.drawLine(line));
-
-        this._timer = setInterval(this._sendNewlyDrawnLines, this.props.updateIntervalInMilliseconds);
-    }
-
-    // noinspection JSUnusedGlobalSymbols
-    componentDidUpdate(previousProps) {
-        if (previousProps.lines.length > this.props.lines.length) {
-            this._drawingTools.clearCanvas();
-        } else if (previousProps.lines.length > this.props.lines.length) {
-            const newLines = this.props.lines.slice(previousProps.lines.length);
-            newLines.map(line => this._drawingTools.drawLine(line));
-        }
-    }
-
-    // noinspection JSUnusedGlobalSymbols
-    componentWillUnmount() {
-        clearInterval(this._timer);
-    }
-
-    _sendNewlyDrawnLines() {
-        if (this._newlyDrawnLines.length) {
-            this.props.sendNewlyDrawnLines(this._newlyDrawnLines);
-            this._newlyDrawnLines = [];
-        }
-    }
-
-    _clearAndRedraw() {
-        if (this._drawingTools) {
-            this._drawingTools.updateCanvasSiteToItsClientSize();
-            this._drawingTools.clearCanvas();
-            this.props.lines.map(line => this._drawingTools.drawLine(line));
-        }
-    }
-
-    _handleMouseDown(event) {
-        if (this.props.isRoundStarted) {
-            event.preventDefault();
-            const canvas = this.refs.drawingCanvas;
-            this._isPenDown = true;
-            this._lastX = (event.clientX - canvas.getBoundingClientRect().left) / canvas.width;
-            this._lastY = (event.clientY - canvas.getBoundingClientRect().top) / canvas.height;
-            // this._drawingTools.drawDot(this._lastX, this._lastY);
-        }
-    }
-
-    _handleMouseMoved(event) {
-        if (this.props.isRoundStarted && this._isPenDown) {
-            event.preventDefault();
-
-            const canvas = this.refs.drawingCanvas;
-            const previousX = this._lastX;
-            const previousY = this._lastY;
-
-            this._lastX = (event.clientX - canvas.getBoundingClientRect().left) / canvas.width;
-            this._lastY = (event.clientY - canvas.getBoundingClientRect().top) / canvas.height;
-
-            const newLine = {x1: previousX, y1: previousY, x2: this._lastX, y2: this._lastY, color: 'black'};
-
-            this._drawingTools.drawLine(newLine);
-
-            this._newlyDrawnLines.push(newLine);
-        }
-    }
-
-    _liftPen() {
-        this._isPenDown = false;
-    }
-}
-
-/**
- * @param {State} state
- * @returns {Object}
- */
-function mapStateToProps(state) {
-    const latestRound = (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []};
+    const latestRound = useSelector(state => (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []});
     const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
-    return {
-        lines: latestTrial.lines || [],
-        isRoundStarted: latestTrial.trialResult === trialResult.ongoing,
-        updateIntervalInMilliseconds: state.app.config.checkForNewDrawnLinesIntervalInMilliseconds,
-    };
-}
+    const lines = latestTrial.lines || [];
+    const isRoundStarted = latestTrial.trialResult === trialResult.ongoing;
+    const updateIntervalInMilliseconds = useSelector(state => state.app.config.checkForNewDrawnLinesIntervalInMilliseconds);
 
-function mapDispatchToProps(dispatch) {
-    return {
-        sendNewlyDrawnLines: newLines => {
-            dispatch(gameActionCreators.createSaveNewLinesRequest(newLines));
-        },
-    };
-}
+    useEffect(() => {
+        window.addEventListener('resize', clearAndRedraw);
 
-export default connect(mapStateToProps, mapDispatchToProps)(DrawingCanvas);
+        return () => {
+            window.removeEventListener('resize', clearAndRedraw);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (drawingCanvas.current) {
+            const newDrawingTools = new DrawingTools(drawingCanvas.current);
+            setDrawingTools(newDrawingTools);
+
+            newDrawingTools.updateCanvasSiteToItsClientSize();
+            newDrawingTools.clearCanvas();
+            lines.map(line => newDrawingTools.drawLine(line));
+
+            setTimer(setInterval(sendNewlyDrawnLines, updateIntervalInMilliseconds));
+
+            return () => {
+                clearInterval(timer);
+                setTimer(null);
+            };
+        }
+    }, [drawingCanvas.current]);
+
+    useEffect(() => {
+        if (drawingTools) {
+            if (drawnLineCount < lines.length) {
+                lines.slice(drawnLineCount).map(line => drawingTools.drawLine(line));
+                setDrawnLineCount(lines.length);
+            } else if (drawnLineCount > lines.length) {
+                drawingTools.clearCanvas();
+                setDrawnLineCount(0);
+            }
+        }
+    }, [drawingTools, lines.length]);
+
+    return React.createElement('canvas', {
+        id: 'drawingCanvas',
+        ref: drawingCanvas,
+        onContextMenu: event => event.preventDefault(),
+        onPointerDown: handleMouseDown,
+        onPointerMove: handleMouseMoved,
+        onPointerUp: liftPen,
+        onPointerCancel: liftPen,
+    });
+
+    function sendNewlyDrawnLines() {
+        if (newlyDrawnLinesRef.current.length) {
+            dispatch(gameActionCreators.createSaveNewLinesRequest(newlyDrawnLinesRef.current));
+            setNewlyDrawnLinesWithRef([]);
+        }
+    }
+
+    function clearAndRedraw() {
+        if (drawingTools) {
+            drawingTools.updateCanvasSiteToItsClientSize();
+            drawingTools.clearCanvas();
+            lines.map(line => drawingTools.drawLine(line));
+        }
+    }
+
+    function handleMouseDown(event) {
+        if (isRoundStarted) {
+            event.preventDefault();
+            setIsPenDown(true);
+            setLastX((event.clientX - drawingCanvas.current.getBoundingClientRect().left) / drawingCanvas.current.width);
+            setLastY((event.clientY - drawingCanvas.current.getBoundingClientRect().top) / drawingCanvas.current.height);
+            // drawingTools.drawDot(lastX, lastY);
+        }
+    }
+
+    function handleMouseMoved(event) {
+        if (isRoundStarted && isPenDown) {
+            event.preventDefault();
+
+            const newX = (event.clientX - drawingCanvas.current.getBoundingClientRect().left) / drawingCanvas.current.width;
+            const newY = (event.clientY - drawingCanvas.current.getBoundingClientRect().top) / drawingCanvas.current.height;
+            const newLine = {x1: lastX, y1: lastY, x2: newX, y2: newY, color: 'black'};
+
+            drawingTools.drawLine(newLine);
+
+            setLastX(newX);
+            setLastY(newY);
+            setNewlyDrawnLinesWithRef(newlyDrawnLinesRef.current.concat(newLine));
+            setDrawnLineCount(a => a + 1);
+        }
+    }
+
+    function liftPen() {
+        setIsPenDown(false);
+    }
+};

@@ -27,6 +27,8 @@ export const Timer = () => {
     const [gameSecondsRemaining, setGameSecondsRemaining] = useState(0);
     const [roundSecondsRemaining, setRoundSecondsRemaining] = useState(0);
     const [intervalTimer, setIntervalTimer] = useState(null);
+    const dispatch = useDispatch();
+
     const latestRound = useSelector(state => (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []});
     const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
     const isGameStarted = useSelector(state => state.game.isGameStarted);
@@ -41,15 +43,12 @@ export const Timer = () => {
     const isThisTheDrawer = useSelector(state => latestRound.drawer && (latestRound.drawer.peerId === state.game.localPlayer.peerId));
     const phrase = latestRound.phrase;
 
-    const dispatch = useDispatch();
-
     useEffect(() => {
         updateSecondsRemaining();
 
         return () => {
             if (intervalTimer) {
                 clearInterval(intervalTimer);
-                setIntervalTimer(null);
             }
         };
     }, []);
@@ -61,6 +60,12 @@ export const Timer = () => {
         } else if (intervalTimer && !isRoundStarted) {
             clearInterval(intervalTimer);
             setIntervalTimer(null);
+        }
+
+        return () => {
+            if (intervalTimer) {
+                clearInterval(intervalTimer);
+            }
         }
     }, [isRoundStarted]);
 

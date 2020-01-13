@@ -1,43 +1,25 @@
 import {trialResult} from '../trial-result.mjs';
 
-const React = window.React;
-const {connect} = window.ReactRedux;
+const {useSelector} = window.ReactRedux;
 
-class WordDisplay extends React.Component {
-    constructor(props) {
-        super(props);
-        this._getContentText = this._getContentText.bind(this);
-    }
+export const WordDisplay = () => {
+    const latestRound = useSelector(state => (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []});
+    const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
+    const isRoundStarted = latestTrial.trialResult === trialResult.ongoing;
+    const isLocalPlayerDrawing = useSelector(state => latestRound.drawer ? (latestRound.drawer.peerId === state.game.localPlayer.peerId) : false);
+    const activePhrase = latestRound.phrase;
 
-    render() {
-        return React.createElement('section', {id: 'wordDisplaySection'},
-            React.createElement('span', {}, this._getContentText())
-        );
-    }
+    return React.createElement('section', {id: 'wordDisplaySection'},
+        React.createElement('span', {}, getContentText())
+    );
 
-    _getContentText() {
-        if (!this.props.isRoundStarted) {
+    function getContentText() {
+        if (!isRoundStarted) {
             return '';
-        } else if (this.props.isLocalPlayerDrawing) {
-            return 'Draw: “' + this.props.activePhrase + '”';
+        } else if (isLocalPlayerDrawing) {
+            return 'Draw: “' + activePhrase + '”';
         } else {
             return 'See the drawing and start guessing what it is!';
         }
     }
-}
-
-/**
- * @param {State} state
- * @returns {Object}
- */
-function mapStateToProps(state) {
-    const latestRound = (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []};
-    const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
-    return {
-        isRoundStarted: latestTrial.trialResult === trialResult.ongoing,
-        isLocalPlayerDrawing: latestRound.drawer ? (latestRound.drawer.peerId === state.game.localPlayer.peerId) : false,
-        activePhrase: latestRound.phrase,
-    };
-}
-
-export default connect(mapStateToProps)(WordDisplay);
+};
