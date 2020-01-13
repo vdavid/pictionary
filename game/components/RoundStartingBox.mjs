@@ -10,8 +10,6 @@ export const RoundStartingBox = () => {
     const intervalTimerRef = useRef(null);
     const setIntervalTimerWithRef = (value) => { setIntervalTimer(value); intervalTimerRef.current = value; };
     const [startRoundTimer, setStartRoundTimer] = useState(null);
-    const startRoundTimerRef = useRef(startRoundTimer);
-    const setStartRoundTimerWithRef = (value) => { setStartRoundTimer(value); startRoundTimerRef.current = value; };
     const dispatch = useDispatch();
 
     const latestRound = useSelector(state => (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []});
@@ -28,20 +26,20 @@ export const RoundStartingBox = () => {
     useEffect(() => {
         if (isRoundStarting && !intervalTimerRef.current) {
             setIntervalTimerWithRef(isRoundStarting ? setInterval(updateSecondsRemaining, 1000) : null);
-            setStartRoundTimerWithRef(isRoundStarting ? setTimeout(timeIsUp, roundCountdownLengthInSeconds * 1000) : null);
+            setStartRoundTimer(isRoundStarting ? setTimeout(timeIsUp, roundCountdownLengthInSeconds * 1000) : null);
         } else if (!isRoundStarting && intervalTimerRef.current) {
             clearInterval(intervalTimerRef.current);
             setIntervalTimerWithRef(null);
-            clearInterval(startRoundTimerRef.current);
-            setStartRoundTimerWithRef(null);
+            clearInterval(startRoundTimer);
+            setStartRoundTimer(null);
         }
 
         return () => {
             if (intervalTimerRef.current) {
                 clearInterval(intervalTimerRef.current);
                 setIntervalTimerWithRef(null);
-                clearInterval(startRoundTimerRef.current);
-                setStartRoundTimerWithRef(null);
+                clearInterval(startRoundTimer);
+                setStartRoundTimer(null);
             }
         };
     }, [roundCountdownLengthInSeconds, startingDateTime.toISOString(), isRoundStarting]);
