@@ -1,6 +1,6 @@
+import React from "../../web_modules/react.js";
+import {useSelector} from "../../web_modules/react-redux.js";
 import {Player} from './Player.mjs';
-
-const {useSelector} = window.ReactRedux;
 
 export const PlayerList = () => {
     const localPlayer = useSelector(state => state.game.localPlayer);

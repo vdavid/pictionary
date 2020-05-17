@@ -1,6 +1,6 @@
+import React from "../../web_modules/react.js";
+import {useSelector, useDispatch} from "../../web_modules/react-redux.js";
 import {actionCreators as appActionCreators} from '../../app/store.mjs';
-
-const {useSelector, useDispatch} = window.ReactRedux;
 
 function isRequestFullscreenSupported() {
     const root = document.documentElement;

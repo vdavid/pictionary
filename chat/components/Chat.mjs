@@ -1,8 +1,8 @@
+import React from "../../web_modules/react.js";
+import {useSelector} from "../../web_modules/react-redux.js";
 import {SendButton} from './SendButton.mjs';
 import {ChatInput} from './ChatInput.mjs';
 import {ChatMessages} from './ChatMessages.mjs';
-
-const {useSelector} = window.ReactRedux;
 
 export const Chat = () => {
     const messages = useSelector(state => state.chat.messages);

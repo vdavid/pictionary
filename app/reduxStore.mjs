@@ -1,4 +1,6 @@
-const {Redux, __REDUX_DEVTOOLS_EXTENSION_COMPOSE__: reduxDevToolsCompose} = window;
+import {applyMiddleware, combineReducers, compose, createStore} from "../web_modules/redux.js";
+const {__REDUX_DEVTOOLS_EXTENSION_COMPOSE__: reduxDevToolsCompose} = window;
+
 import {reducer as appReducer} from './store.mjs';
 import {reducer as connectionReducer} from '../connection/store.mjs';
 import {reducer as chatReducer} from '../chat/store.mjs';
@@ -12,7 +14,7 @@ import {reducer as gameReducer} from '../game/store.mjs';
  * @property {GameState} game
  */
 
-const combinedReducer = Redux.combineReducers({
+const combinedReducer = combineReducers({
     app: appReducer,
     chat: chatReducer,
     connection: connectionReducer,
@@ -20,8 +22,8 @@ const combinedReducer = Redux.combineReducers({
 });
 
 // noinspection JSUnresolvedVariable
-const composeEnhancers = reduxDevToolsCompose || Redux.compose;
+const composeEnhancers = reduxDevToolsCompose || compose;
 
-const store = Redux.createStore(combinedReducer, composeEnhancers(Redux.applyMiddleware()));
+const store = createStore(combinedReducer, composeEnhancers(applyMiddleware()));
 
 export default store;

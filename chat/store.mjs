@@ -39,6 +39,7 @@ function _getStateCopy(state) {
     };
 }
 
+// noinspection JSUnusedGlobalSymbols TODO: Use createSendMessageFailure in case of failure
 export const actionCreators = {
     createSaveTypedMessageRequest: (messageText) => ({type: actionTypes.SAVE_TYPED_MESSAGE_REQUEST, payload: messageText}),
     createAddReceivedMessageRequest: (senderPeerId, messageText) => ({type: actionTypes.ADD_RECEIVED_MESSAGE_REQUEST, payload: {senderPeerId, messageText}}),

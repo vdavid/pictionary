@@ -1,6 +1,6 @@
+import React from "../../web_modules/react.js";
+import {useSelector} from "../../web_modules/react-redux.js";
 import {trialResult} from '../trial-result.mjs';
-
-const {useSelector} = window.ReactRedux;
 
 export const WordDisplay = () => {
     const latestRound = useSelector(state => (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []});

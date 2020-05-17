@@ -1,9 +1,8 @@
+import React, {useState, useEffect, useRef} from "../../web_modules/react.js";
+import {useSelector, useDispatch} from "../../web_modules/react-redux.js";
 import {trialResult} from '../../game/trial-result.mjs';
 import {actionCreators as gameActionCreators} from '../../game/store.mjs';
 import DrawingTools from '../DrawingTools.mjs';
-
-const {useState, useEffect, useRef} = window.React;
-const {useSelector, useDispatch} = window.ReactRedux;
 
 /**
  * @typedef {Object} DrawnLine
@@ -75,6 +74,7 @@ export const DrawingCanvas = () => {
         }
     }, [drawingTools, lines.length]);
 
+    // noinspection JSUnusedGlobalSymbols – onContextMenu is actually used.
     return React.createElement('canvas', {
         id: 'drawingCanvas',
         ref: drawingCanvas,

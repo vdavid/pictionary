@@ -1,8 +1,9 @@
+import React from "../../web_modules/react.js";
 import {PlayerNameBox} from '../../player/components/PlayerNameBox.mjs';
 import {HostConnectionBox} from './HostConnectionBox.mjs';
 import {ConnectToPeerBox} from './ConnectToPeerBox.mjs';
 
-export const ConnectBox = () => {
+export default function ConnectBox() {
     return React.createElement('div', {},
         React.createElement('div', {className: 'fullScreenSemiTransparentCover'}),
         React.createElement('div', {id: 'connectBox', className: 'midScreenBox'},
@@ -14,4 +15,4 @@ export const ConnectBox = () => {
             React.createElement(ConnectToPeerBox),
         ),
     );
-};
+}

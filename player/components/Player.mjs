@@ -1,3 +1,4 @@
+import React from "../../web_modules/react.js";
 import {Avatar} from './Avatar.mjs';
 
 export const Player = ({isHost, isLocal, name, score}) => {

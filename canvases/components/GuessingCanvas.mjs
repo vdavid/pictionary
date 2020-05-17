@@ -1,7 +1,6 @@
+import React, {useState, useEffect, useRef} from "../../web_modules/react.js";
+import {useSelector} from "../../web_modules/react-redux.js";
 import DrawingTools from '../DrawingTools.mjs';
-
-const {useState, useEffect, useRef} = window.React;
-const {useSelector} = window.ReactRedux;
 
 export const GuessingCanvas = () => {
     const latestRound = useSelector(state => (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []});

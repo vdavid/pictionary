@@ -1,8 +1,8 @@
+import {useState, useEffect} from "../../web_modules/react.js";
+import {useSelector, useDispatch} from "../../web_modules/react-redux.js";
+
 import {actionCreators as gameActionCreators} from '../store.mjs';
 import {actionCreators as chatActionCreators} from '../../chat/store.mjs';
-
-const {useState, useEffect} = window.React;
-const {useSelector, useDispatch} = window.ReactRedux;
 
 function getPlayerNameByPeerId(players, peerId) {
     const player = players.find(player => player.peerId === peerId);

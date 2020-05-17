@@ -1,7 +1,8 @@
+import React from "../../web_modules/react.js";
+import {useSelector, useDispatch} from "../../web_modules/react-redux.js";
+
 import {actionCreators as connectionActionCreators} from '../store.mjs';
 import {connectionListenerStatus} from '../connection-listener-status.mjs';
-
-const {useSelector, useDispatch} = window.ReactRedux;
 
 export const NoConnectionBox = () => {
     const dispatch = useDispatch();

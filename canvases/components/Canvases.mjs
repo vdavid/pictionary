@@ -1,9 +1,9 @@
+import React from "../../web_modules/react.js";
+import {useSelector} from "../../web_modules/react-redux.js";
 import {DrawingCanvas} from './DrawingCanvas.mjs';
 import {GuessingCanvas} from './GuessingCanvas.mjs';
 import {FullscreenButton} from './FullscreenButton.mjs';
 import {DrawingButtonBar} from './DrawingButtonBar.mjs';
-
-const {useSelector} = window.ReactRedux;
 
 export const Canvases = () => {
     const latestRound = useSelector(state => (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []});

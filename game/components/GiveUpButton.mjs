@@ -1,7 +1,7 @@
+import React from "../../web_modules/react.js";
+import {useSelector, useDispatch} from "../../web_modules/react-redux.js";
 import {actionCreators as gameActionCreators} from '../store.mjs';
 import {actionCreators as chatActionCreators} from '../../chat/store.mjs';
-
-const {useSelector, useDispatch} = window.ReactRedux;
 
 export const GiveUpButton = () => {
     const dispatch = useDispatch();

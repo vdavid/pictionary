@@ -1,6 +1,6 @@
+import React from "../../web_modules/react.js";
+import {useSelector} from "../../web_modules/react-redux.js";
 import {connectionListenerStatus as statuses} from '../connection-listener-status.mjs';
-
-const {useSelector} = window.ReactRedux;
 
 export const ConnectionStatusIndicator = () => {
     const hostPeerId = useSelector(state => state.connection.hostPeerId);

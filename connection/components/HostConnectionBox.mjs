@@ -1,4 +1,5 @@
-const {useSelector} = window.ReactRedux;
+import React from "../../web_modules/react.js";
+import {useSelector} from "../../web_modules/react-redux.js";
 
 export const HostConnectionBox = () => {
     const localPeerId = useSelector(state => state.connection.localPeerId);

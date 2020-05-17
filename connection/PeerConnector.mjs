@@ -1,4 +1,5 @@
-const {connect} = window.ReactRedux;
+import React from "../web_modules/react.js";
+import {connect} from "../web_modules/react-redux.js";
 
 import {actionCreators as connectionActionCreators} from './store.mjs';
 import {actionCreators as gameActionCreators} from '../game/store.mjs';
@@ -44,6 +45,7 @@ class PeerConnector extends React.Component {
     }
 
     render() {
+        // noinspection JSUnusedGlobalSymbols – peerCreatedCallback is actually used in PeerServerConnector.
         return React.createElement(PeerServerConnector, {
             setListenerStatus: this.props.setListenerStatus,
             peerCreatedCallback: peer => {

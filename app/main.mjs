@@ -1,14 +1,12 @@
-const ReactDOM = window.ReactDOM;
+import React, {StrictMode} from "../web_modules/react.js";
+import ReactDOM from "../web_modules/react-dom.js";
+import {Provider} from "../web_modules/react-redux.js";
+import {createMuiTheme, MuiThemeProvider} from "../web_modules/@material-ui/core.js";
 import {App} from './components/App.mjs';
+import siteTheme from './theme.mjs';
 import store from './reduxStore.mjs';
 
-const {StrictMode} = window.React;
-
-const {Provider} = window.ReactRedux;
-import siteTheme from './theme.mjs';
-
-const theme = window.MaterialUI.createMuiTheme(siteTheme);
-const {MuiThemeProvider} = window.MaterialUI;
+const theme = createMuiTheme(siteTheme);
 
 ReactDOM.render(
     React.createElement(MuiThemeProvider, {theme},

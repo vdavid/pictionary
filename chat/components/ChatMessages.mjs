@@ -1,7 +1,7 @@
-import {ChatMessage} from './ChatMessage.mjs';
+import React, {useEffect, useRef} from "../../web_modules/react.js";
+import {useSelector} from "../../web_modules/react-redux.js";
 
-const {useEffect, useRef} = window.React;
-const {useSelector} = window.ReactRedux;
+import {ChatMessage} from './ChatMessage.mjs';
 
 export const ChatMessages = () => {
     const messages = useSelector(state => state.chat.messages);

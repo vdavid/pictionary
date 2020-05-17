@@ -1,6 +1,6 @@
+import React from "../../web_modules/react.js";
+import {useSelector, useDispatch} from "../../web_modules/react-redux.js";
 import {actionCreators as chatActionCreators} from '../store.mjs';
-
-const {useSelector, useDispatch} = window.ReactRedux;
 
 export const SendButton = () => {
     const dispatch = useDispatch();

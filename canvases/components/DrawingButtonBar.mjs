@@ -1,7 +1,8 @@
+import React from "../../web_modules/react.js";
+import {useSelector} from "../../web_modules/react-redux.js";
+
 import {GiveUpButton} from '../../game/components/GiveUpButton.mjs';
 import {ClearButton} from './ClearButton.mjs';
-
-const {useSelector} = window.ReactRedux;
 
 export const DrawingButtonBar = () => {
     const isRoundBaseTimeElapsed = useSelector(state => ((state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []}).isRoundBaseTimeElapsed);

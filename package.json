@@ -1,0 +1,58 @@
+{
+  "name": "pictionary",
+  "version": "1.1.0",
+  "description": "Pictionary is a charades-inspired word drawing and guessing game.",
+  "main": "app/main.mjs",
+  "scripts": {
+    "test": "npx jest",
+    "postinstall": "npx snowpack --clean",
+    "build": "babel src --out-dir public --delete-dir-on-start --keep-file-extension --copy-files",
+    "watch": "babel src --out-dir public --delete-dir-on-start --keep-file-extension --copy-files --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vdavid/photato-website-frontend.git"
+  },
+  "keywords": [
+    "pictionary",
+    "charades",
+    "game",
+    "website",
+    "multiplayer",
+    "peer",
+    "fun"
+  ],
+  "author": "David Veszelovszki",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vdavid/pictionary/issues"
+  },
+  "homepage": "https://github.com/vdavid/pictionary#readme",
+  "dependencies": {
+    "@material-ui/core": "^4.9.14",
+    "jdenticon": "^2.2.0",
+    "react": "npm:@pika/react@^16.13.1",
+    "react-dom": "npm:@pika/react-dom@^16.13.1",
+    "react-redux": "^7.2.0",
+    "react-router-dom": "^5.2.0",
+    "redux": "^4.0.5"
+  },
+  "devDependencies": {
+    "jest": "^26.0.1",
+    "snowpack": "^1.7.1"
+  },
+  "jest": {
+    "testEnvironment": "jsdom"
+  },
+  "snowpack": {
+    "webDependencies": [
+      "react",
+      "react-dom",
+      "react-router-dom",
+      "redux",
+      "react-redux",
+      "@material-ui/core",
+      "jdenticon"
+    ]
+  }
+}

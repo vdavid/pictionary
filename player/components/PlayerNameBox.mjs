@@ -1,10 +1,9 @@
+import React, {useState, useEffect} from "../../web_modules/react.js";
+import {useSelector, useDispatch} from "../../web_modules/react-redux.js";
 import {Avatar} from './Avatar.mjs';
 import {actionCreators as gameActionCreators} from '../../game/store.mjs';
 import {savePlayerName, loadPlayerName} from '../../app/localStoragePersistence.mjs';
 import RandomNameGenerator from '../../player/RandomNameGenerator.mjs';
-
-const {useState, useEffect} = window.React;
-const {useSelector, useDispatch} = window.ReactRedux;
 
 export const PlayerNameBox = () => {
     const [randomNameGenerator, setRandomNameGenerator] = useState(null);

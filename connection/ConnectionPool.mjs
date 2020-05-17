@@ -50,6 +50,7 @@ export default class ConnectionPool {
         return this._connections.find(connection => connection.peer === peerId);
     }
 
+    // noinspection JSUnusedGlobalSymbols TODO: Use this later or remove it
     /**
      * @returns {DataConnection}
      */

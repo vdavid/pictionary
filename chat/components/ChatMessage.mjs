@@ -1,3 +1,5 @@
+import React from "../../web_modules/react.js";
+
 function formatDate(date) {
     const h = date.getHours();
     const m = date.getMinutes().toString().padStart(2, '0');

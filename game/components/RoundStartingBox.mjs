@@ -1,8 +1,7 @@
+import React, {useState, useEffect, useRef} from "../../web_modules/react.js";
+import {useSelector, useDispatch} from "../../web_modules/react-redux.js";
 import {trialResult} from '../trial-result.mjs';
 import {actionCreators as gameActionCreators} from '../store.mjs';
-
-const {useState, useEffect, useRef} = window.React;
-const {useSelector, useDispatch} = window.ReactRedux;
 
 export const RoundStartingBox = () => {
     const [secondsRemaining, setSecondsRemaining] = useState(0);

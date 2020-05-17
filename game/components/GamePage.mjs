@@ -1,5 +1,8 @@
+import React, {useEffect} from "../../web_modules/react.js";
+import {useSelector, useDispatch} from "../../web_modules/react-redux.js";
+
 import {actionCreators as gameActionCreators} from '../store.mjs';
-import {ConnectBox} from '../../connection/components/ConnectBox.mjs';
+import ConnectBox from '../../connection/components/ConnectBox.mjs';
 import {NoConnectionBox} from '../../connection/components/NoConnectionBox.mjs';
 import {RoundStartingBox} from './RoundStartingBox.mjs';
 import {Canvases} from '../../canvases/components/Canvases.mjs';
@@ -11,9 +14,6 @@ import {Timer} from './Timer.mjs';
 import {connectionListenerStatus} from '../../connection/connection-listener-status.mjs';
 import {trialResult} from '../trial-result.mjs';
 import {getRandomPhrase} from '../../data/phrases.mjs';
-
-const {useEffect} = window.React;
-const {useSelector, useDispatch} = window.ReactRedux;
 
 export const GamePage = () => {
     const dispatch = useDispatch();
@@ -70,7 +70,6 @@ export const GamePage = () => {
         const allPlayers = [localPlayer, ...remotePlayers];
         const maxDifference = 1;
         /* Calculate how many times each player was the drawer */
-        /** @type {Object<string, int>} */
         const drawerCounts = allPlayers.reduce((counts, player) => {
             counts[player.peerId] = 0;
             return counts;

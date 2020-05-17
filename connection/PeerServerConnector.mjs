@@ -1,92 +1,77 @@
-const {connect} = window.ReactRedux;
+import {useState, useEffect} from "../web_modules/react.js";
+import {useSelector, useDispatch} from "../web_modules/react-redux.js";
 import {connectionListenerStatus} from './connection-listener-status.mjs';
+import {actionCreators as connectionActionCreators} from "./store.mjs";
+import {actionCreators as gameActionCreators} from "../game/store.mjs";
 
-class PeerServerConnector extends React.Component {
-    constructor(props) {
-        super(props);
+/**
+ * @param {int} length
+ */
+function generateRandomId(length) {
+    return Math.random().toString(36).substr(2, length);
+}
 
-        this._defaultIdLength = 2;
-        this._idLength = this._defaultIdLength;
-        this._lastActivePeerId = null;
-    }
+export default function PeerServerConnector({peerCreatedCallback, debugLevel}) {
+    const defaultIdLength = 2;
+    const [peer, setPeer] = useState(null);
+    const [idLength, setIdLength] = useState(defaultIdLength);
+    let lastActivePeerId = null;
+    const dispatch = useDispatch();
 
-    render() {
-        return null;
-    }
+    const currentListenerStatus = useSelector(state => state.connection.connectionListenerStatus);
 
-    componentDidMount() {
-        this.componentDidUpdate();
-    }
-
-    // noinspection JSUnusedGlobalSymbols
-    componentDidUpdate() {
-        if (this.props.connectionListenerStatus === connectionListenerStatus.shouldConnectToPeerServer && (!this._peer || this._peer.disconnected)) {
-            if (!this._peer || this._peer.destroyed) {
-                this._idLength = this._defaultIdLength;
-                this._peer = this._createPeer(this._lastActivePeerId);
+    useEffect(() => {
+        if (currentListenerStatus === connectionListenerStatus.shouldConnectToPeerServer && (!peer || peer.disconnected)) {
+            if (!peer || peer.destroyed) {
+                setIdLength(defaultIdLength);
+                setPeer(createPeer(lastActivePeerId));
             } else {
-                this._peer.reconnect();
+                peer.reconnect();
             }
-            this.props.setListenerStatus(connectionListenerStatus.connectingToPeerServer, this._peer.id);
+            dispatch(connectionActionCreators.createUpdateStatusRequest(connectionListenerStatus.connectingToPeerServer));
 
-        } else if (this.props.connectionListenerStatus === connectionListenerStatus.shouldDisconnectFromPeerServer && !this._peer.disconnected) {
-            this._peer.disconnect();
-            this.props.setListenerStatus(connectionListenerStatus.disconnectingFromPeerServer, this._peer.id);
+        } else if (currentListenerStatus === connectionListenerStatus.shouldDisconnectFromPeerServer && !peer.disconnected) {
+            peer.disconnect();
+            dispatch(connectionActionCreators.createUpdateStatusRequest(connectionListenerStatus.disconnectingFromPeerServer));
         }
-    }
+    }, [currentListenerStatus, peer]);
 
-    /**
-     * @private
-     */
-    _generateRandomId() {
-        return Math.random().toString(36).substr(2, this._idLength);
-    }
+    return null;
 
     /**
      * @param {string|null} peerId
      * @returns {Peer}
      * @private
      */
-    _createPeer(peerId = null) {
-        this.props.setListenerStatus(connectionListenerStatus.connectingToPeerServer, peerId);
-        peerId = peerId || this._generateRandomId();
-        const peer = new peerjs.Peer(peerId, {debug: this._debugLevel - 1});
-        peer.on('open', () => {this.props.setListenerStatus(connectionListenerStatus.listeningForConnections, peerId);}, null);
-        peer.on('disconnected', () => {this.props.setListenerStatus(connectionListenerStatus.notConnectedToPeerServer, peerId);}, null);
-        //peer.on('close', this.props.setListenerStatus(connectionListenerStatus.notConnectedToPeerServer, peerId), null);
-        peer.on('error', this._handlePeerError, null);
-        this.props.peerCreatedCallback(peer);
+    function createPeer(peerId = null) {
+        dispatch(connectionActionCreators.createUpdateStatusRequest(connectionListenerStatus.connectingToPeerServer));
+        peerId = peerId || generateRandomId(idLength);
+        const peer = new window.peerjs.Peer(peerId, {debug: debugLevel - 1});
+        peer.on('open', () => {
+            dispatch(gameActionCreators.createUpdateLocalPlayerPeerIdRequest(peerId));
+            dispatch(connectionActionCreators.createStartAcceptingConnectionsSuccess(peerId));
+            }, null);
+        peer.on('disconnected', () => {
+            dispatch(connectionActionCreators.createDisconnectFromPeerServerSuccess());
+        }, null);
+        peer.on('error', handlePeerError, null);
+        peerCreatedCallback(peer);
         return peer;
     }
 
     /**
      * @private
      */
-    _handlePeerError(error) {
+    function handlePeerError(error) {
         if (error.type === 'unavailable-id') {
-            this._peer.destroy();
-            this._peer = this._createPeer();
-            this._idLength++;
+            peer.destroy();
+            setPeer(createPeer());
+            setIdLength(x => x + 1);
         } else {
-            if (this._debugLevel >= 1) {
+            if (debugLevel >= 1) {
                 console.log('Peer error.');
                 console.log(error);
             }
         }
     }
-}
-
-/**
- * @param {State} state
- * @returns {Object}
- */
-function mapStateToProps(state) {
-    return {
-        localPeerId: state.connection.localPeerId,
-        connectionListenerStatus: state.connection.connectionListenerStatus,
-        connections: state.connection.connections,
-        hostPeerId: state.connection.hostPeerId,
-    };
-}
-
-export default connect(mapStateToProps)(PeerServerConnector);
+};
