@@ -10,7 +10,9 @@ export const ConnectToPeerBox = () => {
     const isConnectingToHost = useSelector(state => state.connection.connectionListenerStatus === connectionListenerStatus.connectingToHost);
     const isConnectedToAnyPeers = useSelector(state => state.connection.connections.length > 0);
 
-    const connectToHost = hostPeerId => dispatch(connectionActionCreators.createConnectToHostRequest(hostPeerId));
+    function connectToHost(hostPeerId) {
+        return dispatch(connectionActionCreators.createConnectToHostRequest(hostPeerId));
+    }
 
     return React.createElement('div', {className: 'connectToPeerBox'},
         React.createElement('p', {}, 'Enter your friend\'s ID here:'),

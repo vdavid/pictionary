@@ -56,15 +56,30 @@ function _getStateCopy(state) {
 }
 
 export const actionCreators = {
-    createStartAcceptingConnectionsSuccess: (localPeerId) => ({type: actionTypes.START_ACCEPTING_CONNECTIONS_SUCCESS, payload: localPeerId}),
+    createStartAcceptingConnectionsSuccess: (localPeerId) => ({
+        type: actionTypes.START_ACCEPTING_CONNECTIONS_SUCCESS,
+        payload: localPeerId
+    }),
     createDisconnectFromPeerServerSuccess: () => ({type: actionTypes.DISCONNECT_FROM_PEER_SERVER_SUCCESS}),
     createUpdateStatusRequest: (status) => ({type: actionTypes.UPDATE_STATUS, payload: status}),
     createConnectToHostRequest: (hostPeerId) => ({type: actionTypes.CONNECT_TO_HOST_REQUEST, payload: hostPeerId}),
-    createAddNewConnectionRequest: (remotePeerId, isIncoming, isThisTheConnectionToTheHost) => ({type: actionTypes.ADD_NEW_CONNECTION, payload: {remotePeerId, isIncoming, isThisTheConnectionToTheHost}}),
+    createAddNewConnectionRequest: (remotePeerId, isIncoming, isThisTheConnectionToTheHost) => ({
+        type: actionTypes.ADD_NEW_CONNECTION,
+        payload: {remotePeerId, isIncoming, isThisTheConnectionToTheHost}
+    }),
     createRemoveConnectionRequest: (remotePeerId) => ({type: actionTypes.REMOVE_CONNECTION, payload: remotePeerId}),
-    createSetConnectionAsConfirmedRequest: (remotePeerId) => ({type: actionTypes.SET_CONNECTION_AS_CONFIRMED, payload: remotePeerId}),
-    createSetConnectionIntroSentRequest: (remotePeerId) => ({type: actionTypes.SET_CONNECTION_INTRO_SENT, payload: remotePeerId}),
-    createSetConnectionIntroReceivedRequest: (remotePeerId) => ({type: actionTypes.SET_CONNECTION_INTRO_RECEIVED, payload: remotePeerId}),
+    createSetConnectionAsConfirmedRequest: (remotePeerId) => ({
+        type: actionTypes.SET_CONNECTION_AS_CONFIRMED,
+        payload: remotePeerId
+    }),
+    createSetConnectionIntroSentRequest: (remotePeerId) => ({
+        type: actionTypes.SET_CONNECTION_INTRO_SENT,
+        payload: remotePeerId
+    }),
+    createSetConnectionIntroReceivedRequest: (remotePeerId) => ({
+        type: actionTypes.SET_CONNECTION_INTRO_RECEIVED,
+        payload: remotePeerId
+    }),
     createTryReconnectingToPeerServerRequest: () => ({type: actionTypes.TRY_RECONNECTING_TO_PEER_SERVER_REQUEST}),
 };
 
@@ -138,8 +153,15 @@ function _connectToHost(state, hostPeerId) {
  * @param {{remotePeerId: string, isIncoming: boolean, isThisTheConnectionToTheHost: boolean}} argument
  */
 function _addNewConnection(state, {remotePeerId, isIncoming, isThisTheConnectionToTheHost}) {
-    state.connections.push({remotePeerId, isIncoming, isConfirmed: false, isIntroSent: false, isIntroReceived: false, isThisTheConnectionToTheHost});
-    if(isIncoming && isThisTheConnectionToTheHost) {
+    state.connections.push({
+        remotePeerId,
+        isIncoming,
+        isConfirmed: false,
+        isIntroSent: false,
+        isIntroReceived: false,
+        isThisTheConnectionToTheHost
+    });
+    if (isIncoming && isThisTheConnectionToTheHost) {
         state.hostPeerId = state.localPeerId;
     }
 }

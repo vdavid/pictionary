@@ -21,8 +21,16 @@ export const GamePage = () => {
     const latestRound = useSelector(state => (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []});
     const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
     const currentConnectionListenerStatus = useSelector(state => state.connection.connectionListenerStatus);
-    const shouldDisplayNoConnectionBox = [connectionListenerStatus.notConnectedToPeerServer, connectionListenerStatus.shouldConnectToPeerServer, connectionListenerStatus.connectingToPeerServer, connectionListenerStatus.shouldDisconnectFromPeerServer, connectionListenerStatus.disconnectingFromPeerServer].includes(currentConnectionListenerStatus);
-    const shouldDisplayConnectBox = [connectionListenerStatus.listeningForConnections, connectionListenerStatus.shouldConnectToHost, connectionListenerStatus.connectingToHost].includes(currentConnectionListenerStatus);
+    const shouldDisplayNoConnectionBox = [
+        connectionListenerStatus.notConnectedToPeerServer,
+        connectionListenerStatus.shouldConnectToPeerServer,
+        connectionListenerStatus.connectingToPeerServer,
+        connectionListenerStatus.shouldDisconnectFromPeerServer,
+        connectionListenerStatus.disconnectingFromPeerServer].includes(currentConnectionListenerStatus);
+    const shouldDisplayConnectBox = [
+        connectionListenerStatus.listeningForConnections,
+        connectionListenerStatus.shouldConnectToHost,
+        connectionListenerStatus.connectingToHost].includes(currentConnectionListenerStatus);
     const isHost = useSelector(state => state.connection.hostPeerId === state.connection.localPeerId);
     const isGameStarted = useSelector(state => state.game.isGameStarted);
     const rounds = useSelector(state => state.game.rounds);
