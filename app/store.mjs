@@ -1,9 +1,5 @@
 /**
  * @typedef {Object} AppConfig
- * @property {int} roundCountdownLengthInSeconds
- * @property {int} roundLengthInSeconds
- * @property {int} timeExtensionInSeconds
- * @property {int} gameLengthInSeconds
  */
 /**
  * @typedef {Object} AppState
@@ -23,17 +19,9 @@ function _getStateCopy(state) {
     return state ? {
         isFullscreen: state.isFullscreen,
         debugLevel: state.debugLevel,
-        config: state.config,
     } : {
         isFullscreen: false,
         debugLevel: window.location.href.startsWith('http://localhost') ? 3 : 1,
-        config: {
-            roundCountdownLengthInSeconds: 3,
-            roundLengthInSeconds: 60,
-            timeExtensionInSeconds: 120,
-            gameLengthInSeconds: 600,
-            checkForNewDrawnLinesIntervalInMilliseconds: 500,
-        },
     };
 }
 

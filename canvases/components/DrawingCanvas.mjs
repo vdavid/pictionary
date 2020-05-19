@@ -1,8 +1,9 @@
-import React, {useState, useEffect, useRef} from "../../web_modules/react.js";
-import {useSelector, useDispatch} from "../../web_modules/react-redux.js";
+import React, {useEffect, useRef, useState} from "../../web_modules/react.js";
+import {useDispatch, useSelector} from "../../web_modules/react-redux.js";
 import {trialResult} from '../../game/trial-result.mjs';
 import {actionCreators as gameActionCreators} from '../../game/store.mjs';
 import DrawingTools from '../DrawingTools.mjs';
+import {useConfig} from "../../app/components/ConfigProvider.mjs";
 
 /**
  * @typedef {Object} DrawnLine
@@ -14,6 +15,7 @@ import DrawingTools from '../DrawingTools.mjs';
  */
 
 export const DrawingCanvas = () => {
+    const config = useConfig();
     const [drawnLineCount, setDrawnLineCount] = useState(0);
     /** @type {DrawnLine[]} */
     const [newlyDrawnLines, setNewlyDrawnLines] = useState([]);
@@ -34,8 +36,6 @@ export const DrawingCanvas = () => {
     const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
     const lines = latestTrial.lines || [];
     const isRoundStarted = latestTrial.trialResult === trialResult.ongoing;
-    const updateIntervalInMilliseconds = useSelector(state => state.app.config.checkForNewDrawnLinesIntervalInMilliseconds);
-
     useEffect(() => {
         window.addEventListener('resize', clearAndRedraw);
 
@@ -53,7 +53,7 @@ export const DrawingCanvas = () => {
             newDrawingTools.clearCanvas();
             lines.map(line => newDrawingTools.drawLine(line));
 
-            setTimer(setInterval(sendNewlyDrawnLines, updateIntervalInMilliseconds));
+            setTimer(setInterval(sendNewlyDrawnLines, config.game.checkForNewDrawnLinesIntervalInMilliseconds));
 
             return () => {
                 clearInterval(timer);

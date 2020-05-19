@@ -1,9 +1,11 @@
-import React, {useState, useEffect, useRef} from "../../web_modules/react.js";
-import {useSelector, useDispatch} from "../../web_modules/react-redux.js";
+import React, {useEffect, useRef, useState} from "../../web_modules/react.js";
+import {useDispatch, useSelector} from "../../web_modules/react-redux.js";
 import {trialResult} from '../trial-result.mjs';
 import {actionCreators as gameActionCreators} from '../store.mjs';
+import {useConfig} from "../../app/components/ConfigProvider.mjs";
 
 export const RoundStartingBox = () => {
+    const config = useConfig();
     const [secondsRemaining, setSecondsRemaining] = useState(0);
     const [, setIntervalTimer] = useState(null);
     const intervalTimerRef = useRef(null);
@@ -16,8 +18,6 @@ export const RoundStartingBox = () => {
     const isRoundStarting = latestTrial.trialResult === trialResult.starting;
     const startingDateTime = latestTrial.startingDateTimeString ? new Date(latestTrial.startingDateTimeString) : undefined;
     const isLocalPlayerDrawing = useSelector(state => latestRound.drawer.peerId === state.game.localPlayer.peerId);
-    const roundCountdownLengthInSeconds = useSelector(state => state.app.config.roundCountdownLengthInSeconds);
-
     useEffect(() => {
         updateSecondsRemaining();
     }, []);
@@ -25,7 +25,7 @@ export const RoundStartingBox = () => {
     useEffect(() => {
         if (isRoundStarting && !intervalTimerRef.current) {
             setIntervalTimerWithRef(isRoundStarting ? setInterval(updateSecondsRemaining, 1000) : null);
-            setStartRoundTimer(isRoundStarting ? setTimeout(timeIsUp, roundCountdownLengthInSeconds * 1000) : null);
+            setStartRoundTimer(isRoundStarting ? setTimeout(timeIsUp, config.game.roundCountdownLengthInSeconds * 1000) : null);
         } else if (!isRoundStarting && intervalTimerRef.current) {
             clearInterval(intervalTimerRef.current);
             setIntervalTimerWithRef(null);
@@ -41,7 +41,7 @@ export const RoundStartingBox = () => {
                 setStartRoundTimer(null);
             }
         };
-    }, [roundCountdownLengthInSeconds, startingDateTime.toISOString(), isRoundStarting]);
+    }, [startingDateTime.toISOString(), isRoundStarting]);
 
     return React.createElement('div', {},
         React.createElement('div', {className: 'fullScreenSemiTransparentCover'}),
@@ -57,7 +57,7 @@ export const RoundStartingBox = () => {
      */
     function updateSecondsRemaining() {
         setSecondsRemaining(startingDateTime
-            ? (startingDateTime.getTime() + (roundCountdownLengthInSeconds * 1000) - (new Date()).getTime()) / 1000
+            ? (startingDateTime.getTime() + (config.game.roundCountdownLengthInSeconds * 1000) - (new Date()).getTime()) / 1000
             : undefined);
     }
 

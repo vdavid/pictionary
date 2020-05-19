@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef, useCallback} from "../web_modules/react.js";
+import React, {useEffect, useRef} from "../web_modules/react.js";
 import {useSelector, useDispatch} from "../web_modules/react-redux.js";
 
 import {actionCreators as connectionActionCreators} from './store.mjs';
@@ -13,6 +13,7 @@ import {connectionListenerStatus} from './connection-listener-status.mjs';
 import {messageTypes} from './message-types.mjs';
 import {trialResult} from '../game/trial-result.mjs';
 import {getRandomPhrase} from '../data/phrases.mjs';
+import {useLogger} from "../app/components/LoggerProvider.mjs";
 
 /**
  * Documentation: https://docs.peerjs.com/
@@ -36,7 +37,8 @@ import {getRandomPhrase} from '../data/phrases.mjs';
  *        Default is 0.
  */
 
-export default function PeerConnector({debugLevel}) {
+export default function PeerConnector({debugLevel, PeerClass}) {
+    const logger = useLogger();
     const connectionPoolRef = useRef(new ConnectionPool());
     const debugLoggerRef = useRef(new ConnectionDebugLogger(debugLevel));
 
@@ -169,13 +171,14 @@ export default function PeerConnector({debugLevel}) {
         /* Connect to host if requested so */
         if (currentConnectionListenerStatus === connectionListenerStatus.shouldConnectToHost) {
             if (hostPeerIdRef.current !== localPeerIdRef.current) {
-                console.log('Connecting to ' + hostPeerIdRef.current);
+                logger.info('Connecting to ' + hostPeerIdRef.current);
                 addConnection(hostPeerIdRef.current, false, true);
                 const newConnection = connectToPeerFunctionRef.current(hostPeerIdRef.current, {metadata: {hostPeerId: hostPeerIdRef.current/*, label: undefined, serialization: 'json', reliable: true*/}});
                 _setUpConnectionEventHandlers(newConnection);
                 setListenerStatus(connectionListenerStatus.connectingToHost, localPeerId);
             } else {
                 setListenerStatus(connectionListenerStatus.listeningForConnections, localPeerId);
+                logger.notice('Connecting to ' + hostPeerIdRef.current);
                 console.log('Can\'t connect to self.');
             }
         }
@@ -259,7 +262,7 @@ export default function PeerConnector({debugLevel}) {
     }
 
     // noinspection JSUnusedGlobalSymbols – peerCreatedCallback is actually used in PeerServerConnector.
-    return React.createElement(PeerServerConnector, {setListenerStatus, peerCreatedCallback});
+    return React.createElement(PeerServerConnector, {setListenerStatus, peerCreatedCallback, PeerClass});
 
     function peerCreatedCallback(peer) {
         /* Handle incoming connections */

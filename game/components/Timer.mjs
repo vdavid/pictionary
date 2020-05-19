@@ -1,8 +1,9 @@
-import React, {useEffect, useState} from "../../web_modules/react.js";
-import {useSelector, useDispatch} from "../../web_modules/react-redux.js";
+import React, {useEffect, useRef, useState} from "../../web_modules/react.js";
+import {useDispatch, useSelector} from "../../web_modules/react-redux.js";
 import {trialResult} from '../trial-result.mjs';
 import {actionCreators as gameActionCreators} from '../../game/store.mjs';
 import {actionCreators as chatActionCreators} from '../../chat/store.mjs';
+import {useConfig} from "../../app/components/ConfigProvider.mjs";
 
 /**
  * @param {Number} totalSeconds
@@ -23,6 +24,7 @@ function formatRemainingTime(totalSeconds) {
 }
 
 export const Timer = () => {
+    const config = useConfig();
     const [gameSecondsRemaining, setGameSecondsRemaining] = useState(0);
     const [roundSecondsRemaining, setRoundSecondsRemaining] = useState(0);
     const [intervalTimer, setIntervalTimer] = useState(null);
@@ -31,16 +33,27 @@ export const Timer = () => {
     const latestRound = useSelector(state => (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []});
     const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
     const isGameStarted = useSelector(state => state.game.isGameStarted);
+    const isGameStartedRef = useRef(null);
+    isGameStartedRef.current = isGameStarted;
     const gameStartDateTime = useSelector(state => state.game.gameStartedDateTimeString ? new Date(state.game.gameStartedDateTimeString) : undefined);
+    const gameStartDateTimeRef = useRef(null);
+    gameStartDateTimeRef.current = gameStartDateTime;
     const isRoundStarted = latestTrial.trialResult === trialResult.ongoing;
     const roundStartDateTime = latestTrial.startedDateTimeString ? new Date(latestTrial.startedDateTimeString) : undefined;
-    const roundLengthInSeconds = useSelector(state => state.app.config.roundLengthInSeconds);
-    const timeExtensionInSeconds = useSelector(state => state.app.config.timeExtensionInSeconds);
-    const gameLengthInSeconds = useSelector(state => state.app.config.gameLengthInSeconds);
+    const roundStartDateTimeRef = useRef(null);
+    roundStartDateTimeRef.current = roundStartDateTime;
     const isRoundBaseTimeElapsed = latestRound.isRoundBaseTimeElapsed;
+    const isRoundBaseTimeElapsedRef = useRef(null);
+    isRoundBaseTimeElapsedRef.current = isRoundBaseTimeElapsed;
     const isHost = useSelector(state => state.connection.hostPeerId === state.connection.localPeerId);
+    const isHostRef = useRef(null);
+    isHostRef.current = isHost;
     const isThisTheDrawer = useSelector(state => latestRound.drawer && (latestRound.drawer.peerId === state.game.localPlayer.peerId));
+    const isThisTheDrawerRef = useRef(null);
+    isThisTheDrawerRef.current = isThisTheDrawer;
     const phrase = latestRound.phrase;
+    const phraseRef = useRef(null);
+    phraseRef.current = phrase;
 
     useEffect(() => {
         updateSecondsRemaining();
@@ -72,40 +85,40 @@ export const Timer = () => {
      * @private
      */
     function updateSecondsRemaining() {
-        const newlyCalculatedGameSecondsRemaining = gameStartDateTime
-            ? (gameStartDateTime.getTime() + (gameLengthInSeconds * 1000) - (new Date()).getTime()) / 1000
+        const newlyCalculatedGameSecondsRemaining = gameStartDateTimeRef.current
+            ? (gameStartDateTimeRef.current.getTime() + (config.game.gameLengthInSeconds * 1000) - (new Date()).getTime()) / 1000
             : undefined;
 
-        const normalRoundSecondsRemaining = roundStartDateTime
-            ? (roundStartDateTime.getTime() + (roundLengthInSeconds * 1000) - (new Date()).getTime()) / 1000
+        const normalRoundSecondsRemaining = roundStartDateTimeRef.current
+            ? (roundStartDateTimeRef.current.getTime() + (config.game.roundLengthInSeconds * 1000) - (new Date()).getTime()) / 1000
             : undefined;
-        const newlyCalculatedRoundSecondsRemaining = normalRoundSecondsRemaining + (isRoundBaseTimeElapsed ? timeExtensionInSeconds : 0);
+        const newlyCalculatedRoundSecondsRemaining = normalRoundSecondsRemaining + (isRoundBaseTimeElapsedRef.current ? config.game.timeExtensionInSeconds : 0);
         setGameSecondsRemaining(newlyCalculatedGameSecondsRemaining);
         setRoundSecondsRemaining(newlyCalculatedRoundSecondsRemaining);
 
-        if (!isRoundBaseTimeElapsed && (normalRoundSecondsRemaining <= 0)) {
+        if (!isRoundBaseTimeElapsedRef.current && (normalRoundSecondsRemaining <= 0)) {
             /* Mark base time elapsed if needed */
             dispatch(gameActionCreators.createMarkRoundBaseTimeElapsedRequest());
-        } else if (isThisTheDrawer && (newlyCalculatedRoundSecondsRemaining <= 0)) {
+        } else if (isThisTheDrawerRef.current && (newlyCalculatedRoundSecondsRemaining <= 0)) {
             /* End round if needed */
-            dispatch(gameActionCreators.createMarkRoundEndedRequest(phrase, null, new Date().toISOString()));
-            dispatch(chatActionCreators.createSendRoundEndedRequest(null, null, null, null, phrase));
+            dispatch(gameActionCreators.createMarkRoundEndedRequest(phraseRef.current, null, new Date().toISOString()));
+            dispatch(chatActionCreators.createSendRoundEndedRequest(null, null, null, null, phraseRef.current));
         }
 
         /* End game if needed */
-        if (isHost && isGameStarted && newlyCalculatedGameSecondsRemaining < 0) {
+        if (isHostRef.current && isGameStartedRef.current && newlyCalculatedGameSecondsRemaining < 0) {
             dispatch(gameActionCreators.createEndGameRequest(new Date().toISOString()));
         }
     }
 
     const formattedGameTime = formatRemainingTime(gameSecondsRemaining);
-    const isGameTimeOverSoon = gameSecondsRemaining < gameLengthInSeconds / 20;
+    const isGameTimeOverSoon = gameSecondsRemaining < config.game.gameLengthInSeconds / 20;
     const gameTimerClass = ['game', 'timer',
         isGameTimeOverSoon ? ((roundSecondsRemaining >= 0) ? 'overSoon' : 'over') : ''].join(' ').trim();
 
     const formattedRoundTime = formatRemainingTime(roundSecondsRemaining);
     const isRoundTimeOverSoon = roundSecondsRemaining
-        < (!isRoundBaseTimeElapsed ? roundLengthInSeconds : timeExtensionInSeconds) / 6;
+        < (!isRoundBaseTimeElapsed ? config.game.roundLengthInSeconds : config.game.timeExtensionInSeconds) / 6;
     const roundTimerClass = ['round', 'timer', isRoundBaseTimeElapsed ? 'extension' : '',
         isRoundTimeOverSoon ? ((roundSecondsRemaining >= 0) ? 'overSoon' : 'over') : ''].join(' ').trim();
 

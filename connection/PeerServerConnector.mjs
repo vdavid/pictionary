@@ -1,3 +1,4 @@
+import {useConfig} from "../app/components/ConfigProvider.mjs";
 import {useState, useEffect} from "../web_modules/react.js";
 import {useSelector, useDispatch} from "../web_modules/react-redux.js";
 import {connectionListenerStatus} from './connection-listener-status.mjs';
@@ -12,6 +13,7 @@ function generateRandomId(length) {
 }
 
 export default function PeerServerConnector({peerCreatedCallback, debugLevel}) {
+    const config = useConfig();
     const defaultIdLength = 2;
     const [peer, setPeer] = useState(null);
     const [idLength, setIdLength] = useState(defaultIdLength);
@@ -46,7 +48,15 @@ export default function PeerServerConnector({peerCreatedCallback, debugLevel}) {
     function createPeer(peerId = null) {
         dispatch(connectionActionCreators.createUpdateStatusRequest(connectionListenerStatus.connectingToPeerServer));
         peerId = peerId || generateRandomId(idLength);
-        const peer = new window.peerjs.Peer(peerId, {debug: debugLevel - 1});
+        const peer = new window.peerjs.Peer(peerId, {
+            key: config.peerJs.key,
+            host: config.peerJs.hostname,
+            port: config.peerJs.port,
+            pingInterval: config.peerJs.pingIntervalMs,
+            path: config.peerJs.path,
+            secure: config.peerJs.isSecure,
+            debug: config.peerJs.debugLevel,
+        });
         peer.on('open', () => {
             dispatch(gameActionCreators.createUpdateLocalPlayerPeerIdRequest(peerId));
             dispatch(connectionActionCreators.createStartAcceptingConnectionsSuccess(peerId));

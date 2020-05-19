@@ -4,8 +4,7 @@ import {GamePage} from '../../game/components/GamePage.mjs';
 import PeerConnector from '../../connection/PeerConnector.mjs';
 import {ConnectionStatusIndicator} from '../../connection/components/ConnectionStatusIndicator.mjs';
 
-
-export const App = () => {
+export function App() {
     return React.createElement(BrowserRouter, {basename: '/'},
         React.createElement('header', {},
             React.createElement('div', {className: 'logo'}),
@@ -29,4 +28,4 @@ export const App = () => {
         React.createElement('footer', null, React.createElement('span', {className: 'copyright'}, 'Made with ❤️ by David')),
         React.createElement(PeerConnector),
     );
-};
+}
