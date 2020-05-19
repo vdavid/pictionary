@@ -33,21 +33,29 @@ import {useLogger} from "../app/components/LoggerProvider.mjs";
  * @property {function(error: {message: string, stack: string}, severity: int): void} [onError] Called when an error happens in the underlying socket
  *        and PeerConnections. (Note: Errors on the peer are almost always fatal and will destroy the peer.)
  *        More info: https://docs.peerjs.com/#peeron-error
- * @property {int} [debugLevel] 0 Prints no logs. 1 Prints only errors. 2 Prints errors and warnings. 3 Prints infos. 4 Verbose logging.
- *        Default is 0.
  */
 
-export default function PeerConnector({debugLevel, PeerClass}) {
+export default function PeerConnector() {
     const logger = useLogger();
-    const connectionPoolRef = useRef(new ConnectionPool());
-    const debugLoggerRef = useRef(new ConnectionDebugLogger(debugLevel));
+    const connectionPoolRef = useRef(new ConnectionPool({logger}));
+    const debugLoggerRef = useRef(new ConnectionDebugLogger({logger}));
 
     const latestRound = useSelector(state => (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []});
+    const latestRoundRef = useRef(null);
+    latestRoundRef.current = latestRound;
     const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
+    const latestTrialRef = useRef(null);
+    latestTrialRef.current = latestTrial;
 
     const isGameStarted = useSelector(state => state.game.isGameStarted);
+    const isGameStartedRef = useRef(null);
+    isGameStartedRef.current = isGameStarted;
     const gameStartedDateTimeString = useSelector(state => state.game.gameStartedDateTimeString);
+    const gameStartedDateTimeStringRef = useRef(null);
+    gameStartedDateTimeStringRef.current = gameStartedDateTimeString;
     const gameEndedDateTimeString = useSelector(state => state.game.gameEndedDateTimeString);
+    const gameEndedDateTimeStringRef = useRef(null);
+    gameEndedDateTimeStringRef.current = gameEndedDateTimeString;
     const localPeerId = useSelector(state => state.connection.localPeerId);
     const localPeerIdRef = useRef(null);
     localPeerIdRef.current = localPeerId;
@@ -55,14 +63,20 @@ export default function PeerConnector({debugLevel, PeerClass}) {
     const hostPeerIdRef = useRef(null);
     hostPeerIdRef.current = hostPeerId;
     const drawerPeerId = latestRound.drawer ? latestRound.drawer.peerId : undefined;
+    const drawerPeerIdRef = useRef(null);
+    drawerPeerIdRef.current = drawerPeerId;
     const currentConnectionListenerStatus = useSelector(state => state.connection.connectionListenerStatus);
     const connections = useSelector(state => state.connection.connections);
     const localPlayer = useSelector(state => state.game.localPlayer);
     const localPlayerRef = useRef(null);
     localPlayerRef.current = localPlayer;
     const remotePlayers = useSelector(state => state.game.remotePlayers);
+    const remotePlayersRef = useRef(null);
+    remotePlayersRef.current = remotePlayers;
     const chatMessages = useSelector(state => state.chat.messages);
     const rounds = useSelector(state => state.game.rounds);
+    const roundsRef = useRef(null);
+    roundsRef.current = rounds;
     const drawnLines = latestTrial.lines || [];
     const connectToPeerFunctionRef = useRef(undefined);
     const previousLatestTrialRef = useRef(undefined);
@@ -178,8 +192,7 @@ export default function PeerConnector({debugLevel, PeerClass}) {
                 setListenerStatus(connectionListenerStatus.connectingToHost, localPeerId);
             } else {
                 setListenerStatus(connectionListenerStatus.listeningForConnections, localPeerId);
-                logger.notice('Connecting to ' + hostPeerIdRef.current);
-                console.log('Can\'t connect to self.');
+                logger.notice('Can\'t connect to self.');
             }
         }
 
@@ -245,24 +258,23 @@ export default function PeerConnector({debugLevel, PeerClass}) {
     function onConnection(connection) {
         if ((connections.length === 0 && (connection.metadata.hostPeerId === localPeerIdRef.current))) {
             /* Receiving connection as a host --> become the host */
-            console.log('Connection received from ' + connection.peer + ', we became the host.');
+            logger.info('Connection received from ' + connection.peer + ', we became the host.');
             addConnection(connection.peer, true, true);
             _setUpConnectionEventHandlers(connection);
         } else if (connection.metadata.hostPeerId === hostPeerIdRef.current) {
             /* Receiving connection from another client */
-            console.log('Connection received from ' + connection.peer + ', another client.');
+            logger.info('Connection received from ' + connection.peer + ', another client.');
             addConnection(connection.peer, true, false);
             _setUpConnectionEventHandlers(connection);
         } else {
-            console.log('Invalid connection received from ' + connection.peer + '. (localPeerId: ' + localPeerIdRef.current + ', hostPeerId: ' + hostPeerIdRef.current + ', connections: ' + connections.length + ')');
-            console.log(connection);
-            console.log(localPeerIdRef.current);
+            logger.info('Invalid connection received from ' + connection.peer + '. (localPeerId: ' + localPeerIdRef.current
+                + ', hostPeerId: ' + hostPeerIdRef.current + ', connections: ' + connections.length + ')', connection, localPeerIdRef.current);
             connection.on('open', () => connection.close(), null);
         }
     }
 
     // noinspection JSUnusedGlobalSymbols – peerCreatedCallback is actually used in PeerServerConnector.
-    return React.createElement(PeerServerConnector, {setListenerStatus, peerCreatedCallback, PeerClass});
+    return React.createElement(PeerServerConnector, {setListenerStatus, peerCreatedCallback});
 
     function peerCreatedCallback(peer) {
         /* Handle incoming connections */
@@ -277,7 +289,7 @@ export default function PeerConnector({debugLevel, PeerClass}) {
     function _setUpConnectionEventHandlers(connection) {
         // noinspection JSUnresolvedFunction
         connection.on('open', () => {
-            console.log('Opened connection to ' + connection.peer);
+            logger.info('Opened connection to ' + connection.peer);
             setConnectionAsConfirmed(connection.peer);
             connectionPoolRef.current.add(connection, hostPeerIdRef.current === connection.peer);
             _sendLocalPlayerDataToClient(connection.peer);
@@ -291,15 +303,13 @@ export default function PeerConnector({debugLevel, PeerClass}) {
         connection.on('data', (data) => _handleConnectionDataReceived(connection.peer, data), null);
         // noinspection JSUnresolvedFunction
         connection.on('close', () => {
-            console.log('Connection closed with ' + connection.peer);
+            logger.info('Connection closed with ' + connection.peer);
             connectionPoolRef.current.remove(connection);
             removeConnection(connection.peer);
         }, null);
         // noinspection JSUnresolvedFunction
         connection.on('error', (error) => {
-            if (debugLevel >= 2) {
-                console.log(error);
-            }
+            logger.warning(error);
         }, null);
     }
 
@@ -312,11 +322,11 @@ export default function PeerConnector({debugLevel, PeerClass}) {
 
         /** @type {GameStateToSendToNewPeer} */
         const gameState = {
-            isGameStarted: isGameStarted,
-            gameStartedDateTimeString: gameStartedDateTimeString,
-            gameEndedDateTimeString: gameEndedDateTimeString,
+            isGameStarted: isGameStartedRef.current,
+            gameStartedDateTimeString: gameStartedDateTimeStringRef.current,
+            gameEndedDateTimeString: gameEndedDateTimeStringRef.current,
             peerIds,
-            rounds: rounds,
+            rounds: roundsRef.current,
         };
 
         debugLoggerRef.current.logOutgoingMessage(recipientPeerId, gameState);
@@ -338,7 +348,7 @@ export default function PeerConnector({debugLevel, PeerClass}) {
      * @private
      */
     function _handleConnectionDataReceived(remotePeerId, {type, payload}) {
-        console.log('Data received from ' + remotePeerId + ': ' + type);
+        logger.debug('Data received from ' + remotePeerId + ': ' + type);
         debugLoggerRef.current.logIncomingMessage(remotePeerId, type, payload);
 
         if (type === messageTypes.startGameSignal) {
@@ -354,14 +364,14 @@ export default function PeerConnector({debugLevel, PeerClass}) {
         } else {
             if (type === messageTypes.roundSolved) {
                 const {phrase, solverPeerId, solutionDateTimeString} = payload;
-                const solverPlayer = solverPeerId && [localPlayerRef.current, ...remotePlayers].find(player => player.peerId === solverPeerId);
+                const solverPlayer = solverPeerId && [localPlayerRef.current, ...remotePlayersRef.current].find(player => player.peerId === solverPeerId);
                 if (solverPeerId && !solverPlayer) {
-                    console.log('Problem. Not found solver "' + solverPeerId + '".');
+                    logger.error('Problem. Not found solver "' + solverPeerId + '".');
                 }
                 handleRoundSolvedSignalReceived(remotePeerId, solverPeerId, solverPeerId && solverPlayer.name, localPeerIdRef.current, solutionDateTimeString, phrase);
 
             } else if (type === messageTypes.clearCanvasCommand) {
-                if (latestTrial.lines.length > 0) {
+                if (latestTrialRef.current.lines.length > 0) {
                     handleClearCanvasCommandReceived();
                 }
 
@@ -369,14 +379,14 @@ export default function PeerConnector({debugLevel, PeerClass}) {
                 handleNewDrawnLinesReceived(payload);
 
             } else if (type === messageTypes.message) {
-                handleChatMessageReceived(remotePeerId, payload, (drawerPeerId === localPeerIdRef.current) && _isMessageACorrectGuess(payload, latestRound.phrase));
+                handleChatMessageReceived(remotePeerId, payload, (drawerPeerIdRef.current === localPeerIdRef.current) && _isMessageACorrectGuess(payload, latestRoundRef.current.phrase));
 
             } else if (type === messageTypes.gameState) {
                 /** @type {GameStateToSendToNewPeer} */
                 const gameState = payload;
                 handleGameStateReceived(gameState);
                 /* Connect to other clients as client (_connectToOtherClientsAsClient) */
-                console.log('Connecting to other clients: ' + gameState.peerIds.join(', '));
+                logger.info('Connecting to other clients: ' + gameState.peerIds.join(', '));
                 gameState.peerIds.map(peerId => {
                     addConnection(peerId, false, false);
                     const newConnection = connectToPeerFunctionRef.current(peerId, {metadata: {hostPeerId: hostPeerIdRef.current/*, label: undefined, serialization: 'json', reliable: true*/}});
@@ -386,9 +396,8 @@ export default function PeerConnector({debugLevel, PeerClass}) {
             } else if (type === messageTypes.localPlayerData) {
                 handlePlayerDataReceived(payload);
 
-            } else if (debugLevel >= 2) {
-                console.warn('Invalid data received from peer. Type: ' + type);
-                console.warn(payload);
+            } else {
+                logger.warning('Invalid data received from peer. Type: ' + type, payload);
             }
         }
     }

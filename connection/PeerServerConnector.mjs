@@ -1,4 +1,5 @@
 import {useConfig} from "../app/components/ConfigProvider.mjs";
+import {useLogger} from "../app/components/LoggerProvider.mjs";
 import {useState, useEffect} from "../web_modules/react.js";
 import {useSelector, useDispatch} from "../web_modules/react-redux.js";
 import {connectionListenerStatus} from './connection-listener-status.mjs';
@@ -12,8 +13,9 @@ function generateRandomId(length) {
     return Math.random().toString(36).substr(2, length);
 }
 
-export default function PeerServerConnector({peerCreatedCallback, debugLevel}) {
+export default function PeerServerConnector({peerCreatedCallback}) {
     const config = useConfig();
+    const logger = useLogger();
     const defaultIdLength = 2;
     const [peer, setPeer] = useState(null);
     const [idLength, setIdLength] = useState(defaultIdLength);
@@ -78,10 +80,7 @@ export default function PeerServerConnector({peerCreatedCallback, debugLevel}) {
             setPeer(createPeer());
             setIdLength(x => x + 1);
         } else {
-            if (debugLevel >= 1) {
-                console.log('Peer error.');
-                console.log(error);
-            }
+            logger.error('Peer error.', error);
         }
     }
 };

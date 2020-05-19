@@ -1,9 +1,14 @@
 export default class ConnectionPool {
-    constructor() {
+    /**
+     * @param {ConsoleLogger} logger
+     */
+    constructor({logger}) {
         /** @type {DataConnection[]} */
         this._connections = [];
         /** @type {DataConnection} */
         this._connectionToHost = null;
+        /** @type {ConsoleLogger} */
+        this._logger = logger;
     }
 
     /**
@@ -21,8 +26,7 @@ export default class ConnectionPool {
         if (this._connections.indexOf(connection) >= 0) {
             this._connections.splice(this._connections.indexOf(connection), 1);
         } else {
-            console.error('Weird thing just happened.');
-            console.error(connection);
+            this._logger.error('A weird thing just happened.', connection);
         }
     }
 

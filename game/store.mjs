@@ -341,7 +341,7 @@ function _addNewGuess(state, newGuess) {
     const currentRound = state.rounds[state.rounds.length - 1];
     const guesserPlayer = state.remotePlayers.find(player => player.peerId === newGuess.guesserPeerId);
     if (!guesserPlayer) {
-        console.log('It\'s weird. Can\'t find the guesser player.');
+        console.error('It\'s weird. Can\'t find the guesser player.');
     }
     currentRound.trials[currentRound.trials.length - 1].guesses.push({
         guessDateTimeString: new Date().toISOString(),
