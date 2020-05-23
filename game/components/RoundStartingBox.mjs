@@ -17,6 +17,8 @@ export const RoundStartingBox = () => {
     const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
     const isRoundStarting = latestTrial.trialResult === trialResult.starting;
     const startingDateTime = latestTrial.startingDateTimeString ? new Date(latestTrial.startingDateTimeString) : undefined;
+    const startingDateTimeRef = useRef(null);
+    startingDateTimeRef.current = startingDateTime;
     const isLocalPlayerDrawing = useSelector(state => latestRound.drawer.peerId === state.game.localPlayer.peerId);
     useEffect(() => {
         updateSecondsRemaining();
@@ -56,8 +58,8 @@ export const RoundStartingBox = () => {
      * @private
      */
     function updateSecondsRemaining() {
-        setSecondsRemaining(startingDateTime
-            ? (startingDateTime.getTime() + (config.game.roundCountdownLengthInSeconds * 1000) - (new Date()).getTime()) / 1000
+        setSecondsRemaining(startingDateTimeRef.current
+            ? (startingDateTimeRef.current.getTime() + (config.game.roundCountdownLengthInSeconds * 1000) - (new Date()).getTime()) / 1000
             : undefined);
     }
 
