@@ -70,6 +70,8 @@ export default function PeerConnector() {
     drawerPeerIdRef.current = drawerPeerId;
     const currentConnectionListenerStatus = useSelector(state => state.connection.connectionListenerStatus);
     const connections = useSelector(state => state.connection.connections);
+    const connectionsRef = useRef(null);
+    connectionsRef.current = connections;
     const localPlayer = useSelector(state => state.game.localPlayer);
     const localPlayerRef = useRef(null);
     localPlayerRef.current = localPlayer;
@@ -259,7 +261,7 @@ export default function PeerConnector() {
     }, [latestTrial, chatMessages, drawnLines, rounds, isGameStarted]);
 
     function onConnection(connection) {
-        if ((connections.length === 0 && (connection.metadata.hostPeerId === localPeerIdRef.current))) {
+        if ((connectionsRef.current.length === 0 && (connection.metadata.hostPeerId === localPeerIdRef.current))) {
             /* Receiving connection as a host --> become the host */
             logger.info('Connection received from ' + connection.peer + ', we became the host.');
             addConnection(connection.peer, true, true);
@@ -271,7 +273,7 @@ export default function PeerConnector() {
             _setUpConnectionEventHandlers(connection);
         } else {
             logger.info('Invalid connection received from ' + connection.peer + '. (localPeerId: ' + localPeerIdRef.current
-                + ', hostPeerId: ' + hostPeerIdRef.current + ', connections: ' + connections.length + ')', connection, localPeerIdRef.current);
+                + ', hostPeerId: ' + hostPeerIdRef.current + ', connections: ' + connectionsRef.current.length + ')', connection, localPeerIdRef.current);
             connection.on('open', () => connection.close(), null);
         }
     }
