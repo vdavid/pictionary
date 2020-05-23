@@ -92,6 +92,84 @@ export default function PeerConnector() {
 
     const dispatch = useDispatch();
 
+    // noinspection JSUnusedGlobalSymbols
+    useEffect(() => {
+        /* Connect to host if requested so */
+        if (currentConnectionListenerStatus === connectionListenerStatus.shouldConnectToHost) {
+            if (hostPeerId !== localPeerId) {
+                logger.info('Connecting to ' + hostPeerId);
+                addConnection(hostPeerId, false, true);
+                const newConnection = connectToPeerFunctionRef.current(hostPeerId, {metadata: {hostPeerId: hostPeerId/*, label: undefined, serialization: 'json', reliable: true*/}});
+                _setUpConnectionEventHandlers(newConnection);
+                setListenerStatus(connectionListenerStatus.connectingToHost, localPeerId);
+            } else {
+                setListenerStatus(connectionListenerStatus.listeningForConnections, localPeerId);
+                logger.notice('Can\'t connect to self.');
+            }
+        }
+
+        /* Send "round solved" message */
+        if ((drawerPeerId === localPeerId)
+            && (!previousLatestTrialRef.current.endedDateTimeString && latestTrial.endedDateTimeString)
+            && ([trialResult.solved, trialResult.failed].includes(latestTrial.trialResult))) {
+            _sendToAllPeers(messageTypes.roundSolved, {
+                phrase: latestRound.phrase,
+                solverPeerId: latestRound.solver.peerId,
+                solutionDateTimeString: latestTrial.endedDateTimeString
+            });
+        }
+
+        /* Send out new chat messages */
+        if (chatMessages.length > previousChatMessagesRef.current.length) {
+            /** @type {ChatMessage[]} messagesToParse */
+            const messagesToParse = chatMessages.slice(previousChatMessagesRef.current.length);
+            messagesToParse.forEach(message => {
+                if (message.senderPeerId === localPeerId) {
+                    /* Don't allow the drawer to send the solution */
+                    if ((localPeerId !== drawerPeerId) || !_isMessageACorrectGuess(message.text)) {
+                        _sendToAllPeers(messageTypes.message, message.text);
+                    }
+                }
+            });
+            setMessageSent();
+        }
+
+        /* Send new lines and "clear canvas" commands if this is the drawer */
+        if (drawerPeerId === localPeerId) {
+            if (drawnLines.length > previousDrawnLinesRef.current.length) {
+                _sendToAllPeers(messageTypes.newLines, drawnLines.slice(previousDrawnLinesRef.current.length));
+            } else if (drawnLines.length < previousDrawnLinesRef.current.length) {
+                _sendToAllPeers(messageTypes.clearCanvasCommand, null);
+            }
+        }
+
+        /* Send "start game" signal to everyone if this is the host */
+        if ((localPeerId === hostPeerId) && (!previousIsGameStartedRef.current && isGameStarted)) {
+            _sendToAllPeers(messageTypes.startGameSignal, gameStartedDateTimeString);
+        }
+
+        /* Send "start round" signal to everyone if this is the host */
+        if ((localPeerId === hostPeerId) && (rounds.length > previousRoundsRef.current.length)) {
+            _sendToAllPeers(messageTypes.startRoundSignal, {
+                roundStartingDateTimeString: latestRound.trials[0].startingDateTimeString,
+                drawerPeerId: latestRound.drawer.peerId
+            });
+        }
+
+        /* Send "end game" signal to everyone if this is the host */
+        if ((localPeerId === hostPeerId) && (previousIsGameStartedRef.current && !isGameStarted)) {
+            _sendToAllPeers(messageTypes.endGameSignal, gameEndedDateTimeString);
+        }
+        previousLatestTrialRef.current = latestTrial;
+        previousChatMessagesRef.current = chatMessages;
+        previousDrawnLinesRef.current = drawnLines;
+        previousRoundsRef.current = rounds;
+        previousIsGameStartedRef.current = isGameStarted;
+    }, [latestTrial, chatMessages, drawnLines, rounds, isGameStarted]);
+
+    // noinspection JSUnusedGlobalSymbols – peerCreatedCallback is actually used in PeerServerConnector.
+    return React.createElement(PeerServerConnector, {setListenerStatus, peerCreatedCallback});
+
     /**
      * @param {string} remotePeerId
      * @param {boolean} isIncoming
@@ -185,80 +263,12 @@ export default function PeerConnector() {
         }
     }
 
-    // noinspection JSUnusedGlobalSymbols
-    useEffect(() => {
-        /* Connect to host if requested so */
-        if (currentConnectionListenerStatus === connectionListenerStatus.shouldConnectToHost) {
-            if (hostPeerId !== localPeerId) {
-                logger.info('Connecting to ' + hostPeerId);
-                addConnection(hostPeerId, false, true);
-                const newConnection = connectToPeerFunctionRef.current(hostPeerId, {metadata: {hostPeerId: hostPeerId/*, label: undefined, serialization: 'json', reliable: true*/}});
-                _setUpConnectionEventHandlers(newConnection);
-                setListenerStatus(connectionListenerStatus.connectingToHost, localPeerId);
-            } else {
-                setListenerStatus(connectionListenerStatus.listeningForConnections, localPeerId);
-                logger.notice('Can\'t connect to self.');
-            }
-        }
+    function peerCreatedCallback(peer) {
+        /* Handle incoming connections */
+        peer.on('connection', onConnection, null);
 
-        /* Send "round solved" message */
-        if ((drawerPeerId === localPeerId)
-            && (!previousLatestTrialRef.current.endedDateTimeString && latestTrial.endedDateTimeString)
-            && ([trialResult.solved, trialResult.failed].includes(latestTrial.trialResult))) {
-            _sendToAllPeers(messageTypes.roundSolved, {
-                phrase: latestRound.phrase,
-                solverPeerId: latestRound.solver.peerId,
-                solutionDateTimeString: latestTrial.endedDateTimeString
-            });
-        }
-
-        /* Send out new chat messages */
-        if (chatMessages.length > previousChatMessagesRef.current.length) {
-            /** @type {ChatMessage[]} messagesToParse */
-            const messagesToParse = chatMessages.slice(previousChatMessagesRef.current.length);
-            messagesToParse.forEach(message => {
-                if (message.senderPeerId === localPeerId) {
-                    /* Don't allow the drawer to send the solution */
-                    if ((localPeerId !== drawerPeerId) || !_isMessageACorrectGuess(message.text)) {
-                        _sendToAllPeers(messageTypes.message, message.text);
-                    }
-                }
-            });
-            setMessageSent();
-        }
-
-        /* Send new lines and "clear canvas" commands if this is the drawer */
-        if (drawerPeerId === localPeerId) {
-            if (drawnLines.length > previousDrawnLinesRef.current.length) {
-                _sendToAllPeers(messageTypes.newLines, drawnLines.slice(previousDrawnLinesRef.current.length));
-            } else if (drawnLines.length < previousDrawnLinesRef.current.length) {
-                _sendToAllPeers(messageTypes.clearCanvasCommand, null);
-            }
-        }
-
-        /* Send "start game" signal to everyone if this is the host */
-        if ((localPeerId === hostPeerId) && (!previousIsGameStartedRef.current && isGameStarted)) {
-            _sendToAllPeers(messageTypes.startGameSignal, gameStartedDateTimeString);
-        }
-
-        /* Send "start round" signal to everyone if this is the host */
-        if ((localPeerId === hostPeerId) && (rounds.length > previousRoundsRef.current.length)) {
-            _sendToAllPeers(messageTypes.startRoundSignal, {
-                roundStartingDateTimeString: latestRound.trials[0].startingDateTimeString,
-                drawerPeerId: latestRound.drawer.peerId
-            });
-        }
-
-        /* Send "end game" signal to everyone if this is the host */
-        if ((localPeerId === hostPeerId) && (previousIsGameStartedRef.current && !isGameStarted)) {
-            _sendToAllPeers(messageTypes.endGameSignal, gameEndedDateTimeString);
-        }
-        previousLatestTrialRef.current = latestTrial;
-        previousChatMessagesRef.current = chatMessages;
-        previousDrawnLinesRef.current = drawnLines;
-        previousRoundsRef.current = rounds;
-        previousIsGameStartedRef.current = isGameStarted;
-    }, [latestTrial, chatMessages, drawnLines, rounds, isGameStarted]);
+        connectToPeerFunctionRef.current = peer.connect.bind(peer);
+    }
 
     function onConnection(connection) {
         if ((connectionsRef.current.length === 0 && (connection.metadata.hostPeerId === localPeerIdRef.current))) {
@@ -276,16 +286,6 @@ export default function PeerConnector() {
                 + ', hostPeerId: ' + hostPeerIdRef.current + ', connections: ' + connectionsRef.current.length + ')', connection, localPeerIdRef.current);
             connection.on('open', () => connection.close(), null);
         }
-    }
-
-    // noinspection JSUnusedGlobalSymbols – peerCreatedCallback is actually used in PeerServerConnector.
-    return React.createElement(PeerServerConnector, {setListenerStatus, peerCreatedCallback});
-
-    function peerCreatedCallback(peer) {
-        /* Handle incoming connections */
-        peer.on('connection', onConnection, null);
-
-        connectToPeerFunctionRef.current = peer.connect.bind(peer);
     }
 
     /**
@@ -334,13 +334,13 @@ export default function PeerConnector() {
             rounds: roundsRef.current,
         };
 
-        debugLoggerRef.current.logOutgoingMessage(recipientPeerId, messageTypes.gameState, gameState);
+        debugLoggerRef.current.logOutgoingMessage(recipientPeerId, messageTypes.gameState, gameState, currentRoundIndexRef.current);
 
         connectionPoolRef.current.getByPeerId(recipientPeerId).send({type: messageTypes.gameState, payload: gameState});
     }
 
     function _sendLocalPlayerDataToClient(recipientPeerId) {
-        debugLoggerRef.current.logOutgoingMessage(recipientPeerId, messageTypes.localPlayerData, localPlayerRef.current);
+        debugLoggerRef.current.logOutgoingMessage(recipientPeerId, messageTypes.localPlayerData, localPlayerRef.current, currentRoundIndexRef.current);
         connectionPoolRef.current.getByPeerId(recipientPeerId).send({
             type: messageTypes.localPlayerData,
             payload: localPlayerRef.current
