@@ -41,6 +41,9 @@ export default function PeerConnector() {
     const debugLoggerRef = useRef(new ConnectionDebugLogger({logger}));
 
     const latestRound = useSelector(state => (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []});
+    const currentRoundIndex = useSelector(state => state.game.rounds.length - 1);
+    const currentRoundIndexRef = useRef(null);
+    currentRoundIndexRef.current = currentRoundIndex;
     const latestRoundRef = useRef(null);
     latestRoundRef.current = latestRound;
     const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
@@ -348,8 +351,7 @@ export default function PeerConnector() {
      * @private
      */
     function _handleConnectionDataReceived(remotePeerId, {type, payload}) {
-        logger.debug('Data received from ' + remotePeerId + ': ' + type);
-        debugLoggerRef.current.logIncomingMessage(remotePeerId, type, payload);
+        debugLoggerRef.current.logIncomingMessage(remotePeerId, type, payload, currentRoundIndexRef.current);
 
         if (type === messageTypes.startGameSignal) {
             handleStartGameSignalReceived(payload);
@@ -412,7 +414,7 @@ export default function PeerConnector() {
      * @private
      */
     function _sendToAllPeers(type, payload) {
-        debugLoggerRef.current.logOutgoingMessage('all', type, payload);
+        debugLoggerRef.current.logOutgoingMessage('all', type, payload, currentRoundIndexRef.current);
 
         // noinspection JSUnresolvedFunction
         connectionPoolRef.current.getAllConnections().forEach(connection => connection.send({type, payload}));
