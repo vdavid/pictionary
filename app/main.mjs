@@ -15,8 +15,8 @@ const config = getConfig();
 ReactDOM.render(
     React.createElement(ConfigProvider, {config},
         React.createElement(LoggerProvider, {minimumLogLevel: config.minimumLogLevel},
-            React.createElement(MuiThemeProvider, {theme},
-                React.createElement(ReduxProvider, {store},
+            React.createElement(ReduxProvider, {store},
+                React.createElement(MuiThemeProvider, {theme},
                     React.createElement(StrictMode, {},
                         React.createElement(App),
                     ),
