@@ -41,8 +41,8 @@ const mainConfig = {
     minimumLogLevel: '', // Will be set to a valid value (e.g. "error") by main.mjs
     game: {
         roundCountdownLengthInSeconds: 3,
-        roundLengthInSeconds: 10,
-        timeExtensionInSeconds: 5,
+        roundLengthInSeconds: 60,
+        timeExtensionInSeconds: 120,
         gameLengthInSeconds: 600,
         checkForNewDrawnLinesIntervalInMilliseconds: 500,
     },
