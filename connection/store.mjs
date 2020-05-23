@@ -205,8 +205,8 @@ function _setConnectionIntroReceived(state, remotePeerId) {
 function _removeConnection(state, remotePeerId) {
     const connectionIndex = state.connections.findIndex(connectionStatus => connectionStatus.remotePeerId === remotePeerId);
     if (connectionIndex > -1) {
-        const deletedConnections = state.connections.splice(connectionIndex, 1);
-        if (deletedConnections[0].isThisTheConnectionToTheHost) {
+        const deletedConnection = state.connections.splice(connectionIndex, 1)[0];
+        if (deletedConnection.isThisTheConnectionToTheHost) {
             state.connectionListenerStatus = connectionListenerStatus.listeningForConnections;
         }
         if (state.connections.length === 0) {
