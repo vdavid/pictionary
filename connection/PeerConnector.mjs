@@ -329,7 +329,7 @@ export default function PeerConnector() {
             rounds: roundsRef.current,
         };
 
-        debugLoggerRef.current.logOutgoingMessage(recipientPeerId, gameState);
+        debugLoggerRef.current.logOutgoingMessage(recipientPeerId, messageTypes.gameState, gameState);
 
         connectionPoolRef.current.getByPeerId(recipientPeerId).send({type: messageTypes.gameState, payload: gameState});
     }
@@ -379,7 +379,7 @@ export default function PeerConnector() {
                 handleNewDrawnLinesReceived(payload);
 
             } else if (type === messageTypes.message) {
-                handleChatMessageReceived(remotePeerId, payload, (drawerPeerIdRef.current === localPeerIdRef.current) && _isMessageACorrectGuess(payload, latestRoundRef.current.phrase));
+                handleChatMessageReceived(remotePeerId, payload, (drawerPeerIdRef.current === localPeerIdRef.current) && _isMessageACorrectGuess(payload));
 
             } else if (type === messageTypes.gameState) {
                 /** @type {GameStateToSendToNewPeer} */
@@ -403,7 +403,7 @@ export default function PeerConnector() {
     }
 
     function _isMessageACorrectGuess(message) {
-        return (message.trim().toLowerCase().indexOf(latestRound.phrase.toLowerCase()) > -1);
+        return (message.trim().toLowerCase().indexOf(latestRoundRef.current.phrase.toLowerCase()) > -1);
     }
 
     /**
