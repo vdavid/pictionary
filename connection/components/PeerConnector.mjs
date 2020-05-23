@@ -194,6 +194,13 @@ export default function PeerConnector() {
     function removeConnection(remotePeerId) {
         dispatch(connectionActionCreators.createRemoveConnectionRequest(remotePeerId));
         dispatch(gameActionCreators.createRemoveRemotePlayerRequest(remotePeerId));
+        if (remotePeerId === hostPeerIdRef.current) {
+            logger.info('Connection to the host just ended. Marking game as ended.');
+            dispatch(gameActionCreators.createEndGameRequest(new Date().toISOString()));
+        } else if (remotePlayersRef.current.length === 0) {
+            logger.info('All other players left the game. Marking game as ended.');
+            dispatch(gameActionCreators.createEndGameRequest(new Date().toISOString()));
+        }
     }
 
     function handleStartGameSignalReceived(gameStartedDateTimeString) {
