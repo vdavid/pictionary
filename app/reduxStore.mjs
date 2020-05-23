@@ -1,5 +1,6 @@
 import {applyMiddleware, combineReducers, compose, createStore} from "../web_modules/redux.js";
-const {__REDUX_DEVTOOLS_EXTENSION_COMPOSE__: reduxDevToolsCompose} = window;
+import {getConfig} from "./config.mjs";
+import ConsoleLogger from "./ConsoleLogger.mjs";
 
 import {reducer as appReducer} from './store.mjs';
 import {reducer as connectionReducer} from '../connection/store.mjs';
@@ -14,6 +15,10 @@ import {reducer as gameReducer} from '../game/store.mjs';
  * @property {GameState} game
  */
 
+const {__REDUX_DEVTOOLS_EXTENSION_COMPOSE__: reduxDevToolsCompose} = window;
+const config = getConfig();
+const logger = new ConsoleLogger({minimumLogLevel: config.minimumLogLevel})
+
 const combinedReducer = combineReducers({
     app: appReducer,
     chat: chatReducer,
@@ -22,6 +27,9 @@ const combinedReducer = combineReducers({
 });
 
 // noinspection JSUnresolvedVariable
+if (reduxDevToolsCompose) {
+    logger.info('Redux dev tools connected.')
+}
 const composeEnhancers = reduxDevToolsCompose || compose;
 
 const store = createStore(combinedReducer, composeEnhancers(applyMiddleware()));
