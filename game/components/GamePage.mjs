@@ -75,22 +75,33 @@ export const GamePage = () => {
      * @private
      */
     function _getRandomStartingPlayer() {
+        const maximumAllowedDifference = 1;
         const allPlayers = [localPlayer, ...remotePlayers];
-        const maxDifference = 1;
-        /* Calculate how many times each player was the drawer */
-        const drawerCounts = allPlayers.reduce((counts, player) => {
-            counts[player.peerId] = 0;
-            return counts;
-        }, {});
-        rounds.forEach(round => drawerCounts[round.drawer.peerId]++);
 
-        const maxDrawerCount = Math.max(...Object.values(drawerCounts));
-        const idlePlayerPeerIds = Object.entries(drawerCounts).filter(([, drawerCount]) => drawerCount <= maxDrawerCount - maxDifference).map(([peerId]) => peerId);
+        const peerIdToDrawCountMap = _calculateHowManyTimesEachPlayerDrew(allPlayers, rounds);
+        const maxDrawerCount = Math.max(...Object.values(peerIdToDrawCountMap));
+        const potentialNextDrawerPeerIds = Object.entries(peerIdToDrawCountMap).filter(([, drawerCount]) => drawerCount <= maxDrawerCount - maximumAllowedDifference).map(([peerId]) => peerId);
 
         /* Select players */
-        const potentialNextDrawers = idlePlayerPeerIds.length
-            ? allPlayers.filter(player => idlePlayerPeerIds.includes(player.peerId)) : allPlayers;
+        const potentialNextDrawers = potentialNextDrawerPeerIds.length
+            ? allPlayers.filter(player => potentialNextDrawerPeerIds.includes(player.peerId)) : allPlayers;
 
-        return potentialNextDrawers[Math.floor(Math.random() * potentialNextDrawers.length)];
+        /* This used to be random, but now we just return the first potential drawer to do a simple rotation. */
+        return potentialNextDrawers[0];
+    }
+
+    /**
+     * @param {Player[]} allPlayers
+     * @param {RoundLog[]} rounds
+     * @returns {Object<string, int>} Map: Keys: Peer IDs. Values: The number of times the player drew during the game.
+     * @private
+     */
+    function _calculateHowManyTimesEachPlayerDrew(allPlayers, rounds) {
+        const drawerCounts = allPlayers.reduce((emptyCounts, player) => {
+            emptyCounts[player.peerId] = 0;
+            return emptyCounts;
+        }, {});
+        rounds.forEach(round => drawerCounts[round.drawer.peerId]++);
+        return drawerCounts;
     }
 };
