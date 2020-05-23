@@ -181,7 +181,9 @@ function _setGameState(state, receivedGameState) {
 
     /* Replace null phrase with the stores phrase if this is the drawer */
     const latestRoundInNewState = (state.rounds.length > 0) ? state.rounds[state.rounds.length - 1] : {trials: []};
-    if ((latestRoundInNewState.drawer.peerId === state.localPlayer.peerId) &&  latestRoundInNewState.phrase === null) {
+    if (latestRoundInNewState.drawer
+        && (latestRoundInNewState.drawer.peerId === state.localPlayer.peerId)
+        && latestRoundInNewState.phrase === null) {
         latestRoundInNewState.phrase = phrase;
     }
 }
