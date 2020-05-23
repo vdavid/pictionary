@@ -1,19 +1,19 @@
-import React, {useEffect, useRef} from "../web_modules/react.js";
-import {useSelector, useDispatch} from "../web_modules/react-redux.js";
+import React, {useEffect, useRef} from "../../web_modules/react.js";
+import {useSelector, useDispatch} from "../../web_modules/react-redux.js";
 
-import {actionCreators as connectionActionCreators} from './store.mjs';
-import {actionCreators as gameActionCreators} from '../game/store.mjs';
-import {actionCreators as chatActionCreators} from '../chat/store.mjs';
+import {actionCreators as connectionActionCreators} from '../store.mjs';
+import {actionCreators as gameActionCreators} from '../../game/store.mjs';
+import {actionCreators as chatActionCreators} from '../../chat/store.mjs';
 
-import ConnectionPool from './ConnectionPool.mjs';
+import ConnectionPool from '../ConnectionPool.mjs';
 import PeerServerConnector from './PeerServerConnector.mjs';
-import ConnectionDebugLogger from './ConnectionDebugLogger.mjs';
+import ConnectionDebugLogger from '../ConnectionDebugLogger.mjs';
 
-import {connectionListenerStatus} from './connection-listener-status.mjs';
-import {messageTypes} from './message-types.mjs';
-import {trialResult} from '../game/trial-result.mjs';
-import {getRandomPhrase} from '../data/phrases.mjs';
-import {useLogger} from "../app/components/LoggerProvider.mjs";
+import {connectionListenerStatus} from '../connection-listener-status.mjs';
+import {messageTypes} from '../message-types.mjs';
+import {trialResult} from '../../game/trial-result.mjs';
+import {getRandomPhrase} from '../../data/phrases.mjs';
+import {useLogger} from "../../app/components/LoggerProvider.mjs";
 
 /**
  * Documentation: https://docs.peerjs.com/

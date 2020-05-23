@@ -1,7 +1,7 @@
 import React from "../../web_modules/react.js";
 import {BrowserRouter, Switch, Route, Redirect, Link} from "../../web_modules/react-router-dom.js";
 import {GamePage} from '../../game/components/GamePage.mjs';
-import PeerConnector from '../../connection/PeerConnector.mjs';
+import PeerConnector from '../../connection/components/PeerConnector.mjs';
 import {ConnectionStatusIndicator} from '../../connection/components/ConnectionStatusIndicator.mjs';
 
 export function App() {

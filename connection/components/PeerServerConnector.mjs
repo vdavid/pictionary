@@ -1,10 +1,10 @@
-import {useConfig} from "../app/components/ConfigProvider.mjs";
-import {useLogger} from "../app/components/LoggerProvider.mjs";
-import {useState, useEffect} from "../web_modules/react.js";
-import {useSelector, useDispatch} from "../web_modules/react-redux.js";
-import {connectionListenerStatus} from './connection-listener-status.mjs';
-import {actionCreators as connectionActionCreators} from "./store.mjs";
-import {actionCreators as gameActionCreators} from "../game/store.mjs";
+import {useConfig} from "../../app/components/ConfigProvider.mjs";
+import {useLogger} from "../../app/components/LoggerProvider.mjs";
+import {useState, useEffect} from "../../web_modules/react.js";
+import {useSelector, useDispatch} from "../../web_modules/react-redux.js";
+import {connectionListenerStatus} from '../connection-listener-status.mjs';
+import {actionCreators as connectionActionCreators} from "../store.mjs";
+import {actionCreators as gameActionCreators} from "../../game/store.mjs";
 
 /**
  * @param {int} length
