@@ -102,18 +102,30 @@ function _getStateCopy(state) {
 
 export const actionCreators = {
     createUpdateLocalPlayerNameRequest: (name) => ({type: actionTypes.UPDATE_LOCAL_PLAYER_NAME_REQUEST, payload: name}),
-    createUpdateLocalPlayerPeerIdRequest: (name) => ({type: actionTypes.UPDATE_LOCAL_PLAYER_PEER_ID_REQUEST, payload: name}),
-    createAddOrUpdateRemotePlayerRequest: (remotePlayer) => ({type: actionTypes.ADD_OR_UPDATE_REMOTE_PLAYER_REQUEST, payload: remotePlayer}),
+    createUpdateLocalPlayerPeerIdRequest: (name) => ({
+        type: actionTypes.UPDATE_LOCAL_PLAYER_PEER_ID_REQUEST,
+        payload: name
+    }),
+    createAddOrUpdateRemotePlayerRequest: (remotePlayer) => ({
+        type: actionTypes.ADD_OR_UPDATE_REMOTE_PLAYER_REQUEST,
+        payload: remotePlayer
+    }),
     createRemoveRemotePlayerRequest: (peerId) => ({type: actionTypes.REMOVE_REMOTE_PLAYER_REQUEST, payload: peerId}),
 
     createSetGameStateRequest: (gameState) => ({type: actionTypes.SET_GAME_STATE_REQUEST, payload: gameState}),
     createStartGameRequest: (dateTimeString) => ({type: actionTypes.START_GAME_REQUEST, payload: dateTimeString}),
     createEndGameRequest: (dateTimeString) => ({type: actionTypes.END_GAME_REQUEST, payload: dateTimeString}),
 
-    createStartRoundRequest: (dateTimeString, nextDrawerPeerId, phrase) => ({type: actionTypes.START_ROUND_REQUEST, payload: {dateTimeString, nextDrawerPeerId, phrase}}),
+    createStartRoundRequest: (dateTimeString, nextDrawerPeerId, phrase) => ({
+        type: actionTypes.START_ROUND_REQUEST,
+        payload: {dateTimeString, nextDrawerPeerId, phrase}
+    }),
     createStartRoundSuccess: () => ({type: actionTypes.START_ROUND_SUCCESS}),
     createMarkRoundBaseTimeElapsedRequest: () => ({type: actionTypes.MARK_ROUND_BASE_TIME_ELAPSED}),
-    createMarkRoundEndedRequest: (phrase, solverPeerId, solutionDateTimeString) => ({type: actionTypes.MARK_ROUND_ENDED_REQUEST, payload: {phrase, solverPeerId, solutionDateTimeString}}),
+    createMarkRoundEndedRequest: (phrase, solverPeerId, solutionDateTimeString) => ({
+        type: actionTypes.MARK_ROUND_ENDED_REQUEST,
+        payload: {phrase, solverPeerId, solutionDateTimeString}
+    }),
     createSaveNewLinesRequest: (newLines) => ({type: actionTypes.SAVE_NEW_LINES_REQUEST, payload: newLines}),
     createClearRequest: (newLines) => ({type: actionTypes.CLEAR_REQUEST, payload: newLines}),
     createAddNewGuessRequest: (guess) => ({type: actionTypes.ADD_NEW_GUESS_REQUEST, payload: guess}),
