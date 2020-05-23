@@ -9,8 +9,10 @@ export const RoundStartingBox = () => {
     const [secondsRemaining, setSecondsRemaining] = useState(0);
     const [, setIntervalTimer] = useState(null);
     const intervalTimerRef = useRef(null);
-    const setIntervalTimerWithRef = (value) => { setIntervalTimer(value); intervalTimerRef.current = value; };
-    const [startRoundTimer, setStartRoundTimer] = useState(null);
+    const setIntervalTimerWithRef = (value) => {
+        setIntervalTimer(value);
+        intervalTimerRef.current = value;
+    };
     const dispatch = useDispatch();
 
     const latestRound = useSelector(state => (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []});
@@ -25,22 +27,27 @@ export const RoundStartingBox = () => {
     }, []);
 
     useEffect(() => {
+        let startRoundTimer;
         if (isRoundStarting && !intervalTimerRef.current) {
             setIntervalTimerWithRef(isRoundStarting ? setInterval(updateSecondsRemaining, 1000) : null);
-            setStartRoundTimer(isRoundStarting ? setTimeout(timeIsUp, config.game.roundCountdownLengthInSeconds * 1000) : null);
+            startRoundTimer = isRoundStarting ? setTimeout(timeIsUp, config.game.roundCountdownLengthInSeconds * 1000) : null;
         } else if (!isRoundStarting && intervalTimerRef.current) {
             clearInterval(intervalTimerRef.current);
             setIntervalTimerWithRef(null);
-            clearInterval(startRoundTimer);
-            setStartRoundTimer(null);
+            if (startRoundTimer) {
+                clearInterval(startRoundTimer);
+                startRoundTimer = null;
+            }
         }
 
         return () => {
             if (intervalTimerRef.current) {
                 clearInterval(intervalTimerRef.current);
                 setIntervalTimerWithRef(null);
+            }
+            if (startRoundTimer) {
                 clearInterval(startRoundTimer);
-                setStartRoundTimer(null);
+                startRoundTimer = null;
             }
         };
     }, [startingDateTime.toISOString(), isRoundStarting]);

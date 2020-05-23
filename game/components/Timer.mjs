@@ -27,7 +27,6 @@ export const Timer = () => {
     const config = useConfig();
     const [gameSecondsRemaining, setGameSecondsRemaining] = useState(0);
     const [roundSecondsRemaining, setRoundSecondsRemaining] = useState(0);
-    const [intervalTimer, setIntervalTimer] = useState(null);
     const dispatch = useDispatch();
 
     const latestRound = useSelector(state => (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []});
@@ -57,21 +56,16 @@ export const Timer = () => {
 
     useEffect(() => {
         updateSecondsRemaining();
-
-        return () => {
-            if (intervalTimer) {
-                clearInterval(intervalTimer);
-            }
-        };
     }, []);
 
     useEffect(() => {
+        let intervalTimer;
         if (!intervalTimer && isRoundStarted) {
             updateSecondsRemaining();
-            setIntervalTimer(setInterval(updateSecondsRemaining, 1000));
+            intervalTimer = setInterval(updateSecondsRemaining, 1000);
         } else if (intervalTimer && !isRoundStarted) {
             clearInterval(intervalTimer);
-            setIntervalTimer(null);
+            intervalTimer = null;
         }
 
         return () => {

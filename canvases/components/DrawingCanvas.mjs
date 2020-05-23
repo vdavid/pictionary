@@ -27,7 +27,6 @@ export const DrawingCanvas = () => {
     const [lastX, setLastX] = useState(undefined);
     /** @type {Number|undefined} */
     const [lastY, setLastY] = useState(undefined);
-    const [timer, setTimer] = useState(null);
     const drawingCanvas = useRef(null);
     const [drawingTools, setDrawingTools] = useState(null);
     const dispatch = useDispatch();
@@ -53,11 +52,10 @@ export const DrawingCanvas = () => {
             newDrawingTools.clearCanvas();
             lines.map(line => newDrawingTools.drawLine(line));
 
-            setTimer(setInterval(sendNewlyDrawnLines, config.game.checkForNewDrawnLinesIntervalInMilliseconds));
+            const timer = setInterval(sendNewlyDrawnLines, config.game.checkForNewDrawnLinesIntervalInMilliseconds);
 
             return () => {
                 clearInterval(timer);
-                setTimer(null);
             };
         }
     }, [drawingCanvas.current]);
