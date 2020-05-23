@@ -184,10 +184,10 @@ export default function PeerConnector() {
     useEffect(() => {
         /* Connect to host if requested so */
         if (currentConnectionListenerStatus === connectionListenerStatus.shouldConnectToHost) {
-            if (hostPeerIdRef.current !== localPeerIdRef.current) {
-                logger.info('Connecting to ' + hostPeerIdRef.current);
-                addConnection(hostPeerIdRef.current, false, true);
-                const newConnection = connectToPeerFunctionRef.current(hostPeerIdRef.current, {metadata: {hostPeerId: hostPeerIdRef.current/*, label: undefined, serialization: 'json', reliable: true*/}});
+            if (hostPeerId !== localPeerId) {
+                logger.info('Connecting to ' + hostPeerId);
+                addConnection(hostPeerId, false, true);
+                const newConnection = connectToPeerFunctionRef.current(hostPeerId, {metadata: {hostPeerId: hostPeerId/*, label: undefined, serialization: 'json', reliable: true*/}});
                 _setUpConnectionEventHandlers(newConnection);
                 setListenerStatus(connectionListenerStatus.connectingToHost, localPeerId);
             } else {
@@ -223,7 +223,7 @@ export default function PeerConnector() {
         }
 
         /* Send new lines and "clear canvas" commands if this is the drawer */
-        if (drawerPeerId === localPeerIdRef.current) {
+        if (drawerPeerId === localPeerId) {
             if (drawnLines.length > previousDrawnLinesRef.current.length) {
                 _sendToAllPeers(messageTypes.newLines, drawnLines.slice(previousDrawnLinesRef.current.length));
             } else if (drawnLines.length < previousDrawnLinesRef.current.length) {
@@ -232,12 +232,12 @@ export default function PeerConnector() {
         }
 
         /* Send "start game" signal to everyone if this is the host */
-        if ((localPeerIdRef.current === hostPeerIdRef.current) && (!previousIsGameStartedRef.current && isGameStarted)) {
+        if ((localPeerId === hostPeerId) && (!previousIsGameStartedRef.current && isGameStarted)) {
             _sendToAllPeers(messageTypes.startGameSignal, gameStartedDateTimeString);
         }
 
         /* Send "start round" signal to everyone if this is the host */
-        if ((localPeerIdRef.current === hostPeerIdRef.current) && (rounds.length > previousRoundsRef.current.length)) {
+        if ((localPeerId === hostPeerId) && (rounds.length > previousRoundsRef.current.length)) {
             _sendToAllPeers(messageTypes.startRoundSignal, {
                 roundStartingDateTimeString: latestRound.trials[0].startingDateTimeString,
                 drawerPeerId: latestRound.drawer.peerId
@@ -245,7 +245,7 @@ export default function PeerConnector() {
         }
 
         /* Send "end game" signal to everyone if this is the host */
-        if ((localPeerIdRef.current === hostPeerIdRef.current) && (previousIsGameStartedRef.current && !isGameStarted)) {
+        if ((localPeerId === hostPeerId) && (previousIsGameStartedRef.current && !isGameStarted)) {
             _sendToAllPeers(messageTypes.endGameSignal, gameEndedDateTimeString);
         }
         previousLatestTrialRef.current = latestTrial;
