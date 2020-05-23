@@ -27,13 +27,17 @@ export const DrawingCanvas = () => {
     const [lastX, setLastX] = useState(undefined);
     /** @type {Number|undefined} */
     const [lastY, setLastY] = useState(undefined);
-    const drawingCanvas = useRef(null);
+    const drawingCanvasRef = useRef(null);
     const [drawingTools, setDrawingTools] = useState(null);
+    const drawingToolsRef = useRef(null);
+    drawingToolsRef.current = drawingTools;
     const dispatch = useDispatch();
 
     const latestRound = useSelector(state => (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []});
     const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
     const lines = latestTrial.lines || [];
+    const linesRef = useRef(null);
+    linesRef.current = lines;
     const isRoundStarted = latestTrial.trialResult === trialResult.ongoing;
     useEffect(() => {
         window.addEventListener('resize', clearAndRedraw);
@@ -44,8 +48,8 @@ export const DrawingCanvas = () => {
     }, []);
 
     useEffect(() => {
-        if (drawingCanvas.current) {
-            const newDrawingTools = new DrawingTools(drawingCanvas.current);
+        if (drawingCanvasRef.current) {
+            const newDrawingTools = new DrawingTools(drawingCanvasRef.current);
             setDrawingTools(newDrawingTools);
 
             newDrawingTools.updateCanvasSiteToItsClientSize();
@@ -58,7 +62,7 @@ export const DrawingCanvas = () => {
                 clearInterval(timer);
             };
         }
-    }, [drawingCanvas.current]);
+    }, [drawingCanvasRef.current]);
 
     useEffect(() => {
         if (drawingTools) {
@@ -75,7 +79,7 @@ export const DrawingCanvas = () => {
     // noinspection JSUnusedGlobalSymbols – onContextMenu is actually used.
     return React.createElement('canvas', {
         id: 'drawingCanvas',
-        ref: drawingCanvas,
+        ref: drawingCanvasRef,
         onContextMenu: event => event.preventDefault(),
         onPointerDown: handleMouseDown,
         onPointerMove: handleMouseMoved,
@@ -91,10 +95,10 @@ export const DrawingCanvas = () => {
     }
 
     function clearAndRedraw() {
-        if (drawingTools) {
-            drawingTools.updateCanvasSiteToItsClientSize();
-            drawingTools.clearCanvas();
-            lines.map(line => drawingTools.drawLine(line));
+        if (drawingToolsRef.current) {
+            drawingToolsRef.current.updateCanvasSiteToItsClientSize();
+            drawingToolsRef.current.clearCanvas();
+            linesRef.current.map(line => drawingToolsRef.current.drawLine(line));
         }
     }
 
@@ -102,9 +106,9 @@ export const DrawingCanvas = () => {
         if (isRoundStarted) {
             event.preventDefault();
             setIsPenDown(true);
-            setLastX((event.clientX - drawingCanvas.current.getBoundingClientRect().left) / drawingCanvas.current.width);
-            setLastY((event.clientY - drawingCanvas.current.getBoundingClientRect().top) / drawingCanvas.current.height);
-            // drawingTools.drawDot(lastX, lastY);
+            setLastX((event.clientX - drawingCanvasRef.current.getBoundingClientRect().left) / drawingCanvasRef.current.width);
+            setLastY((event.clientY - drawingCanvasRef.current.getBoundingClientRect().top) / drawingCanvasRef.current.height);
+            // drawingToolsRef.current.drawDot(lastX, lastY);
         }
     }
 
@@ -112,11 +116,11 @@ export const DrawingCanvas = () => {
         if (isRoundStarted && isPenDown) {
             event.preventDefault();
 
-            const newX = (event.clientX - drawingCanvas.current.getBoundingClientRect().left) / drawingCanvas.current.width;
-            const newY = (event.clientY - drawingCanvas.current.getBoundingClientRect().top) / drawingCanvas.current.height;
+            const newX = (event.clientX - drawingCanvasRef.current.getBoundingClientRect().left) / drawingCanvasRef.current.width;
+            const newY = (event.clientY - drawingCanvasRef.current.getBoundingClientRect().top) / drawingCanvasRef.current.height;
             const newLine = {x1: lastX, y1: lastY, x2: newX, y2: newY, color: 'black'};
 
-            drawingTools.drawLine(newLine);
+            drawingToolsRef.current.drawLine(newLine);
 
             setLastX(newX);
             setLastY(newY);

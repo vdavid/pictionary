@@ -6,9 +6,13 @@ export const GuessingCanvas = () => {
     const latestRound = useSelector(state => (state.game.rounds.length > 0) ? state.game.rounds[state.game.rounds.length - 1] : {trials: []});
     const latestTrial = (latestRound.trials.length > 0) ? latestRound.trials[latestRound.trials.length - 1] : {};
     const lines = latestTrial.lines || [];
+    const linesRef = useRef(null);
+    linesRef.current = lines;
     const [drawnLineCount, setDrawnLineCount] = useState(0);
     const guessingCanvas = useRef(null);
     const [drawingTools, setDrawingTools] = useState(null);
+    const drawingToolsRef = useRef(null);
+    drawingToolsRef.current = drawingTools;
 
     useEffect(() => {
         if (guessingCanvas.current) {
@@ -37,12 +41,12 @@ export const GuessingCanvas = () => {
     return React.createElement('canvas', {id: 'guessingCanvas', ref: guessingCanvas});
 
     function _clearAndRedraw() {
-        drawingTools.updateCanvasSiteToItsClientSize();
-        drawingTools.clearCanvas();
-        _drawLines(lines);
+        drawingToolsRef.current.updateCanvasSiteToItsClientSize();
+        drawingToolsRef.current.clearCanvas();
+        _drawLines(linesRef.current);
     }
 
     function _drawLines(lines) {
-        lines.map(line => drawingTools.drawLine(line));
+        lines.map(line => drawingToolsRef.current.drawLine(line));
     }
 };
