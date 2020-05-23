@@ -158,10 +158,20 @@ export function reducer(state, action) {
  * @private
  */
 function _setGameState(state, receivedGameState) {
+    /* Store phrase */
+    const latestRound = (state.rounds.length > 0) ? state.rounds[state.rounds.length - 1] : {trials: []};
+    const phrase = latestRound.phrase;
+
     state.isGameStarted = receivedGameState.isGameStarted;
     state.gameStartedDateTimeString = receivedGameState.gameStartedDateTimeString;
     state.gameEndedDateTimeString = receivedGameState.gameEndedDateTimeString;
     state.rounds = receivedGameState.rounds;
+
+    /* Replace null phrase with the stores phrase if this is the drawer */
+    const latestRoundInNewState = (state.rounds.length > 0) ? state.rounds[state.rounds.length - 1] : {trials: []};
+    if ((latestRoundInNewState.drawer.peerId === state.localPlayer.peerId) &&  latestRoundInNewState.phrase === null) {
+        latestRoundInNewState.phrase = phrase;
+    }
 }
 
 /**
